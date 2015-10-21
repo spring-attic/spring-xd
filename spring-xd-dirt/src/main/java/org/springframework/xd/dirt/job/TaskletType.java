@@ -26,6 +26,7 @@ import org.springframework.data.hadoop.batch.mapreduce.ToolTasklet;
 import org.springframework.data.hadoop.batch.pig.PigTasklet;
 import org.springframework.data.hadoop.batch.scripting.ScriptTasklet;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet;
 
 /**
  * Types of {@link org.springframework.batch.core.step.tasklet.Tasklet} implementations known by Spring XD.  These
@@ -75,6 +76,10 @@ public enum TaskletType {
 	 * {@link org.springframework.data.hadoop.batch.mapreduce.ToolTasklet}
 	 */
 	TOOL_TASKLET(ToolTasklet.class.getName(), "Tool Step"),
+	/**
+	 * {@link org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet}
+	 */
+	JOB_LAUNCHING_TASKLET(JobLaunchingTasklet.class.getName(), "Job Launching Tasklet"),
 	/**
 	 * Used when the type of tasklet is unknown to the system
 	 */

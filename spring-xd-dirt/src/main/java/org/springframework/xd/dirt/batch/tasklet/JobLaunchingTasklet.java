@@ -67,11 +67,11 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	public static final String XD_ORCHESTRATION_ID = "xd_orchestration_id";
 
-	//TODO: Make this configurable
-	private long timeout = -1;
+	public static final String XD_PARENT_JOB_EXECUTION_ID = "xd_parent_execution_id";
 
-	//TODO: Make this configurable
-	private long pollInterval = 1000;
+	private long timeout;
+
+	private long pollInterval;
 
 	private String jobName;
 
@@ -93,8 +93,10 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
-			DomainRepository instanceRepository, String jobName) {
+			DomainRepository instanceRepository, String jobName,
+			Long timeout, Long pollInterval) {
 		this(messageBus, jobDefinitionRepository, instanceRepository, jobName,
+				timeout, pollInterval,
 				new DirectChannel(),
 				new PublishSubscribeChannel((new SimpleAsyncTaskExecutor())));
 	}
@@ -112,6 +114,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 	protected JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
+			Long timeout, Long pollInterval,
 			MessageChannel launchingChannel, PublishSubscribeChannel listeningChannel) {
 		Assert.notNull(messageBus, "A message bus is required");
 		Assert.notNull(jobDefinitionRepository, "A JobDefinitionRepository is required");
@@ -124,6 +127,9 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 		this.instanceRepository = instanceRepository;
 		this.launchingChannel = launchingChannel;
 		this.listeningChannel = listeningChannel;
+
+		this.timeout = timeout == null ? -1 : timeout;
+		this.pollInterval = pollInterval == null ? 1000 : pollInterval;
 	}
 
 	/**
@@ -145,8 +151,11 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
 
+		String jobExecutionId = String.valueOf(chunkContext.getStepContext().getStepExecution().getJobExecution().getId());
+
 		JobParameters jobParameters = new JobParametersBuilder(originalJobParameters)
 				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
+				.addParameter(XD_PARENT_JOB_EXECUTION_ID, new JobParameter(jobExecutionId))
 				.toJobParameters();
 
 		String jobParametersString = this.extractor.extract(jobParameters);
@@ -187,7 +196,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	private void configureChannels() {
 		messageBus.bindPubSubConsumer(getEventListenerChannelName(jobName), this.listeningChannel, null);
-		this.listeningChannel.subscribe(this);
+		boolean subscribe = this.listeningChannel.subscribe(this);
 
 		messageBus.bindProducer("job:" + jobName, this.launchingChannel, null);
 	}

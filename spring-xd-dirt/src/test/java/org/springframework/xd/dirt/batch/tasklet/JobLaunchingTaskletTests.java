@@ -15,7 +15,7 @@
  */
 package org.springframework.xd.dirt.batch.tasklet;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.eq;
@@ -92,7 +92,7 @@ public class JobLaunchingTaskletTests {
 		this.listeningChannel = new PublishSubscribeChannel(new SimpleAsyncTaskExecutor());
 		MockitoAnnotations.initMocks(this);
 
-		this.tasklet = new JobLaunchingTasklet(bus, jobDefinitionRepository, instanceRepository, "foo", launchingChannel, listeningChannel);
+		this.tasklet = new JobLaunchingTasklet(bus, jobDefinitionRepository, instanceRepository, "foo", null, null, launchingChannel, listeningChannel);
 	}
 
 	@Test
@@ -374,4 +374,86 @@ public class JobLaunchingTaskletTests {
 
 		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
 	}
+
+	@Test
+	public void testTimeout() throws Exception {
+		this.tasklet = new JobLaunchingTasklet(bus, jobDefinitionRepository, instanceRepository, "foo", 2000l, null, launchingChannel, listeningChannel);
+		JobInstance jobInstance = new JobInstance(3l, "masterFoo");
+		JobExecution jobExecution = new JobExecution(5l);
+		jobExecution.setJobInstance(jobInstance);
+		StepExecution stepExecution = new StepExecution("masterFoo", jobExecution, 7l);
+		final StepContribution stepContribution = new StepContribution(stepExecution);
+		final ChunkContext chunkContext = new ChunkContext(new StepContext(stepExecution));
+
+		JobDefinition jobDefinition = new JobDefinition("foo", "foo");
+		when(jobDefinitionRepository.findOne("foo")).thenReturn(jobDefinition);
+		when(instanceRepository.findOne("foo")).thenReturn(jobDefinition);
+		doReturn(true).when(launchingChannel).send(any(Message.class));
+
+		FutureTask<RepeatStatus> result = new FutureTask<RepeatStatus>(new Callable<RepeatStatus>() {
+			@Override
+			public RepeatStatus call() throws Exception {
+				return tasklet.execute(stepContribution, chunkContext);
+			}
+		});
+
+		taskExecutor.execute(result);
+
+		try {
+			result.get(5, TimeUnit.SECONDS);
+			fail();
+		}
+		catch (ExecutionException e) {
+			assertEquals(e.getCause().getClass(), UnexpectedJobExecutionException.class);
+			assertEquals(e.getCause().getMessage(), "The job timed out while waiting for a result");
+		}
+	}
+
+	@Test
+	public void testPollingInterval() throws Exception {
+		this.tasklet = new JobLaunchingTasklet(bus, jobDefinitionRepository, instanceRepository, "foo", null, 10000l, launchingChannel, listeningChannel);
+		JobInstance jobInstance = new JobInstance(3l, "masterFoo");
+		JobExecution jobExecution = new JobExecution(5l);
+		jobExecution.setJobInstance(jobInstance);
+		StepExecution stepExecution = new StepExecution("masterFoo", jobExecution, 7l);
+		final StepContribution stepContribution = new StepContribution(stepExecution);
+		final ChunkContext chunkContext = new ChunkContext(new StepContext(stepExecution));
+
+		JobDefinition jobDefinition = new JobDefinition("foo", "foo");
+		when(jobDefinitionRepository.findOne("foo")).thenReturn(jobDefinition);
+		when(instanceRepository.findOne("foo")).thenReturn(jobDefinition);
+		doReturn(true).when(launchingChannel).send(any(Message.class));
+
+		FutureTask<RepeatStatus> result = new FutureTask<RepeatStatus>(new Callable<RepeatStatus>() {
+			@Override
+			public RepeatStatus call() throws Exception {
+				Date startTime = new Date();
+				RepeatStatus status = tasklet.execute(stepContribution, chunkContext);
+				Date endTime = new Date();
+
+				assertTrue(endTime.getTime() - startTime.getTime() > 10000);
+
+				return status;
+			}
+		});
+
+		taskExecutor.execute(result);
+
+		JobParameters jobParameters = new JobParametersBuilder().addString(JobLaunchingTasklet.XD_ORCHESTRATION_ID, "3").toJobParameters();
+		JobExecution slaveExecution = new JobExecution(9l, jobParameters);
+		slaveExecution.setStatus(BatchStatus.COMPLETED);
+		slaveExecution.setEndTime(new Date());
+
+		//This is to allow the job to "start" before mocking the sending of the event
+		Thread.sleep(1000l);
+
+		tasklet.handleMessage(MessageBuilder.withPayload(slaveExecution).build());
+
+		assertEquals(result.get(15, TimeUnit.SECONDS), RepeatStatus.FINISHED);
+
+		assertEquals(stepExecution.getExecutionContext().get(JobLaunchingTasklet.XD_ORCHESTRATION_ID), "3");
+
+		verify(bus).bindPubSubConsumer(eq("tap:job:foo.job"), any(PublishSubscribeAmqpChannel.class), (Properties) isNull());
+	}
+
 }

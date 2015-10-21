@@ -62,6 +62,10 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 
 	private volatile long closeTimeout;
 
+	private volatile long flushTimeout;
+
+	private volatile boolean enableSync = false;
+
 	private volatile String inUseSuffix;
 
 	private volatile String inUsePrefix;
@@ -123,6 +127,8 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 					partitionStrategy);
 			writer.setIdleTimeout(idleTimeout);
 			writer.setCloseTimeout(closeTimeout);
+			writer.setFlushTimeout(flushTimeout);
+			writer.setSyncable(enableSync);
 			writer.setInWritingPrefix(inUsePrefix);
 			writer.setInWritingSuffix(inUseSuffix);
 			writer.setOverwrite(overwrite);
@@ -143,6 +149,8 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 			writer.setInWritingPrefix(inUsePrefix);
 			writer.setInWritingSuffix(inUseSuffix);
 			writer.setOverwrite(overwrite);
+			writer.setFlushTimeout(flushTimeout);
+			writer.setSyncable(enableSync);
 			writer.setFileNamingStrategy(fileNamingStrategy);
 			writer.setRolloverStrategy(rolloverStrategy);
 			if (beanFactory != null) {
@@ -230,6 +238,24 @@ public class StoreWriterFactoryBean implements InitializingBean, DisposableBean,
 	 */
 	public void setCloseTimeout(long closeTimeout) {
 		this.closeTimeout = closeTimeout;
+	}
+
+	/**
+	 * Sets the flush timeout for the writer.
+	 *
+	 * @param flushTimeout the new flush timeout
+	 */
+	public void setFlushTimeout(long flushTimeout) {
+		this.flushTimeout = flushTimeout;
+	}
+
+	/**
+	 * Enables the syncable flag for the writer.
+	 *
+	 * @param enableSync the new syncable flag
+	 */
+	public void setEnableSync(boolean enableSync) {
+		this.enableSync = enableSync;
 	}
 
 	/**

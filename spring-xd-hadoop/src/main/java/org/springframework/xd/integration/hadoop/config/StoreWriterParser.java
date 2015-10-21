@@ -46,6 +46,8 @@ public class StoreWriterParser extends AbstractSimpleBeanDefinitionParser {
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "in-use-prefix");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "idle-timeout");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "close-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "flush-timeout");
+		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "enable-sync");
 		IntegrationNamespaceUtils.setValueIfAttributeDefined(builder, element, "overwrite");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "naming-strategy");
 		IntegrationNamespaceUtils.setReferenceIfAttributeDefined(builder, element, "rollover-strategy");

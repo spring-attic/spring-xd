@@ -67,6 +67,8 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	public static final String XD_ORCHESTRATION_ID = "xd_orchestration_id";
 
+	public static final String XD_PARENT_JOB_EXECUTION_ID = "xd_parent_execution_id";
+
 	private long timeout;
 
 	private long pollInterval;
@@ -149,8 +151,11 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
 
+		String jobExecutionId = String.valueOf(chunkContext.getStepContext().getStepExecution().getJobExecution().getId());
+
 		JobParameters jobParameters = new JobParametersBuilder(originalJobParameters)
 				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
+				.addParameter(XD_PARENT_JOB_EXECUTION_ID, new JobParameter(jobExecutionId))
 				.toJobParameters();
 
 		String jobParametersString = this.extractor.extract(jobParameters);

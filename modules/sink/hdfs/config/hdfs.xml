@@ -55,6 +55,8 @@
 		overwrite="${overwrite}"
 		idle-timeout="${idleTimeout}"
 		close-timeout="${closeTimeout}"
+		flush-timeout="${flushTimeout}"
+		enable-sync="${enableSync}"
 		in-use-suffix="${inUseSuffix}"
 		in-use-prefix="${inUsePrefix}"
 		rollover-strategy="fileRolloverStrategy"

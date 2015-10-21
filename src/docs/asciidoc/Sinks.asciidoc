@@ -805,10 +805,12 @@ The **$$hdfs$$** $$sink$$ has the following options:
 $$closeTimeout$$:: $$timeout in ms, regardless of activity, after which file will be automatically closed$$ *($$long$$, default: `0`)*
 $$codec$$:: $$compression codec alias name (gzip, snappy, bzip2, lzo, or slzo)$$ *($$String$$, default: ``)*
 $$directory$$:: $$where to output the files in the Hadoop FileSystem$$ *($$String$$, default: `/xd/<stream name>`)*
+$$enableSync$$:: $$whether writer will sync to datanode when flush is called, setting this to 'true' could impact throughput$$ *($$boolean$$, default: `false`)*
 $$fileExtension$$:: $$the base filename extension to use for the created files$$ *($$String$$, default: `txt`)*
 $$fileName$$:: $$the base filename to use for the created files$$ *($$String$$, default: `<stream name>`)*
 $$fileOpenAttempts$$:: $$maximum number of file open attempts to find a path$$ *($$int$$, default: `10`)*
 $$fileUuid$$:: $$whether file name should contain uuid$$ *($$boolean$$, default: `false`)*
+$$flushTimeout$$:: $$timeout in ms, regardless of activity, after which data written to file will be flushed$$ *($$long$$, default: `0`)*
 $$fsUri$$:: $$the URI to use to access the Hadoop FileSystem$$ *($$String$$, default: `${spring.hadoop.fsUri}`)*
 $$idleTimeout$$:: $$inactivity timeout in ms after which file will be automatically closed$$ *($$long$$, default: `0`)*
 $$inUsePrefix$$:: $$prefix for files currently being written$$ *($$String$$, default: ``)*

@@ -82,7 +82,8 @@ public class JobFactory {
 		String definition = properties.get("definition");
 		Assert.hasText(definition, "Job properties requires a 'definition' property");
 		if (ComposedJobUtil.isComposedJobDefinition(definition)){
-			definition= ComposedJobUtil.getComposedJobModuleName(name);
+			definition = ComposedJobUtil.getComposedJobModuleName(name) + 
+				ComposedJobUtil.getDefinitionParameters(definition);
 		}
 
 		List<ModuleDescriptor> descriptors = parser.parse(name, definition, ParsingContext.job);

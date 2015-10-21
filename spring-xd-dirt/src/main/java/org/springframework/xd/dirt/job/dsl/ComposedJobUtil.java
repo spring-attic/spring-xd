@@ -28,20 +28,40 @@ public class ComposedJobUtil {
 
 	public static final String MODULE_SUFFIX = "_COMPOSED";
 
-	private static String patternString = "(\\|\\|" +//search for || in the definition
-			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$)) " + //make sure its not in quotes
-			"| (\\&" + //or find a & in the definition
-			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$)) ";// make sure its not in quotes
+	private static String orchestrationPatternString = "(\\|\\|" +//search for || in the definition
+			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))" + //make sure its not in quotes
+			"|(\\&" + //or find a & in the definition
+			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))";// make sure its not in quotes
 
-	private static Pattern pattern = Pattern.compile(patternString);
+	private static String parameterPatternString = "(--" +//search for -- in the definition
+			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))"; //make sure its not in quotes
 
+	private static Pattern orchestrationPattern = Pattern.compile(orchestrationPatternString);
+
+	private static Pattern parameterPattern = Pattern.compile(parameterPatternString);
+	
 	public static String getComposedJobModuleName(String jobName){
 		return jobName + MODULE_SUFFIX;
 	}
 	
 	public static boolean isComposedJobDefinition(String definition){
-		Matcher matcher = pattern.matcher(definition);
+		Matcher matcher = orchestrationPattern.matcher(definition);
 		return matcher.find();
-
 	}
+
+	public static String getPropertyDefinition() {
+		return "options.timeout.description=The timeout for the slave jobs within this orchestration.  -1 indicates no timeout. \n" +
+				"options.timeout.default=-1\n" +
+				"options.timeout.type=long";
+	}
+	
+	public static String getDefinitionParameters(String definition) {
+		Matcher matcher = parameterPattern.matcher(definition);
+		String result = "";
+		if (matcher.find()){
+			result = " " + definition.substring(matcher.start());
+		}
+		return result;
+	}
+	
 }

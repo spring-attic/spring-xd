@@ -33,7 +33,7 @@ public abstract class JobSpecificationVisitor<T> {
 		if (jn != null) {
 			context = walk(context, jn);
 		}
-		postJobSpecWalk(context);
+		postJobSpecWalk(context, jobSpec);
 	}
 
 	public final T walk(T context, JobNode jn) {
@@ -65,8 +65,9 @@ public abstract class JobSpecificationVisitor<T> {
 	/**
 	 * Override to provide code that will run just after the visit completes.
 	 * @param context the final context computed by the last of the main visit operations
+	 * @param jobSpec the job specification being visited
 	 */
-	public void postJobSpecWalk(T context) {
+	public void postJobSpecWalk(T context, JobSpecification jobSpec) {
 
 	}
 

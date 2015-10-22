@@ -76,5 +76,6 @@ public abstract class JobDescriptor extends JobNode {
 		return args;
 	}
 
+	public abstract String getName();
 
 }

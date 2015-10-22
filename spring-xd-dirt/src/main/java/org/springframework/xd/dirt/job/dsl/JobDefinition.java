@@ -68,4 +68,9 @@ public class JobDefinition extends JobDescriptor {
 		return jobNameId.stringValue();
 	}
 
+	@Override
+	public String getName() {
+		return getJobName();
+	}
+
 }

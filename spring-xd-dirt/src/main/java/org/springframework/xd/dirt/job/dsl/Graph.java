@@ -38,14 +38,18 @@ public class Graph {
 
 	public List<Link> links;
 
+	public Map<String, String> properties;
+
 	Graph() {
 		this.nodes = new ArrayList<>();
 		this.links = new ArrayList<>();
+		this.properties = null;
 	}
 
-	Graph(List<Node> nodes, List<Link> links) {
+	Graph(List<Node> nodes, List<Link> links, Map<String, String> properties) {
 		this.nodes = nodes;
 		this.links = links;
+		this.properties = (properties == null || properties.size() == 0) ? null : properties;
 	}
 
 	public List<Node> getNodes() {
@@ -56,13 +60,17 @@ public class Graph {
 		return this.links;
 	}
 
+	public Map<String, String> getProperties() {
+		return this.properties;
+	}
+
 	@Override
 	public String toString() {
 		return "Graph:  nodes=#" + nodes.size() + "  links=#" + links.size() + "\n" + nodes + "\n" + links;
 	}
 
 	public String toJSON() {
-		Graph g = new Graph(nodes, links);
+		Graph g = new Graph(nodes, links, properties);
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.setSerializationInclusion(Include.NON_NULL);
 		try {
@@ -90,6 +98,11 @@ public class Graph {
 		}
 		List<Link> toFollow = findLinksFrom(start, false);
 		followLinks(graphText, toFollow, null);
+		if (properties != null) {
+			for (Map.Entry<String, String> property : properties.entrySet()) {
+				graphText.append(" --").append(property.getKey()).append("=").append(property.getValue());
+			}
+		}
 		return graphText.toString();
 	}
 

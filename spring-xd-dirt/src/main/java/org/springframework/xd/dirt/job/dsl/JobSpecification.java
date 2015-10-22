@@ -17,10 +17,13 @@
 package org.springframework.xd.dirt.job.dsl;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Stack;
 
 import javax.xml.parsers.DocumentBuilder;
@@ -60,15 +63,40 @@ public class JobSpecification extends AstNode {
 	 */
 	private List<JobDefinition> jobDefinitions;
 
-	public JobSpecification(String jobDefinitionText, JobNode jobNode) {
+	/**
+	 * Any arguments specified at the end of the DSL, e.g. --timeout/--pollInterval
+	 */
+	private ArgumentNode[] globalOptions;
+
+	public JobSpecification(String jobDefinitionText, JobNode jobNode, ArgumentNode[] globalOptions) {
 		super(jobNode == null ? 0 : jobNode.getStartPos(), jobNode == null ? 0 : jobNode.getEndPos());
 		this.jobDefinitionText = jobDefinitionText;
 		this.jobNode = jobNode;
+		this.globalOptions = globalOptions;
+	}
+
+	public Map<String, String> getGlobalOptionsMap() {
+		if (globalOptions == null) {
+			return Collections.<String, String> emptyMap();
+		}
+		Map<String, String> optionsMap = new LinkedHashMap<String, String>();
+		for (ArgumentNode option : globalOptions) {
+			optionsMap.put(option.getName(), option.getValue());
+		}
+		return optionsMap;
 	}
 
 	@Override
 	public String stringify(boolean includePositionInfo) {
-		return jobNode.stringify(includePositionInfo);
+		StringBuilder s = new StringBuilder();
+		s.append(jobNode.stringify(includePositionInfo));
+		if (globalOptions != null) {
+			for (ArgumentNode option : globalOptions) {
+				s.append(" ");
+				s.append(option.stringify(includePositionInfo));
+			}
+		}
+		return s.toString();
 	}
 
 	public String getJobDefinitionText() {
@@ -246,7 +274,8 @@ public class JobSpecification extends AstNode {
 						"http://www.springframework.org/schema/batch");
 				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi",
 						"http://www.w3.org/2001/XMLSchema-instance");
-				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2001/XMLSchema-instance",
+				doc.getDocumentElement().setAttributeNS(
+						"http://www.w3.org/2001/XMLSchema-instance",
 						"xsi:schemaLocation",
 						"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd "
 								+
@@ -278,14 +307,20 @@ public class JobSpecification extends AstNode {
 		};
 
 		@Override
-		public void postJobSpecWalk(Element[] elements) {
+		public void postJobSpecWalk(Element[] elements, JobSpecification jobSpec) {
+			Set<String> generatedBeans = new HashSet<>();
 			for (JobDescriptor jobRunnerBean : jobRunnerBeans) {
+				if (generatedBeans.contains(jobRunnerBean.getName())) {
+					continue;
+				}
 				// Producing:
 				// <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bbb" scope="step">
 				//        <constructor-arg ref="messageBus"/>
 				//        <constructor-arg ref="jobDefinitionRepository"/>
 				//        <constructor-arg ref="xdJobRepository"/>
 				//        <constructor-arg value="bbb"/>
+				//        <constructor-arg value="${timeout}"/>
+				//        <constructor-arg value="${pollInterval}"/>
 				// </bean>
 				String jobRunnerBeanName = (jobRunnerBean instanceof JobReference
 						? ((JobReference) jobRunnerBean).getName() : ((JobDefinition) jobRunnerBean).getJobName());
@@ -293,27 +328,14 @@ public class JobSpecification extends AstNode {
 				bean.setAttribute("scope", "step");
 				bean.setAttribute("class", "org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet");
 				bean.setAttribute("id", "jobRunner-" + jobRunnerBeanName);
-				Element messageBusRefArg = doc.createElement("constructor-arg");
-				messageBusRefArg.setAttribute("ref", "messageBus");
-				bean.appendChild(messageBusRefArg);
-				Element jobDefinitionRepositoryArg = doc.createElement("constructor-arg");
-				jobDefinitionRepositoryArg.setAttribute("ref", "jobDefinitionRepository");
-				bean.appendChild(jobDefinitionRepositoryArg);
-				Element xdJobRepositoryArg = doc.createElement("constructor-arg");
-				xdJobRepositoryArg.setAttribute("ref", "xdJobRepository");
-				bean.appendChild(xdJobRepositoryArg);
-				Element nameArg = doc.createElement("constructor-arg");
-				nameArg.setAttribute("value", jobRunnerBeanName);
-				bean.appendChild(nameArg);
-				ArgumentNode[] args = jobRunnerBean.args;
-				if (args != null) {
-					for (ArgumentNode arg : args) {
-						Element optionsArg = doc.createElement("constructor-arg");
-						optionsArg.setAttribute("value", "${" + arg.getName() + "}");
-						bean.appendChild(optionsArg);
-					}
-				}
+				addConstructorArg(bean, "ref", "messageBus");
+				addConstructorArg(bean, "ref", "jobDefinitionRepository");
+				addConstructorArg(bean, "ref", "xdJobRepository");
+				addConstructorArg(bean, "value", jobRunnerBeanName);
+				addConstructorArg(bean, "value", "${timeout}");
+				addConstructorArg(bean, "value", "${pollInterval}");
 				this.doc.getElementsByTagName("beans").item(0).appendChild(bean);
+				generatedBeans.add(jobRunnerBean.getName());
 			}
 			try {
 				// Write the content
@@ -332,6 +354,12 @@ public class JobSpecification extends AstNode {
 			catch (TransformerException e) {
 				throw new IllegalStateException("Unexpected problem building XML representation", e);
 			}
+		}
+
+		private void addConstructorArg(Element bean, String attributeName, String argName) {
+			Element ctorArgElement = doc.createElement("constructor-arg");
+			ctorArgElement.setAttribute(attributeName, argName);
+			bean.appendChild(ctorArgElement);
 		}
 
 		@Override
@@ -355,7 +383,6 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public Element[] walk(Element[] context, JobDefinition jd) {
-			// Not entirely sure about this.
 			Element step = doc.createElement("step");
 			step.setAttribute("id", jd.getJobName());
 			Element tasklet = doc.createElement("tasklet");
@@ -386,6 +413,27 @@ public class JobSpecification extends AstNode {
 			return new Element[] { step };
 		}
 
+		private List<String> allocatedStepIds = new ArrayList<>();
+
+		/**
+		 * Determine the next unique ID we can use for an XML element.
+		 */
+		private String getNextStepId(String prefix) {
+			if (!allocatedStepIds.contains(prefix)) {
+				// Avoid number suffix for the first one
+				allocatedStepIds.add(prefix);
+				return prefix;
+			}
+			int suffix = 1;
+			String proposal = null;
+			do {
+				proposal = new StringBuilder(prefix).append(Integer.toString(suffix++)).toString();
+			}
+			while (allocatedStepIds.contains(proposal));
+			allocatedStepIds.add(proposal);
+			return proposal;
+		}
+
 		/**
 		 * Visit a job reference. Rules:
 		 * <ul>
@@ -410,9 +458,10 @@ public class JobSpecification extends AstNode {
 				currentElement.push(flow);
 			}
 			Element step = doc.createElement("step");
-			step.setAttribute("id", jr.getName());
+			String stepId = getNextStepId(jr.getName());
+			step.setAttribute("id", stepId);
 			Element tasklet = doc.createElement("tasklet");
-			String jobRunnerId = "jobRunner-" + jr.getName();
+			String jobRunnerId = "jobRunner-" + jr.getName(); // Not stepId - a single jobrunner tasklet definition can be shared
 			tasklet.setAttribute("ref", jobRunnerId);
 			jobRunnerBeans.add(jr);
 			step.appendChild(tasklet);
@@ -431,7 +480,7 @@ public class JobSpecification extends AstNode {
 				for (Element element : elements) {
 					next = doc.createElement("next");
 					next.setAttribute("on", "*");
-					next.setAttribute("to", jr.getName());
+					next.setAttribute("to", stepId);
 					element.appendChild(next);
 				}
 			}
@@ -520,8 +569,10 @@ public class JobSpecification extends AstNode {
 
 		private List<Link> links = new ArrayList<>();
 
+		private Map<String, String> properties = new LinkedHashMap<String, String>();
+
 		public Graph getGraph() {
-			Graph g = new Graph(nodes, links);
+			Graph g = new Graph(nodes, links, properties);
 			return g;
 		}
 
@@ -534,7 +585,7 @@ public class JobSpecification extends AstNode {
 		}
 
 		@Override
-		public void postJobSpecWalk(int[] finalNodes) {
+		public void postJobSpecWalk(int[] finalNodes, JobSpecification jobSpec) {
 			// Deal with transitions
 			for (TransitionToMap ttm : transitions) {
 				int nodeInGraph = findNode(ttm.targetJob);
@@ -554,6 +605,12 @@ public class JobSpecification extends AstNode {
 			nodes.add(n);
 			for (int i : finalNodes) {
 				links.add(new Link(i, endId));
+			}
+			Map<String, String> options = jobSpec.getGlobalOptionsMap();
+			if (options.size() != 0) {
+				for (Map.Entry<String, String> option : options.entrySet()) {
+					properties.put(option.getKey(), option.getValue());
+				}
 			}
 		}
 

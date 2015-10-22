@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.job.dsl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.junit.Ignore;
@@ -42,6 +44,18 @@ public class JobParserTests {
 	private JobSpecification js;
 
 	@Test
+	public void globalOptions() {
+		js = parse("foo --timeout=100 --pollInterval=1000");
+		assertEquals("foo --timeout=100 --pollInterval=1000", js.stringify());
+		Map<String, String> options = js.getGlobalOptionsMap();
+		assertTrue(options.containsKey("timeout"));
+		assertEquals(Integer.toString(100), options.get("timeout"));
+		assertTrue(options.containsKey("pollInterval"));
+		assertEquals(Integer.toString(1000), options.get("pollInterval"));
+		assertEquals(2, options.size());
+	}
+
+	@Test
 	public void graphToText() {
 		checkDSLToGraphAndBackToDSL("foojob");
 	}
@@ -52,7 +66,7 @@ public class JobParserTests {
 	}
 
 	@Test
-	public void optionsToReference() {
+	public void globalOptionsGraphConversion() {
 		checkDSLToGraphAndBackToDSL("foojob || barjob --foo=bar --goo=boo");
 	}
 
@@ -74,15 +88,14 @@ public class JobParserTests {
 		assertFalse(jr.isDefinition());
 		assertEquals("jobModuleA", jr.getName());
 		ArgumentNode[] args = jr.getArguments();
-		assertEquals(2, args.length);
-		assertEquals("--foo=bar", args[0].stringify());
-		assertEquals("--boo=gar", args[1].stringify());
+		assertNull(args);
+		assertEquals(2, js.getGlobalOptionsMap().size());
 	}
 
 	@Test
 	public void referenceWithOptionsInTransition() {
-		checkForParseError("aaa || bbb | d = foo --aaa=bbb || ccc", JobDSLMessage.JOB_REF_DOES_NOT_SUPPORT_OPTIONS,
-				21, "foo");
+		checkForParseError("aaa || bbb | d = foo --aaa=bbb || ccc", JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC,
+				31, "||");
 	}
 
 	@Test
@@ -147,9 +160,9 @@ public class JobParserTests {
 	}
 
 	@Test
-	public void toDSLTextWithPropertiesOnReference() {
-		checkDSLToGraphAndBackToDSL("<a --aaa=bbb & b> || foo");
-		checkDSLToGraphAndBackToDSL("<a & b --aaa=bbb --ccc=ddd> || foo");
+	public void toDSLTextWithGlobalOptions() {
+		checkDSLToGraphAndBackToDSL("<a & b> || foo --aaa=bbb");
+		checkDSLToGraphAndBackToDSL("<a & b> || foo --aaa=bbb --ccc=ddd");
 	}
 
 	@Test
@@ -188,8 +201,7 @@ public class JobParserTests {
 
 	@Test
 	public void toDSLTextLong() {
-		checkDSLToGraphAndBackToDSL(
-				"<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
+		checkDSLToGraphAndBackToDSL("<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
 	}
 
 	@Test
@@ -600,7 +612,7 @@ public class JobParserTests {
 		js = parse("<foo | completed=goo & bar> || boo || goo");
 		assertEquals(
 				toExpectedGraph(
-						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
+				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
 				js.toGraph().toJSON());
 	}
 
@@ -610,7 +622,7 @@ public class JobParserTests {
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
 		assertEquals(
 				toExpectedGraph(
-						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
+				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
 				js.toGraph().toJSON());
 	}
 
@@ -641,22 +653,34 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void toXMLFlowDupModule() {
+		js = parse("foo || foo");
+		assertEquals(loadXml("simpleFlowDupModule"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowDupModule2() {
+		js = parse("foo || bar || foo || <goo & foo> || foo");
+		assertEquals(loadXml("simpleFlowDupModule2"), js.toXML("test1", true));
+	}
+
+	@Test
 	public void toXMLFlowRefOptions() {
-		js = parse("foo || bar --timeout=100 || boo");
+		js = parse("foo || bar || boo --timeout=100");
 		assertEquals(loadXml("simpleFlowOptions"), js.toXML("test1", true));
 	}
 
 	@Test
 	public void toXMLFlowRefOptions2() {
-		js = parse("foo || bar --timeout=100 --pollInterval=999 || boo");
+		js = parse("foo || bar || boo --timeout=100 --pollInterval=999 ");
 		assertEquals(loadXml("simpleFlowOptions2"), js.toXML("test1", true));
 	}
 
 	@Test
 	public void toXMLFlowRefOptions3() {
-		js = parse("foo || bar --timeout=100 --pollInterval=999 --xx=99 --yy=custard || boo --zz='abc'");
+		js = parse("foo || bar || boo --zz='abc' --timeout=100 --pollInterval=999 --xx=99 --yy=custard ");
 		assertEquals(loadXml("simpleFlowOptions3"), js.toXML("test1", true));
-		js = parse("foo || bar --timeout=100 --pollInterval=999 --xx=99 --yy=custard|| boo --zz='abc'");
+		js = parse("foo || bar || boo --zz='abc' --timeout=100 --pollInterval=999 --xx=99 --yy=custard");
 		assertEquals(loadXml("simpleFlowOptions3"), js.toXML("test1", true));
 	}
 

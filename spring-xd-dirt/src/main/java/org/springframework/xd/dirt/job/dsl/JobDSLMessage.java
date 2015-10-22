@@ -47,37 +47,20 @@ public enum JobDSLMessage {
 	OOD(ERROR, 207, "Unexpectedly ran out of input"), //
 	UNEXPECTED_DATA(ERROR, 208, "unexpected data in job definition ''{0}''"), //
 	EXPECTED_WHITESPACE_AFTER_NAME_BEFORE_ARGUMENT(ERROR,
-			209,
-			"expected whitespace after job name and before argument"), //
-			NO_WHITESPACE_IN_DOTTED_NAME(ERROR, 210, "No whitespace is allowed between dot and components of a name"), //
-			MISSING_JOB_NAME_IN_INLINEJOBDEF(ERROR,
-					211,
-					"The job module must be followed by the job name before any job arguments"), //
-					EXPECTED_TRANSITION_NAME(ERROR, 212, "Expected the name of a job exit state but found ''{0}''"), //
-					EXPECTED_EQUALS_AFTER_TRANSITION_NAME(ERROR,
-							213,
-							"Expected an equals after a job exit state but found ''{0}''"), //
-							NON_TERMINATING_QUOTED_STRING(
-									ERROR, 214, "Cannot find terminating '' for string"), //
-									NON_TERMINATING_DOUBLE_QUOTED_STRING(ERROR,
-											215,
-											"Cannot find terminating \" for string"), //
-											UNEXPECTED_ESCAPE_CHAR(ERROR, 216, "unexpected escape character."), //
-											MISSING_EQUALS_AFTER_TRANSITION_NAME(ERROR,
-													217,
-													"Expected an equals after the transition ''{0}''"), //
-													ONLY_ONE_AMPERSAND_REQUIRED(ERROR,
-															218,
-															"Only a single '&' is required between jobs in a split"), //
-															EXPECTED_JOB_REF_OR_DEF(ERROR,
-																	219,
-																	"Expected job reference or definition"), //
-																	JOB_REF_DOES_NOT_SUPPORT_OPTIONS(ERROR,
-																			220,
-																			"The job reference ''{0}'' used here does not allow options"), EXPECTED_FLOW_OR_SPLIT_CHARS(
-																					ERROR,
-																					221,
-																					"Expected flow '||' or split '&' next, not ''{0}''");
+			209, "expected whitespace after job name and before argument"), //
+	NO_WHITESPACE_IN_DOTTED_NAME(ERROR, 210, "No whitespace is allowed between dot and components of a name"), //
+	MISSING_JOB_NAME_IN_INLINEJOBDEF(ERROR,
+			211, "The job module must be followed by the job name before any job arguments"), //
+	EXPECTED_TRANSITION_NAME(ERROR, 212, "Expected the name of a job exit state but found ''{0}''"), //
+	EXPECTED_EQUALS_AFTER_TRANSITION_NAME(ERROR, 213, "Expected an equals after a job exit state but found ''{0}''"), //
+	NON_TERMINATING_QUOTED_STRING(ERROR, 214, "Cannot find terminating '' for string"), //
+	NON_TERMINATING_DOUBLE_QUOTED_STRING(ERROR, 215, "Cannot find terminating \" for string"), //
+	UNEXPECTED_ESCAPE_CHAR(ERROR, 216, "unexpected escape character."), //
+	MISSING_EQUALS_AFTER_TRANSITION_NAME(ERROR, 217, "Expected an equals after the transition ''{0}''"), //
+	ONLY_ONE_AMPERSAND_REQUIRED(ERROR, 218, "Only a single '&' is required between jobs in a split"), //
+	EXPECTED_JOB_REF_OR_DEF(ERROR, 19, "Expected job reference or definition"), //
+	JOB_REF_DOES_NOT_SUPPORT_OPTIONS(ERROR, 220, "The job reference ''{0}'' used here does not allow options"), //
+	EXPECTED_FLOW_OR_SPLIT_CHARS(ERROR, 221, "Expected flow '||' or split '&' next, not ''{0}''");
 
 
 	private Kind kind;

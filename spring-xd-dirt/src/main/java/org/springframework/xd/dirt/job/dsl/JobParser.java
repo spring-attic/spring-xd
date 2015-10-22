@@ -44,11 +44,12 @@ public class JobParser {
 	public JobSpecification parse(String jobSpecification) {
 		jobSpecification = jobSpecification.trim();
 		if (jobSpecification.length() == 0) {
-			return new JobSpecification(jobSpecification, null);
+			return new JobSpecification(jobSpecification, null, null);
 		}
 		tokens = new Tokens(jobSpecification);
 		JobNode jobNode = parseJobNode();
-		JobSpecification js = new JobSpecification(jobSpecification, jobNode);
+		ArgumentNode[] globalOptions = maybeEatModuleArgs();
+		JobSpecification js = new JobSpecification(jobSpecification, jobNode, globalOptions);
 		if (tokens.hasNext()) {
 			throw new JobSpecificationException(tokens.getExpression(), tokens.peek().startpos,
 					JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC,
@@ -129,7 +130,7 @@ public class JobParser {
 				}
 			}
 			else {
-				jd = parseJobReference(true);
+				jd = parseJobReference(false);
 			}
 		}
 		if (jd == null) {
@@ -184,12 +185,13 @@ public class JobParser {
 		if (allowArguments) {
 			args = maybeEatModuleArgs();
 		}
-		else {
-			if (tokens.peek(TokenKind.DOUBLE_MINUS)) {
-				tokens.raiseException(tokens.peek().startpos,
-						JobDSLMessage.JOB_REF_DOES_NOT_SUPPORT_OPTIONS, jobDefinitionNameToken.data);
-			}
-		}
+		// Not currently policing this
+		//		else {
+		//			if (tokens.peek(TokenKind.DOUBLE_MINUS)) {
+		//				tokens.raiseException(tokens.peek().startpos,
+		//						JobDSLMessage.JOB_REF_DOES_NOT_SUPPORT_OPTIONS, jobDefinitionNameToken.data);
+		//			}
+		//		}
 		return new JobReference(jobDefinitionNameToken, args);
 	}
 

@@ -15,11 +15,13 @@
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
     <constructor-arg value="foo"/>
+    <constructor-arg value="${timeout}"/>
   </bean>
   <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bar" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
     <constructor-arg value="bar"/>
+    <constructor-arg value="${timeout}"/>
   </bean>
 </beans>

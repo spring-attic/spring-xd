@@ -26,8 +26,8 @@ public class JobReference extends JobDescriptor {
 
 	private Token jobReference;
 
-	public JobReference(Token jobReference) {
-		super(jobReference.startpos, jobReference.endpos);
+	public JobReference(Token jobReference, ArgumentNode[] args) {
+		super(jobReference.startpos, jobReference.endpos, args);
 		this.jobReference = jobReference;
 	}
 
@@ -40,6 +40,12 @@ public class JobReference extends JobDescriptor {
 		}
 		else {
 			s.append(jobReference.stringValue());
+		}
+		if (args != null) {
+			for (ArgumentNode arg : args) {
+				s.append(" ");
+				s.append(arg.stringify(includePositionInfo));
+			}
 		}
 		if (hasTransitions()) {
 			for (Transition t : transitions) {

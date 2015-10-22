@@ -26,6 +26,9 @@ import java.util.List;
  */
 public class JobParser {
 
+	// If true then inline job definitions will be allowed in the DSL.
+	final static boolean SUPPORTS_INLINE_JOB_DEFINITIONS = false;
+
 	private Tokens tokens;
 
 	public JobParser() {
@@ -41,11 +44,12 @@ public class JobParser {
 	public JobSpecification parse(String jobSpecification) {
 		jobSpecification = jobSpecification.trim();
 		if (jobSpecification.length() == 0) {
-			return new JobSpecification(jobSpecification, null);
+			return new JobSpecification(jobSpecification, null, null);
 		}
 		tokens = new Tokens(jobSpecification);
 		JobNode jobNode = parseJobNode();
-		JobSpecification js = new JobSpecification(jobSpecification, jobNode);
+		ArgumentNode[] globalOptions = maybeEatModuleArgs();
+		JobSpecification js = new JobSpecification(jobSpecification, jobNode, globalOptions);
 		if (tokens.hasNext()) {
 			throw new JobSpecificationException(tokens.getExpression(), tokens.peek().startpos,
 					JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC,
@@ -53,6 +57,7 @@ public class JobParser {
 		}
 		return js;
 	}
+
 
 	private JobNode parseJobNode() {
 		// Handle (...)
@@ -109,22 +114,23 @@ public class JobParser {
 	// JobDescriptor can be a simple JobReference (reference to a pre-existing definition) or
 	// an inlined JobDefinition.
 	//
-	// JobReference := identifier:jobname [stateTransitions]*
+	// JobReference := identifier:jobname ['--'optionname'='optionvalue']* [stateTransitions]*
 	// JobDefinition := identifier:jobmodulename identifier:jobname ['--'optionname'='optionvalue]* [stateTransitions]*
 	private JobDescriptor parseJobDescriptor() {
 		JobDescriptor jd = null;
 		// Double identifiers indicates job definition
 		if (tokens.peek(0, TokenKind.IDENTIFIER)) {
 			if (tokens.peek(1, TokenKind.IDENTIFIER)) {
-				jd = parseJobDefinition();
-			}
-			else if (tokens.peek(1, TokenKind.DOUBLE_MINUS)) {
-				// Error: something like 'foo --bar=xxx' - an inline job definition needs
-				// the job name to follow the job module
-				tokens.raiseException(tokens.peek(1).startpos, JobDSLMessage.MISSING_JOB_NAME_IN_INLINEJOBDEF);
+				if (SUPPORTS_INLINE_JOB_DEFINITIONS) {
+					jd = parseJobDefinition();
+				}
+				else {
+					tokens.raiseException(tokens.peek(1).startpos, JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS,
+							tokens.peek(1).stringValue());
+				}
 			}
 			else {
-				jd = new JobReference(tokens.eat(TokenKind.IDENTIFIER));
+				jd = parseJobReference(false);
 			}
 		}
 		if (jd == null) {
@@ -161,8 +167,7 @@ public class JobParser {
 			else {
 				tokens.next();
 			}
-			Token targetJobName = tokens.eat(TokenKind.IDENTIFIER);
-			JobReference targetJobReference = new JobReference(targetJobName);
+			JobReference targetJobReference = parseJobReference(false);
 			transitions.add(new Transition(transitionName, targetJobReference));
 		}
 		return transitions;
@@ -173,12 +178,29 @@ public class JobParser {
 				: token.stringValue();
 	}
 
+	private JobReference parseJobReference(boolean allowArguments) {
+		Token jobDefinitionNameToken = tokens.eat(TokenKind.IDENTIFIER);
+		tokens.checkpoint();
+		ArgumentNode[] args = null;
+		if (allowArguments) {
+			args = maybeEatModuleArgs();
+		}
+		// Not currently policing this
+		//		else {
+		//			if (tokens.peek(TokenKind.DOUBLE_MINUS)) {
+		//				tokens.raiseException(tokens.peek().startpos,
+		//						JobDSLMessage.JOB_REF_DOES_NOT_SUPPORT_OPTIONS, jobDefinitionNameToken.data);
+		//			}
+		//		}
+		return new JobReference(jobDefinitionNameToken, args);
+	}
+
 	private JobDefinition parseJobDefinition() {
-		Token jobModuleToken = tokens.eat(TokenKind.IDENTIFIER);
+		Token jobModuleNameToken = tokens.eat(TokenKind.IDENTIFIER);
 		Token jobName = tokens.eat(TokenKind.IDENTIFIER);
 		tokens.checkpoint();
 		ArgumentNode[] args = maybeEatModuleArgs();
-		return new JobDefinition(jobModuleToken, jobName, args);
+		return new JobDefinition(jobModuleNameToken, jobName, args);
 	}
 
 	// ['--'identifier:name'='identifier:value]*

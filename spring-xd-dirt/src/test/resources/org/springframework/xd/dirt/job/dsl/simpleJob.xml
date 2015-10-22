@@ -11,5 +11,6 @@
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
     <constructor-arg value="foo"/>
+    <constructor-arg value="${timeout}"/>
   </bean>
 </beans>

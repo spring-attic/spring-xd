@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.job.dsl;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -26,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Map;
 import java.util.StringTokenizer;
 
 import org.junit.Ignore;
@@ -42,6 +44,18 @@ public class JobParserTests {
 	private JobSpecification js;
 
 	@Test
+	public void globalOptions() {
+		js = parse("foo --timeout=100 --pollInterval=1000");
+		assertEquals("foo --timeout=100 --pollInterval=1000", js.stringify());
+		Map<String, String> options = js.getGlobalOptionsMap();
+		assertTrue(options.containsKey("timeout"));
+		assertEquals(Integer.toString(100), options.get("timeout"));
+		assertTrue(options.containsKey("pollInterval"));
+		assertEquals(Integer.toString(1000), options.get("pollInterval"));
+		assertEquals(2, options.size());
+	}
+
+	@Test
 	public void graphToText() {
 		checkDSLToGraphAndBackToDSL("foojob");
 	}
@@ -49,6 +63,39 @@ public class JobParserTests {
 	@Test
 	public void graphToTextFlow() {
 		checkDSLToGraphAndBackToDSL("foojob || barjob");
+	}
+
+	@Test
+	public void globalOptionsGraphConversion() {
+		checkDSLToGraphAndBackToDSL("foojob || barjob --foo=bar --goo=boo");
+	}
+
+	@Test
+	public void testMissingPunctuation() {
+		// If JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS is set to true, this test will need another branch
+		// that deals with that since 'eee fff' is a valid inline job spec
+		checkForParseError("<aaa & bbb & ccc> || <ddd & eee fff>", JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 32,
+				"fff");
+	}
+
+	@Test
+	public void referenceWithOptions() {
+		js = parse("jobModuleA --foo=bar --boo=gar");
+		JobNode jn = js.getJobNode();
+		assertTrue(jn.isJobDescriptor());
+		JobReference jr = (JobReference) jn;
+		assertTrue(jr.isReference());
+		assertFalse(jr.isDefinition());
+		assertEquals("jobModuleA", jr.getName());
+		ArgumentNode[] args = jr.getArguments();
+		assertNull(args);
+		assertEquals(2, js.getGlobalOptionsMap().size());
+	}
+
+	@Test
+	public void referenceWithOptionsInTransition() {
+		checkForParseError("aaa || bbb | d = foo --aaa=bbb || ccc", JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC,
+				31, "||");
 	}
 
 	@Test
@@ -100,9 +147,22 @@ public class JobParserTests {
 	}
 
 	@Test
-	public void toDSLTextWithPropertiesOnReference() {
-		checkDSLToGraphAndBackToDSL("<a x --aaa=bbb & b> || foo");
-		checkDSLToGraphAndBackToDSL("<a & b y --aaa=bbb --ccc=ddd> || foo");
+	public void toDSLTextWithPropertiesOnDefinition() {
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			checkDSLToGraphAndBackToDSL("<a x --aaa=bbb & b> || foo");
+			checkDSLToGraphAndBackToDSL("<a & b y --aaa=bbb --ccc=ddd> || foo");
+		}
+		else {
+			checkForParseError("<a x --aaa=bbb & b> || foo", JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 3, "x");
+			checkForParseError("<a & b y --aaa=bbb --ccc=ddd> || foo", JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 7,
+					"y");
+		}
+	}
+
+	@Test
+	public void toDSLTextWithGlobalOptions() {
+		checkDSLToGraphAndBackToDSL("<a & b> || foo --aaa=bbb");
+		checkDSLToGraphAndBackToDSL("<a & b> || foo --aaa=bbb --ccc=ddd");
 	}
 
 	@Test
@@ -141,13 +201,34 @@ public class JobParserTests {
 
 	@Test
 	public void toDSLTextLong() {
-		checkDSLToGraphAndBackToDSL(
-				"<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
+		checkDSLToGraphAndBackToDSL("<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
 	}
 
 	@Test
 	public void toDSLTextSync() {
 		String spec = "<a & b> || <c & d>";
+		checkDSLToGraphAndBackToDSL(spec);
+	}
+
+	@Test
+	public void toDSLTextSqoop() {
+		String spec = "<(sqoop-6e44 | 'FAILED' = kill1" +
+				"  || sqoop-e07a | 'FAILED' = kill1) & " +
+				" (sqoop-035f | 'FAILED' = kill2" +
+				"  || sqoop-9408 | 'FAILED' = kill2" +
+				"  || sqoop-a6e0 | 'FAILED' = kill2" +
+				"  || sqoop-e522 | 'FAILED' = kill2" +
+				"  || shell-b521 | 'FAILED' = kill2) & " +
+				" (sqoop-6420 | 'FAILED' = kill3)>";
+		// DSL text right now doesn't include parentheses (they aren't necessary)
+		spec = "<sqoop-6e44 | 'FAILED' = kill1" +
+				" || sqoop-e07a | 'FAILED' = kill1 &" +
+				" sqoop-035f | 'FAILED' = kill2" +
+				" || sqoop-9408 | 'FAILED' = kill2" +
+				" || sqoop-a6e0 | 'FAILED' = kill2" +
+				" || sqoop-e522 | 'FAILED' = kill2" +
+				" || shell-b521 | 'FAILED' = kill2 &" +
+				" sqoop-6420 | 'FAILED' = kill3>";
 		checkDSLToGraphAndBackToDSL(spec);
 	}
 
@@ -176,6 +257,16 @@ public class JobParserTests {
 		JobReference jd = (JobReference) jn;
 		assertTrue(jd.isReference());
 		assertEquals("foojob", jd.getName());
+	}
+
+	@Test
+	public void whitespace() {
+		js = parse("A||B");
+		assertEquals("A || B", js.stringify());
+		js = parse("<A&B>");
+		assertEquals("<A & B>", js.stringify());
+		js = parse("<A||B&C>");
+		assertEquals("<A || B & C>", js.stringify());
 	}
 
 	@Test
@@ -362,14 +453,20 @@ public class JobParserTests {
 
 	@Test
 	public void inlineJobDefinition() {
-		js = parse("jobModuleA jobNameA");
-		JobNode jn = js.getJobNode();
-		assertTrue(jn.isJobDescriptor());
-		JobDefinition jd = (JobDefinition) jn;
-		assertFalse(jd.isReference());
-		assertTrue(jd.isDefinition());
-		assertEquals("jobModuleA", jd.getJobModuleName());
-		assertEquals("jobNameA", jd.getJobName());
+		String dsl = "jobModuleA jobNameA";
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse(dsl);
+			JobNode jn = js.getJobNode();
+			assertTrue(jn.isJobDescriptor());
+			JobDefinition jd = (JobDefinition) jn;
+			assertFalse(jd.isReference());
+			assertTrue(jd.isDefinition());
+			assertEquals("jobModuleA", jd.getJobModuleName());
+			assertEquals("jobNameA", jd.getJobName());
+		}
+		else {
+			checkForParseError(dsl, JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 11, "jobNameA");
+		}
 	}
 
 	@Test
@@ -400,24 +497,30 @@ public class JobParserTests {
 
 	@Test
 	public void inlineJobDefWithTransition() {
-		js = parse("foo bar --aaa=bbb | completed = bar | wibble=wobble");
-		JobNode jn = js.getJobNode();
-		assertTrue(jn.isJobDescriptor());
-		JobDescriptor jd = (JobDescriptor) jn;
-		assertTrue(jd.isDefinition());
-		JobDefinition jobdef = (JobDefinition) jd;
-		assertEquals("foo", jobdef.getJobModuleName());
-		assertEquals("bar", jobdef.getJobName());
-		ArgumentNode[] args = jobdef.getArguments();
-		assertEquals(1, args.length);
-		assertEquals("aaa", args[0].getName());
-		assertEquals("bbb", args[0].getValue());
-		List<Transition> transitions = jd.getTransitions();
-		assertEquals(2, transitions.size());
-		assertEquals("completed", transitions.get(0).getStateName());
-		assertEquals("bar", transitions.get(0).getTargetJobName());
-		assertEquals("wibble", transitions.get(1).getStateName());
-		assertEquals("wobble", transitions.get(1).getTargetJobName());
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("foo bar --aaa=bbb | completed = bar | wibble=wobble");
+			JobNode jn = js.getJobNode();
+			assertTrue(jn.isJobDescriptor());
+			JobDescriptor jd = (JobDescriptor) jn;
+			assertTrue(jd.isDefinition());
+			JobDefinition jobdef = (JobDefinition) jd;
+			assertEquals("foo", jobdef.getJobModuleName());
+			assertEquals("bar", jobdef.getJobName());
+			ArgumentNode[] args = jobdef.getArguments();
+			assertEquals(1, args.length);
+			assertEquals("aaa", args[0].getName());
+			assertEquals("bbb", args[0].getValue());
+			List<Transition> transitions = jd.getTransitions();
+			assertEquals(2, transitions.size());
+			assertEquals("completed", transitions.get(0).getStateName());
+			assertEquals("bar", transitions.get(0).getTargetJobName());
+			assertEquals("wibble", transitions.get(1).getStateName());
+			assertEquals("wobble", transitions.get(1).getTargetJobName());
+		}
+		else {
+			checkForParseError("foo bar --aaa=bbb | completed = bar | wibble=wobble",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "bar");
+		}
 	}
 
 	@Test
@@ -475,10 +578,15 @@ public class JobParserTests {
 
 	@Test
 	public void toGraphInlineJob() {
-		js = parse("filejdbc foo --aaa=bbb || bar");
-		assertEquals(toExpectedGraph(
-				"n:0:START,n:1:foo:meta-jobModuleName=filejdbc;aaa=bbb,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
-				js.toGraph().toJSON());
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("filejdbc foo --aaa=bbb || bar");
+			assertEquals(toExpectedGraph(
+					"n:0:START,n:1:foo:meta-jobModuleName=filejdbc;aaa=bbb,n:2:bar,n:3:END,l:0:1,l:1:2,l:2:3"),
+					js.toGraph().toJSON());
+		}
+		else {
+			checkForParseError("filejdbc foo --aaa=bbb || bar", JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 9, "foo");
+		}
 	}
 
 	@Test
@@ -504,7 +612,7 @@ public class JobParserTests {
 		js = parse("<foo | completed=goo & bar> || boo || goo");
 		assertEquals(
 				toExpectedGraph(
-						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
+				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
 				js.toGraph().toJSON());
 	}
 
@@ -514,7 +622,7 @@ public class JobParserTests {
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
 		assertEquals(
 				toExpectedGraph(
-						"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
+				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
 				js.toGraph().toJSON());
 	}
 
@@ -538,14 +646,118 @@ public class JobParserTests {
 		assertEquals(loadXml("sqoopJob"), js.toXML("test1", true));
 	}
 
-	// TODO [asc] errors in XML file simpleFlow.xml - what are we generating wrong?
 	@Test
 	public void toXMLFlow() {
 		js = parse("foo || bar");
 		assertEquals(loadXml("simpleFlow"), js.toXML("test1", true));
 	}
 
-	// TODO [asc] errors in XML file simpleSplit.xml - what are we generating wrong?
+	@Test
+	public void toXMLFlowDup() {
+		js = parse("foo || foo");
+		assertEquals(loadXml("xmlFlowDup"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitDup() {
+		js = parse("<foo & foo>");
+		assertEquals(loadXml("xmlSplitDup"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithTransition() {
+		js = parse("foo || bar | failed = goo");
+		assertEquals(loadXml("simpleFlowWithTransition"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition() {
+		js = parse("<foo | failed = boo & bar | failed = goo>");
+		assertEquals(loadXml("simpleSplitWithTransition"), js.toXML("test1", true));
+	}
+
+	// Both failed transitions point to 'boo' - as it is across a split there should be separate boo
+	// entries (with appropriate IDs)
+	@Test
+	public void toXMLSplitWithTransition2() {
+		js = parse("<foo | failed = boo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLWithForwardReference() {
+		js = parse("aaa | failed = ccc || bbb || ccc || ddd");
+		assertEquals(loadXml("forwardReference"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition3() {
+		js = parse("<foo | failed = boo | error = boo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition3"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition4() {
+		js = parse("<foo | failed = boo | error = boo || goo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition4"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithMultiTransitionToSameTarget() {
+		js = parse("foo | failed = bbb || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithMultiTransitionOnSameJobToSameTarget() {
+		js = parse("foo | failed = bbb | error = bbb || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition3"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithLotsTransitions() {
+		js = parse("foo | failed = bbb | error = boo || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition4"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowDupModule() {
+		js = parse("foo || foo");
+		assertEquals(loadXml("simpleFlowDupModule"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowSplitDupModule() {
+		js = parse("foo || <foo & foo>");
+		assertEquals(loadXml("flowSplitDupModule"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowDupModule2() {
+		js = parse("foo || bar || foo || <goo & foo> || foo");
+		assertEquals(loadXml("simpleFlowDupModule2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowRefOptions() {
+		js = parse("foo || bar || boo --timeout=100");
+		assertEquals(loadXml("simpleFlowOptions"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowRefOptions2() {
+		js = parse("foo || bar || boo --timeout=100 --pollInterval=999 ");
+		assertEquals(loadXml("simpleFlowOptions2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowRefOptions3() {
+		js = parse("foo || bar || boo --zz='abc' --timeout=100 --pollInterval=999 --xx=99 --yy=custard ");
+		assertEquals(loadXml("simpleFlowOptions3"), js.toXML("test1", true));
+		js = parse("foo || bar || boo --zz='abc' --timeout=100 --pollInterval=999 --xx=99 --yy=custard");
+		assertEquals(loadXml("simpleFlowOptions3"), js.toXML("test1", true));
+	}
+
 	@Test
 	public void toXMLSplit() {
 		js = parse("<foo & bar>");
@@ -566,18 +778,25 @@ public class JobParserTests {
 
 	@Test
 	public void inlineJobDefinitionWithOptions() {
-		js = parse("jobModuleA jobNameA --foo=bar --boo=gar");
-		JobNode jn = js.getJobNode();
-		assertTrue(jn.isJobDescriptor());
-		JobDefinition jd = (JobDefinition) jn;
-		assertFalse(jd.isReference());
-		assertTrue(jd.isDefinition());
-		assertEquals("jobModuleA", jd.getJobModuleName());
-		assertEquals("jobNameA", jd.getJobName());
-		ArgumentNode[] args = jd.getArguments();
-		assertEquals(2, args.length);
-		assertEquals("--foo=bar", args[0].stringify());
-		assertEquals("--boo=gar", args[1].stringify());
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("jobModuleA jobNameA --foo=bar --boo=gar");
+			JobNode jn = js.getJobNode();
+			assertTrue(jn.isJobDescriptor());
+			JobDefinition jd = (JobDefinition) jn;
+			assertFalse(jd.isReference());
+			assertTrue(jd.isDefinition());
+			assertEquals("jobModuleA", jd.getJobModuleName());
+			assertEquals("jobNameA", jd.getJobName());
+			ArgumentNode[] args = jd.getArguments();
+			assertEquals(2, args.length);
+			assertEquals("--foo=bar", args[0].stringify());
+			assertEquals("--boo=gar", args[1].stringify());
+		}
+		else {
+			checkForParseError(
+					"jobModuleA jobNameA --foo=bar --boo=gar",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 11, "jobNameA");
+		}
 	}
 
 	@Test
@@ -599,137 +818,183 @@ public class JobParserTests {
 
 	@Test
 	public void inlineJobDefWithTwoArguments() {
-		js = parse("foo foo --name=value --x=y");
-		List<JobDefinition> jds = js.getJobDefinitions();
-		assertEquals(1, jds.size());
-		assertEquals("foo foo --name=value --x=y", jds.get(0).stringify(false));
+		String dsl = "foo foo --name=value --x=y";
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse(dsl);
+			List<JobDefinition> jds = js.getJobDefinitions();
+			assertEquals(1, jds.size());
+			assertEquals(dsl, jds.get(0).stringify(false));
+		}
+		else {
+			checkForParseError(dsl, JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+		}
 	}
 
 	@Test
 	public void inlineJobDefDottedArgName() {
-		js = parse("foo foo --nam.eee=value --x=y");
-		List<JobDefinition> jds = js.getJobDefinitions();
-		assertEquals(1, jds.size());
-		assertEquals("foo foo --nam.eee=value --x=y", jds.get(0).stringify(false));
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("foo foo --nam.eee=value --x=y");
+			List<JobDefinition> jds = js.getJobDefinitions();
+			assertEquals(1, jds.size());
+			assertEquals("foo foo --nam.eee=value --x=y", jds.get(0).stringify(false));
+		}
+		else {
+			checkForParseError("foo foo --nam.eee=value --x=y",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+			checkForParseError("foo foo --nam.eee=value --x=y",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+		}
 	}
 
 	@Test
 	public void inlineJobDefDottedArgValue() {
-		js = parse("foo foo --name=abc.def --x=y");
-		List<JobDefinition> jds = js.getJobDefinitions();
-		assertEquals(1, jds.size());
-		assertEquals("foo foo --name=abc.def --x=y", jds.get(0).stringify(false));
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("foo foo --name=abc.def --x=y");
+			List<JobDefinition> jds = js.getJobDefinitions();
+			assertEquals(1, jds.size());
+			assertEquals("foo foo --name=abc.def --x=y", jds.get(0).stringify(false));
+		}
+		else {
+			checkForParseError("foo foo --name=abc.def --x=y",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+		}
 	}
 
 	@Test
 	public void inlineJobDefWithArgumentsAndTransitions() {
-		js = parse("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff");
-		List<JobDefinition> jds = js.getJobDefinitions();
-		assertEquals(1, jds.size());
-		assertEquals("foo foo --name=value --x=y | aaa = bbb | ccc = ddd | eee = fff", jds.get(0).stringify(false));
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			js = parse("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff");
+			List<JobDefinition> jds = js.getJobDefinitions();
+			assertEquals(1, jds.size());
+			assertEquals("foo foo --name=value --x=y | aaa = bbb | ccc = ddd | eee = fff", jds.get(0).stringify(false));
 
-		js = parse("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff || bar bart || goo good");
-		jds = js.getJobDefinitions();
-		assertEquals(3, jds.size());
-		assertEquals("bar bart", jds.get(1).stringify(false));
+			js = parse("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff || bar bart || goo good");
+			jds = js.getJobDefinitions();
+			assertEquals(3, jds.size());
+			assertEquals("bar bart", jds.get(1).stringify(false));
+		}
+		else {
+			checkForParseError("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+			checkForParseError("foo foo --name=value --x=y | aaa = bbb | ccc = ddd | eee = fff",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+			checkForParseError("foo foo --name=value --x=y | aaa=bbb | ccc=ddd | eee=fff || bar bart || goo good",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "foo");
+		}
 	}
 
 	@Test
 	public void inlineJobDefinitionNeedsName() {
 		checkForParseError("foo || transform --expression=new StringBuilder(payload).reverse() || bar",
-				JobDSLMessage.MISSING_JOB_NAME_IN_INLINEJOBDEF, 17);
+				JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC, 34);
 	}
 
 	@Test
 	public void argumentsNeedQuotesAroundArgValueWithSpaces() {
-		checkForParseError("foo || transform bar --expression=new StringBuilder(payload).reverse() || bar",
-				JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC, 38);
-		// TODO [asc] How/when are the quotes removed for these argument values?
-		js = parse("foo || transform bar --expression='new StringBuilder(payload).reverse()' || bar");
+		String dsl = "foo || transform bar --expression=new StringBuilder(payload).reverse() || bar";
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			checkForParseError(dsl, JobDSLMessage.UNEXPECTED_DATA_AFTER_JOBSPEC, 38);
+			// TODO [asc] How/when are the quotes removed for these argument values?
+			js = parse("foo || transform bar --expression='new StringBuilder(payload).reverse()' || bar");
+		}
+		else {
+			checkForParseError(dsl, JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 17, "bar");
+		}
 	}
-
 
 	@Test
 	public void moduleArguments_xd1613() {
-		// notice no space between the ' and final >
-		js = parse(
-				"transform X --expression='payload.toUpperCase()' || filter Y --expression='payload.length() > 4'");
-		assertEquals("payload.toUpperCase()", js.getJobDefinition("X").getArguments()[0].getValue());
-		assertEquals("payload.length() > 4", js.getJobDefinition("Y").getArguments()[0].getValue());
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			// notice no space between the ' and final >
+			js = parse(
+					"transform X --expression='payload.toUpperCase()' || filter Y --expression='payload.length() > 4'");
+			assertEquals("payload.toUpperCase()", js.getJobDefinition("X").getArguments()[0].getValue());
+			assertEquals("payload.length() > 4", js.getJobDefinition("Y").getArguments()[0].getValue());
 
-		js = parse(
-				"time || transform X --expression='T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)'");
-		assertEquals(
-				"T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)",
-				js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse(
+					"time || transform X --expression='T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)'");
+			assertEquals(
+					"T(org.joda.time.format.DateTimeFormat).forPattern(\"yyyy-MM-dd HH:mm:ss\").parseDateTime(payload)",
+					js.getJobDefinition("X").getArguments()[0].getValue());
 
-		// allow for pipe/semicolon if quoted
-		js = parse("http || transform X --outputType='text/plain|charset=UTF-8' || log");
-		assertEquals("text/plain|charset=UTF-8", js.getJobDefinition("X").getArguments()[0].getValue());
+			// allow for pipe/semicolon if quoted
+			js = parse("http || transform X --outputType='text/plain|charset=UTF-8' || log");
+			assertEquals("text/plain|charset=UTF-8", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform X --outputType='text/plain;charset=UTF-8' || log");
-		assertEquals("text/plain;charset=UTF-8", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --outputType='text/plain;charset=UTF-8' || log");
+			assertEquals("text/plain;charset=UTF-8", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		// Want to treat all of 'hi'+payload as the argument value
-		js = parse("http || transform X --expression='hi'+payload || log");
-		assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
+			// Want to treat all of 'hi'+payload as the argument value
+			js = parse("http || transform X --expression='hi'+payload || log");
+			assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		// Want to treat all of payload+'hi' as the argument value
-		js = parse("http || transform X --expression=payload+'hi' || log");
-		assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
+			// Want to treat all of payload+'hi' as the argument value
+			js = parse("http || transform X --expression=payload+'hi' || log");
+			assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		// Alternatively, can quote all around it to achieve the same thing
-		js = parse("http || transform X --expression='payload+''hi''' || log");
-		assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
-		js = parse("http || transform X --expression='''hi''+payload' || log");
-		assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
+			// Alternatively, can quote all around it to achieve the same thing
+			js = parse("http || transform X --expression='payload+''hi''' || log");
+			assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression='''hi''+payload' || log");
+			assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
 
 
-		js = parse("http || transform X --expression=\"payload+'hi'\" || log");
-		assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
-		js = parse("http || transform X --expression=\"'hi'+payload\" || log");
-		assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression=\"payload+'hi'\" || log");
+			assertEquals("payload+'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression=\"'hi'+payload\" || log");
+			assertEquals("'hi'+payload", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform X --expression=payload+'hi'--param2='foobar' || log");
-		assertEquals("payload+'hi'--param2='foobar'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression=payload+'hi'--param2='foobar' || log");
+			assertEquals("payload+'hi'--param2='foobar'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform X --expression='hi'+payload--param2='foobar' || log");
-		assertEquals("'hi'+payload--param2='foobar'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression='hi'+payload--param2='foobar' || log");
+			assertEquals("'hi'+payload--param2='foobar'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		// This also works, which is cool
-		js = parse("http || transform X --expression='hi'+'world' || log");
-		assertEquals("'hi'+'world'", js.getJobDefinition("X").getArguments()[0].getValue());
-		js = parse("http || transform X --expression=\"'hi'+'world'\" || log");
-		assertEquals("'hi'+'world'", js.getJobDefinition("X").getArguments()[0].getValue());
+			// This also works, which is cool
+			js = parse("http || transform X --expression='hi'+'world' || log");
+			assertEquals("'hi'+'world'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression=\"'hi'+'world'\" || log");
+			assertEquals("'hi'+'world'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || filter X --expression=payload.matches('hello world') || log");
-		assertEquals("payload.matches('hello world')", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || filter X --expression=payload.matches('hello world') || log");
+			assertEquals("payload.matches('hello world')", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform X --expression='''hi''' || log");
-		assertEquals("'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression='''hi''' || log");
+			assertEquals("'hi'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform X --expression=\"''''hi''''\" || log");
-		assertEquals("''''hi''''", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http || transform X --expression=\"''''hi''''\" || log");
+			assertEquals("''''hi''''", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http asdf --port=9014 || filter X --expression=\"payload == 'foo'\" || log");
-		assertEquals("payload == 'foo'", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http asdf --port=9014 || filter X --expression=\"payload == 'foo'\" || log");
+			assertEquals("payload == 'foo'", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http asdf --port=9014 || filter X --expression='new Foo()' || log");
-		assertEquals("new Foo()", js.getJobDefinition("X").getArguments()[0].getValue());
+			js = parse("http asdf --port=9014 || filter X --expression='new Foo()' || log");
+			assertEquals("new Foo()", js.getJobDefinition("X").getArguments()[0].getValue());
 
-		js = parse("http || transform XX --expression='payload.replace(\"abc\", \"\")' || log");
-		assertEquals("payload.replace(\"abc\", \"\")", js.getJobDefinition("XX").getArguments()[0].getValue());
+			js = parse("http || transform XX --expression='payload.replace(\"abc\", \"\")' || log");
+			assertEquals("payload.replace(\"abc\", \"\")", js.getJobDefinition("XX").getArguments()[0].getValue());
 
-		js = parse("http || transform XX --expression='payload.replace(\"abc\", '''')' || log");
-		assertEquals("payload.replace(\"abc\", '')", js.getJobDefinition("XX").getArguments()[0].getValue());
+			js = parse("http || transform XX --expression='payload.replace(\"abc\", '''')' || log");
+			assertEquals("payload.replace(\"abc\", '')", js.getJobDefinition("XX").getArguments()[0].getValue());
+		}
+		else {
+			checkForParseError(
+					"transform X --expression='payload.toUpperCase()' || filter Y --expression='payload.length() > 4'",
+					JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 10, "X");
+		}
 	}
 
 	// Parameters must be constructed via adjacent tokens
 	@Test
 	public void needAdjacentTokensForParameters() {
-		checkForParseError("foo a -- name=value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_NAME, 9);
-		checkForParseError("foo a --name =value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_EQUALS, 13);
-		checkForParseError("foo a --name= value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_VALUE, 14);
+		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
+			checkForParseError("foo a -- name=value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_NAME, 9);
+			checkForParseError("foo a --name =value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_EQUALS, 13);
+			checkForParseError("foo a --name= value", JobDSLMessage.NO_WHITESPACE_BEFORE_ARG_VALUE, 14);
+		}
+		else {
+			checkForParseError("foo a -- name=value", JobDSLMessage.EXPECTED_FLOW_OR_SPLIT_CHARS, 4, "a");
+		}
 	}
 
 	// --

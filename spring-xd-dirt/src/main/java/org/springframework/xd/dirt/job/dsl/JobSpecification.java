@@ -18,6 +18,7 @@ package org.springframework.xd.dirt.job.dsl;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Stack;
@@ -210,7 +211,7 @@ public class JobSpecification extends AstNode {
 		 */
 		private int splitIdCounter = 1;
 
-		private List<String> jobRunnerBeans = new ArrayList<>();
+		private List<JobDescriptor> jobRunnerBeans = new ArrayList<>();
 
 		private String xmlString;
 
@@ -278,7 +279,7 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public void postJobSpecWalk(Element[] elements) {
-			for (String jobRunnerBean : jobRunnerBeans) {
+			for (JobDescriptor jobRunnerBean : jobRunnerBeans) {
 				// Producing:
 				// <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bbb" scope="step">
 				//        <constructor-arg ref="messageBus"/>
@@ -286,10 +287,12 @@ public class JobSpecification extends AstNode {
 				//        <constructor-arg ref="xdJobRepository"/>
 				//        <constructor-arg value="bbb"/>
 				// </bean>
+				String jobRunnerBeanName = (jobRunnerBean instanceof JobReference
+						? ((JobReference) jobRunnerBean).getName() : ((JobDefinition) jobRunnerBean).getJobName());
 				Element bean = doc.createElement("bean");
 				bean.setAttribute("scope", "step");
 				bean.setAttribute("class", "org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet");
-				bean.setAttribute("id", "jobRunner-" + jobRunnerBean);
+				bean.setAttribute("id", "jobRunner-" + jobRunnerBeanName);
 				Element messageBusRefArg = doc.createElement("constructor-arg");
 				messageBusRefArg.setAttribute("ref", "messageBus");
 				bean.appendChild(messageBusRefArg);
@@ -300,8 +303,16 @@ public class JobSpecification extends AstNode {
 				xdJobRepositoryArg.setAttribute("ref", "xdJobRepository");
 				bean.appendChild(xdJobRepositoryArg);
 				Element nameArg = doc.createElement("constructor-arg");
-				nameArg.setAttribute("value", jobRunnerBean);
+				nameArg.setAttribute("value", jobRunnerBeanName);
 				bean.appendChild(nameArg);
+				ArgumentNode[] args = jobRunnerBean.args;
+				if (args != null) {
+					for (ArgumentNode arg : args) {
+						Element optionsArg = doc.createElement("constructor-arg");
+						optionsArg.setAttribute("value", "${" + arg.getName() + "}");
+						bean.appendChild(optionsArg);
+					}
+				}
 				this.doc.getElementsByTagName("beans").item(0).appendChild(bean);
 			}
 			try {
@@ -350,7 +361,7 @@ public class JobSpecification extends AstNode {
 			Element tasklet = doc.createElement("tasklet");
 			String jobRunnerId = "jobRunner-" + jd.getJobName();
 			tasklet.setAttribute("ref", jobRunnerId);
-			jobRunnerBeans.add(jd.getJobName());
+			jobRunnerBeans.add(jd);
 			step.appendChild(tasklet);
 			Element next = null;
 			if (jd.hasTransitions()) {
@@ -403,7 +414,7 @@ public class JobSpecification extends AstNode {
 			Element tasklet = doc.createElement("tasklet");
 			String jobRunnerId = "jobRunner-" + jr.getName();
 			tasklet.setAttribute("ref", jobRunnerId);
-			jobRunnerBeans.add(jr.getName());
+			jobRunnerBeans.add(jr);
 			step.appendChild(tasklet);
 			Element next = null;
 			if (jr.hasTransitions()) {
@@ -604,7 +615,15 @@ public class JobSpecification extends AstNode {
 		@Override
 		public int[] walk(int[] context, JobReference jr) {
 			int nextId = id++;
-			Node node = new Node(Integer.toString(nextId), jr.getName());
+			Map<String, String> properties = null;
+			ArgumentNode[] args = jr.getArguments();
+			if (args != null && args.length != 0) {
+				properties = new LinkedHashMap<>();
+				for (ArgumentNode arg : args) {
+					properties.put(arg.getName(), arg.getValue());
+				}
+			}
+			Node node = new Node(Integer.toString(nextId), jr.getName(), null, properties);
 			nodes.add(node);
 			createdNodes.put(jr.getName(), node);
 			// Create links from the previous nodes to this one
@@ -629,7 +648,7 @@ public class JobSpecification extends AstNode {
 			Map<String, String> properties = null;
 			ArgumentNode[] args = jd.getArguments();
 			if (args != null && args.length != 0) {
-				properties = new HashMap<>();
+				properties = new LinkedHashMap<>();
 				for (ArgumentNode arg : args) {
 					properties.put(arg.getName(), arg.getValue());
 				}

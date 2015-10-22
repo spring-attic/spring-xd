@@ -250,7 +250,13 @@ public class Graph {
 			}
 		}
 		else {
-			graphText.append(node.name).append("");
+			graphText.append(node.name);
+			if (node.properties != null) {
+				for (Map.Entry<String, String> entry : node.properties.entrySet()) {
+					graphText.append(" ");
+					graphText.append("--").append(entry.getKey()).append("=").append(entry.getValue());
+				}
+			}
 		}
 	}
 

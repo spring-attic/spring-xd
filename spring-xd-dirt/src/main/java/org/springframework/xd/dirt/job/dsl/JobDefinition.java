@@ -30,13 +30,10 @@ public class JobDefinition extends JobDescriptor {
 
 	private Token jobNameId;
 
-	private ArgumentNode[] args;
-
 	public JobDefinition(Token jobModuleId, Token jobNameId, ArgumentNode[] args) {
-		super(jobModuleId.startpos, jobNameId.endpos);
+		super(jobModuleId.startpos, jobNameId.endpos, args);
 		this.jobModuleId = jobModuleId;
 		this.jobNameId = jobNameId;
-		this.args = args;
 	}
 
 	@Override
@@ -69,10 +66,6 @@ public class JobDefinition extends JobDescriptor {
 
 	public String getJobName() {
 		return jobNameId.stringValue();
-	}
-
-	public ArgumentNode[] getArguments() {
-		return args;
 	}
 
 }

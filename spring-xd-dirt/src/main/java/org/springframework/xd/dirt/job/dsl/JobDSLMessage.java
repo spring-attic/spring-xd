@@ -71,8 +71,13 @@ public enum JobDSLMessage {
 															"Only a single '&' is required between jobs in a split"), //
 															EXPECTED_JOB_REF_OR_DEF(ERROR,
 																	219,
-																	"Expected job reference or definition");
-	;
+																	"Expected job reference or definition"), //
+																	JOB_REF_DOES_NOT_SUPPORT_OPTIONS(ERROR,
+																			220,
+																			"The job reference ''{0}'' used here does not allow options"), EXPECTED_FLOW_OR_SPLIT_CHARS(
+																					ERROR,
+																					221,
+																					"Expected flow '||' or split '&' next, not ''{0}''");
 
 
 	private Kind kind;

@@ -4,31 +4,16 @@
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <step id="foo">
       <tasklet ref="jobRunner-foo"/>
+      <next on="failed" to="bbb"/>
+      <next on="error" to="bbb"/>
       <next on="*" to="bar"/>
     </step>
     <step id="bar">
       <tasklet ref="jobRunner-bar"/>
-      <next on="*" to="foo1"/>
+      <next on="failed" to="bbb"/>
     </step>
-    <step id="foo1">
-      <tasklet ref="jobRunner-foo"/>
-      <next on="*" to="split1"/>
-    </step>
-    <split id="split1" task-executor="taskExecutor">
-      <flow>
-        <step id="goo">
-          <tasklet ref="jobRunner-goo"/>
-        </step>
-      </flow>
-      <flow>
-        <step id="foo2">
-          <tasklet ref="jobRunner-foo"/>
-        </step>
-      </flow>
-      <next on="*" to="foo3"/>
-    </split>
-    <step id="foo3">
-      <tasklet ref="jobRunner-foo"/>
+    <step id="bbb">
+      <tasklet ref="jobRunner-bbb"/>
     </step>
   </batch:job>
   <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step">
@@ -38,18 +23,18 @@
     <constructor-arg value="foo"/>
     <constructor-arg value="${timeout}"/>
   </bean>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bbb" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="bbb"/>
+    <constructor-arg value="${timeout}"/>
+  </bean>
   <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bar" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
     <constructor-arg value="bar"/>
-    <constructor-arg value="${timeout}"/>
-  </bean>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-goo" scope="step">
-    <constructor-arg ref="messageBus"/>
-    <constructor-arg ref="jobDefinitionRepository"/>
-    <constructor-arg ref="xdJobRepository"/>
-    <constructor-arg value="goo"/>
     <constructor-arg value="${timeout}"/>
   </bean>
 </beans>

@@ -27,7 +27,7 @@ public abstract class JobSpecificationVisitor<T> {
 	/**
 	 * Called to start a visit of a specific JobSpec.
 	 */
-	public final void accept(JobSpecification jobSpec) {
+	protected void accept(JobSpecification jobSpec) {
 		T context = preJobSpecWalk();
 		JobNode jn = jobSpec.getJobNode();
 		if (jn != null) {

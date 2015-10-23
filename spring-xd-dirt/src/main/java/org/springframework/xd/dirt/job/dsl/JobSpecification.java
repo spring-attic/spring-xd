@@ -64,7 +64,7 @@ public class JobSpecification extends AstNode {
 	private List<JobDefinition> jobDefinitions;
 
 	/**
-	 * Any arguments specified at the end of the DSL, e.g. --timeout/--pollInterval
+	 * Any arguments specified at the end of the DSL, e.g. --timeout
 	 */
 	private ArgumentNode[] globalOptions;
 
@@ -122,6 +122,19 @@ public class JobSpecification extends AstNode {
 		jdl.accept(this);
 		jobDefinitions = jdl.getJobDefinitions();
 		return jobDefinitions;
+	}
+
+	/**
+	 * A shortcut (avoiding traversing the tree) that returns the list
+	 * of all job references somewhere in this AST (references in
+	 * transitions do not count).
+	 *
+	 * @return a list of job references in this AST
+	 */
+	public List<JobReference> getJobReferences() {
+		JobReferenceLocator jrl = new JobReferenceLocator();
+		jrl.accept(this);
+		return jrl.getJobReferences();
 	}
 
 	/**
@@ -209,6 +222,46 @@ public class JobSpecification extends AstNode {
 	}
 
 	/**
+	 * Basic visitor that simply collects up any job references (*not* those named in transitions)
+	 */
+	static class JobReferenceLocator extends JobSpecificationVisitor<Object> {
+
+		List<JobReference> jobReferences = new ArrayList<JobReference>();
+
+		public List<JobReference> getJobReferences() {
+			return jobReferences;
+		}
+
+		@Override
+		public Object walk(Object context, Flow sjs) {
+			for (JobNode jobNode : sjs.getSeries()) {
+				walk(context, jobNode);
+			}
+			return context;
+		}
+
+		@Override
+		public Object walk(Object context, JobDefinition jd) {
+			return context;
+		}
+
+		@Override
+		public Object walk(Object context, JobReference jr) {
+			jobReferences.add(jr);
+			return context;
+		}
+
+		@Override
+		public Object walk(Object context, Split pjs) {
+			for (JobNode jobNode : pjs.getSeries()) {
+				walk(context, jobNode);
+			}
+			return context;
+		}
+
+	}
+
+	/**
 	 * Visitor that produces an XML representation of the Job specification.
 	 */
 	static class XMLGeneratorVisitor extends JobSpecificationVisitor<Element[]> {
@@ -239,7 +292,18 @@ public class JobSpecification extends AstNode {
 		 */
 		private int splitIdCounter = 1;
 
-		private List<JobDescriptor> jobRunnerBeans = new ArrayList<>();
+		private List<String> jobRunnerBeanNames = new ArrayList<>();
+
+		// As a new flow is entered, a new map is pushed here (popped on flow exit).
+		// The map holds onto a map of transition names to allocated XML IDs within that flow.
+		// This ensures all references to the same transition in a flow point to the same XML ID
+		// But in a different flow the same transition names will point to a different XML ID.
+		private Stack<Map<String, String>> transitionNamesToElementIdsInFlow = new Stack<>();
+
+		// Knowing all the explicit job references in the tree means when seeing a transition
+		// it can be determined if it is to a node not yet visited or something that will
+		// never be visited (and so the step must be created right now).
+		private Map<JobReference, String> jobReferencesToElementIds = new LinkedHashMap<>();
 
 		private String xmlString;
 
@@ -248,6 +312,16 @@ public class JobSpecification extends AstNode {
 		XMLGeneratorVisitor(String batchJobId, boolean prettyPrint) {
 			this.batchJobId = batchJobId;
 			this.prettyPrint = prettyPrint;
+		}
+
+		@Override
+		protected void accept(JobSpecification jobSpec) {
+			List<JobReference> jobReferences = jobSpec.getJobReferences();
+			for (JobReference jr : jobReferences) {
+				// Allocate unique XML Element IDs now, makes life easier later
+				jobReferencesToElementIds.put(jr, getNextStepId(jr.getName()));
+			}
+			super.accept(jobSpec);
 		}
 
 		public String getXmlString() {
@@ -309,8 +383,8 @@ public class JobSpecification extends AstNode {
 		@Override
 		public void postJobSpecWalk(Element[] elements, JobSpecification jobSpec) {
 			Set<String> generatedBeans = new HashSet<>();
-			for (JobDescriptor jobRunnerBean : jobRunnerBeans) {
-				if (generatedBeans.contains(jobRunnerBean.getName())) {
+			for (String jobRunnerBeanName : jobRunnerBeanNames) {
+				if (generatedBeans.contains(jobRunnerBeanName)) {
 					continue;
 				}
 				// Producing:
@@ -320,10 +394,7 @@ public class JobSpecification extends AstNode {
 				//        <constructor-arg ref="xdJobRepository"/>
 				//        <constructor-arg value="bbb"/>
 				//        <constructor-arg value="${timeout}"/>
-				//        <constructor-arg value="${pollInterval}"/>
 				// </bean>
-				String jobRunnerBeanName = (jobRunnerBean instanceof JobReference
-						? ((JobReference) jobRunnerBean).getName() : ((JobDefinition) jobRunnerBean).getJobName());
 				Element bean = doc.createElement("bean");
 				bean.setAttribute("scope", "step");
 				bean.setAttribute("class", "org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet");
@@ -333,9 +404,8 @@ public class JobSpecification extends AstNode {
 				addConstructorArg(bean, "ref", "xdJobRepository");
 				addConstructorArg(bean, "value", jobRunnerBeanName);
 				addConstructorArg(bean, "value", "${timeout}");
-				addConstructorArg(bean, "value", "${pollInterval}");
 				this.doc.getElementsByTagName("beans").item(0).appendChild(bean);
-				generatedBeans.add(jobRunnerBean.getName());
+				generatedBeans.add(jobRunnerBeanName);
 			}
 			try {
 				// Write the content
@@ -372,8 +442,14 @@ public class JobSpecification extends AstNode {
 				currentElement.push(flow);
 			}
 			Element[] result = context;
+			transitionNamesToElementIdsInFlow.push(new LinkedHashMap<String, String>());
 			for (JobNode j : jn.getSeries()) {
 				result = walk(result, j);
+			}
+			Map<String, String> transitionStepsToCreate = transitionNamesToElementIdsInFlow.pop();
+			for (Map.Entry<String, String> transitionStepToCreate : transitionStepsToCreate.entrySet()) {
+				Element step = createStep(transitionStepToCreate.getValue(), transitionStepToCreate.getKey());
+				currentElement.peek().appendChild(step);
 			}
 			if (inSplit) {
 				currentElement.pop();
@@ -383,12 +459,14 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public Element[] walk(Element[] context, JobDefinition jd) {
+			// TODO this code needs some rework to match XML gen for JobReference but we don't
+			// support JobDefinitions in the first version of the DSL.
 			Element step = doc.createElement("step");
 			step.setAttribute("id", jd.getJobName());
 			Element tasklet = doc.createElement("tasklet");
 			String jobRunnerId = "jobRunner-" + jd.getJobName();
 			tasklet.setAttribute("ref", jobRunnerId);
-			jobRunnerBeans.add(jd);
+			jobRunnerBeanNames.add(jd.getName());
 			step.appendChild(tasklet);
 			Element next = null;
 			if (jd.hasTransitions()) {
@@ -434,6 +512,7 @@ public class JobSpecification extends AstNode {
 			return proposal;
 		}
 
+
 		/**
 		 * Visit a job reference. Rules:
 		 * <ul>
@@ -451,40 +530,53 @@ public class JobSpecification extends AstNode {
 			//   </step>
 			// </flow>
 
+			// When a split branch only contains a single job reference, no surrounding Flow object is created,
+			// so the flow block needs creating here in this case.
 			boolean inSplit = currentElement.peek().getTagName().equals("split");
 			if (inSplit) {
 				Element flow = doc.createElement("flow");
 				currentElement.peek().appendChild(flow);
 				currentElement.push(flow);
 			}
-			Element step = doc.createElement("step");
-			String stepId = getNextStepId(jr.getName());
-			step.setAttribute("id", stepId);
-			Element tasklet = doc.createElement("tasklet");
-			String jobRunnerId = "jobRunner-" + jr.getName(); // Not stepId - a single jobrunner tasklet definition can be shared
-			tasklet.setAttribute("ref", jobRunnerId);
-			jobRunnerBeans.add(jr);
-			step.appendChild(tasklet);
-			Element next = null;
+			String stepId = jobReferencesToElementIds.get(jr);
+			Element step = createStep(stepId, jr.getName());
+			currentElement.peek().appendChild(step);
+			jobRunnerBeanNames.add(jr.getName());
 			if (jr.hasTransitions()) {
 				for (Transition t : jr.transitions) {
-					next = doc.createElement("next");
-					next.setAttribute("on", t.getStateName());
-					next.setAttribute("to", t.getTargetJobName());
-					step.appendChild(next);
+					String targetJob = t.getTargetJobName();
+					Map<String, String> transitionNamesToElementIdsInCurrentFlow = transitionNamesToElementIdsInFlow.peek();
+					if (transitionNamesToElementIdsInCurrentFlow.containsKey(targetJob)) {
+						// already exists, share the ID
+						targetJob = transitionNamesToElementIdsInCurrentFlow.get(targetJob);
+					}
+					else {
+						// Is this a reference to a job that already exists elsewhere in this composed job definition?
+						String id = getReferenceToExistingJob(targetJob);
+						if (id == null) {
+							// create an entry, this is the first reference to this target job in this flow
+							id = getNextStepId(targetJob);
+							transitionNamesToElementIdsInCurrentFlow.put(targetJob, id);
+							if (inSplit) {
+								// If a job reference is directly inside a split with no surrounding flow to create
+								// the steps collected in 'existingTransitionSteps' then it needs to be done here.
+								Element transitionStep = createStep(id, t.getTargetJobName());
+								currentElement.peek().appendChild(transitionStep);
+							}
+						}
+						targetJob = id;
+					}
+					step.appendChild(createNextElement(t.getStateName(), targetJob));
+					jobRunnerBeanNames.add(t.getTargetJobName());
 				}
 			}
 			if (context != null) {
-				// context is an array of earlier elements that should point to this one
+				// context is an array of earlier elements that should be updated now to point to this one
 				Element[] elements = context;
 				for (Element element : elements) {
-					next = doc.createElement("next");
-					next.setAttribute("on", "*");
-					next.setAttribute("to", stepId);
-					element.appendChild(next);
+					element.appendChild(createNextElement("*", stepId));
 				}
 			}
-			currentElement.peek().appendChild(step);
 			if (inSplit) {
 				currentElement.pop();
 			}
@@ -518,7 +610,9 @@ public class JobSpecification extends AstNode {
 			Element[] inputContext = new Element[] {};//context;
 			Element[] result = new Element[0];
 			for (JobNode jn : pjs.getSeries()) {
+				transitionNamesToElementIdsInFlow.push(new LinkedHashMap<String, String>());
 				Object outputContext = walk(inputContext, jn);
+				transitionNamesToElementIdsInFlow.pop();
 				result = merge(result, outputContext);
 			}
 			currentElement.pop();
@@ -527,12 +621,37 @@ public class JobSpecification extends AstNode {
 			return new Element[] { split };
 		}
 
-		Element[] merge(Element[] input, Object additional) {
+		private Element[] merge(Element[] input, Object additional) {
 			Element[] additionalArrayData = (Element[]) additional;
 			Element[] result = new Element[input.length + additionalArrayData.length];
 			System.arraycopy(input, 0, result, 0, input.length);
 			System.arraycopy(additionalArrayData, 0, result, input.length, additionalArrayData.length);
 			return result;
+		}
+
+		private Element createStep(String stepId, String jobRunnerBeanIdSuffix) {
+			Element step = doc.createElement("step");
+			step.setAttribute("id", stepId);
+			Element tasklet = doc.createElement("tasklet");
+			tasklet.setAttribute("ref", "jobRunner-" + jobRunnerBeanIdSuffix);
+			step.appendChild(tasklet);
+			return step;
+		}
+
+		private Element createNextElement(String on, String to) {
+			Element next = doc.createElement("next");
+			next.setAttribute("on", on);
+			next.setAttribute("to", to);
+			return next;
+		}
+
+		private String getReferenceToExistingJob(String jobName) {
+			for (Map.Entry<JobReference, String> jrEntry : jobReferencesToElementIds.entrySet()) {
+				if (jrEntry.getKey().getName().equals(jobName)) {
+					return jrEntry.getValue();
+				}
+			}
+			return null;
 		}
 
 	}

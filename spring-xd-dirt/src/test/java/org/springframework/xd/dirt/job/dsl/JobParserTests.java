@@ -653,9 +653,83 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void toXMLFlowDup() {
+		js = parse("foo || foo");
+		assertEquals(loadXml("xmlFlowDup"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitDup() {
+		js = parse("<foo & foo>");
+		assertEquals(loadXml("xmlSplitDup"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithTransition() {
+		js = parse("foo || bar | failed = goo");
+		assertEquals(loadXml("simpleFlowWithTransition"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition() {
+		js = parse("<foo | failed = boo & bar | failed = goo>");
+		assertEquals(loadXml("simpleSplitWithTransition"), js.toXML("test1", true));
+	}
+
+	// Both failed transitions point to 'boo' - as it is across a split there should be separate boo
+	// entries (with appropriate IDs)
+	@Test
+	public void toXMLSplitWithTransition2() {
+		js = parse("<foo | failed = boo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLWithForwardReference() {
+		js = parse("aaa | failed = ccc || bbb || ccc || ddd");
+		assertEquals(loadXml("forwardReference"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition3() {
+		js = parse("<foo | failed = boo | error = boo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition3"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLSplitWithTransition4() {
+		js = parse("<foo | failed = boo | error = boo || goo & bar | failed = boo>");
+		assertEquals(loadXml("simpleSplitWithTransition4"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithMultiTransitionToSameTarget() {
+		js = parse("foo | failed = bbb || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithMultiTransitionOnSameJobToSameTarget() {
+		js = parse("foo | failed = bbb | error = bbb || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition3"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowWithLotsTransitions() {
+		js = parse("foo | failed = bbb | error = boo || bar | failed = bbb");
+		assertEquals(loadXml("simpleFlowWithTransition4"), js.toXML("test1", true));
+	}
+
+	@Test
 	public void toXMLFlowDupModule() {
 		js = parse("foo || foo");
 		assertEquals(loadXml("simpleFlowDupModule"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLFlowSplitDupModule() {
+		js = parse("foo || <foo & foo>");
+		assertEquals(loadXml("flowSplitDupModule"), js.toXML("test1", true));
 	}
 
 	@Test

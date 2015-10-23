@@ -542,6 +542,7 @@ public class JobSpecification extends AstNode {
 			Element step = createStep(stepId, jr.getName());
 			currentElement.peek().appendChild(step);
 			jobRunnerBeanNames.add(jr.getName());
+			boolean explicitWildcardExit = false;
 			if (jr.hasTransitions()) {
 				for (Transition t : jr.transitions) {
 					String targetJob = t.getTargetJobName();
@@ -568,6 +569,9 @@ public class JobSpecification extends AstNode {
 					}
 					step.appendChild(createNextElement(t.getStateName(), targetJob));
 					jobRunnerBeanNames.add(t.getTargetJobName());
+					if (t.getStateName().equals("*")) {
+						explicitWildcardExit = true;
+					}
 				}
 			}
 			if (context != null) {
@@ -580,7 +584,7 @@ public class JobSpecification extends AstNode {
 			if (inSplit) {
 				currentElement.pop();
 			}
-			return new Element[] { step };
+			return explicitWildcardExit ? new Element[] {} : new Element[] { step };
 		}
 
 		@Override

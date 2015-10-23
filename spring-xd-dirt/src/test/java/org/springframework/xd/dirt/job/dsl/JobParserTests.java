@@ -141,6 +141,7 @@ public class JobParserTests {
 		checkDSLToGraphAndBackToDSL("<foojob & bbb || ccc>");
 	}
 
+
 	@Test
 	public void toDSLTextSplitToFlow() {
 		checkDSLToGraphAndBackToDSL("<a & b> || foo");
@@ -630,6 +631,12 @@ public class JobParserTests {
 	public void toXML() {
 		js = parse("foo");
 		assertEquals(loadXml("simpleJob"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLallExitsCovered() {
+		js = parse("aaa | foo = END | B = bbb | '*' = ccc || bbb || ccc");
+		assertEquals(loadXml("allExitsCovered"), js.toXML("test1", true));
 	}
 
 	@Ignore

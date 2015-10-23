@@ -23,6 +23,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -135,7 +136,7 @@ public class ModuleDefinitionService {
 	}
 
 	private void writeXML(JarOutputStream target, String xml) {
-		try (InputStream in = new ByteArrayInputStream(xml.getBytes(Charset.forName("UTF-8")))) {
+		try (InputStream in = new ByteArrayInputStream(xml.getBytes(Charset.forName(StandardCharsets.UTF_8.name())))) {
 			JarEntry entry = new JarEntry("config/composedjob.xml");
 			target.putNextEntry(entry);
 			StreamUtils.copy(in, target);
@@ -146,7 +147,7 @@ public class ModuleDefinitionService {
 		}
 	}
 	private void writeParameters(JarOutputStream target, String parameters) {
-		try (InputStream in = new ByteArrayInputStream(parameters.getBytes(Charset.forName("UTF-8")))) {
+		try (InputStream in = new ByteArrayInputStream(parameters.getBytes(Charset.forName(StandardCharsets.UTF_8.name())))) {
 			JarEntry entry = new JarEntry("config/composedjob.properties");
 			target.putNextEntry(entry);
 			StreamUtils.copy(in, target);

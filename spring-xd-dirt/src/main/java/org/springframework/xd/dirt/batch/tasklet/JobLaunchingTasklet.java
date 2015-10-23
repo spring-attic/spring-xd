@@ -43,7 +43,9 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
@@ -158,7 +160,10 @@ public class JobLaunchingTasklet implements Tasklet {
 
 		setOrchestrationId(chunkContext);
 
-		bindChannels();
+		String driverJobName = chunkContext.getStepContext().getStepExecution().getJobExecution().getJobInstance()
+				.getJobName();
+
+		bindChannels(driverJobName);
 
 		try {
 			validateJobDeployment();
@@ -204,7 +209,7 @@ public class JobLaunchingTasklet implements Tasklet {
 			return RepeatStatus.FINISHED;
 		}
 		finally {
-			unbindChannels();
+			unbindChannels(driverJobName);
 		}
 	}
 
@@ -225,13 +230,13 @@ public class JobLaunchingTasklet implements Tasklet {
 		}
 	}
 
-	private void bindChannels() {
-		messageBus.bindPubSubConsumer(getEventListenerChannelName(jobName), this.listeningChannel, null);
+	private void bindChannels(String driverJobName) {
+		messageBus.bindPubSubConsumer(getEventListenerChannelName(this.jobName, driverJobName), this.listeningChannel, null);
 		messageBus.bindProducer("job:" + jobName, this.launchingChannel, null);
 	}
 
-	private void unbindChannels() {
-		messageBus.unbindConsumer(getEventListenerChannelName(jobName), this.listeningChannel);
+	private void unbindChannels(String driverJobName) {
+		messageBus.unbindConsumer(getEventListenerChannelName(jobName, driverJobName), this.listeningChannel);
 		messageBus.unbindProducer("job:" + jobName, this.launchingChannel);
 	}
 
@@ -262,8 +267,12 @@ public class JobLaunchingTasklet implements Tasklet {
 		}
 	}
 
-	private String getEventListenerChannelName(String jobName) {
-		return String.format("tap:job:%s.job", jobName);
+	private String getEventListenerChannelName(String jobName, String driverJobName) {
+		String tapName = String.format("tap:job:%s.job", jobName);
+		if (this.messageBus.isCapable(Capability.DURABLE_PUBSUB)) {
+			tapName = BusUtils.addGroupToPubSub(driverJobName, tapName);
+		}
+		return tapName;
 	}
 
 	public JobExecution getResult(Message<?> message) throws MessagingException {

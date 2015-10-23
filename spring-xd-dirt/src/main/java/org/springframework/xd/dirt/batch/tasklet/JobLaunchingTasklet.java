@@ -40,6 +40,7 @@ import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -90,7 +91,7 @@ public class JobLaunchingTasklet implements Tasklet {
 
 	private MessageChannel launchingChannel;
 
-	private QueueChannel listeningChannel;
+	private PollableChannel listeningChannel;
 
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
@@ -116,7 +117,7 @@ public class JobLaunchingTasklet implements Tasklet {
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
 			Long timeout,
-			MessageChannel launchingChannel, QueueChannel listeningChannel) {
+			MessageChannel launchingChannel, PollableChannel listeningChannel) {
 		Assert.notNull(messageBus, "A message bus is required");
 		Assert.notNull(jobDefinitionRepository, "A JobDefinitionRepository is required");
 		Assert.notNull(instanceRepository, "A DomainRepository is required");
@@ -174,9 +175,7 @@ public class JobLaunchingTasklet implements Tasklet {
 
 			String jobParametersString = this.extractor.extract(jobParameters);
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Launching request for {} orchestration {}", this.jobName, this.orchestrationId);
-			}
+			logger.debug("Launching request for {} orchestration {}", this.jobName, this.orchestrationId);
 
 			this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
 
@@ -187,7 +186,9 @@ public class JobLaunchingTasklet implements Tasklet {
 			while (results == null && (this.timeout > 0 ? remaining > 0 : true)) {
 				Message<?> resultMessage = this.timeout > 0 ? this.listeningChannel.receive(remaining)
 						: this.listeningChannel.receive();
-				results = getResult(resultMessage);
+				if (resultMessage != null) {
+					results = getResult(resultMessage);
+				}
 				remaining = startTime.getTime() - System.currentTimeMillis() + this.timeout;
 			}
 
@@ -198,9 +199,7 @@ public class JobLaunchingTasklet implements Tasklet {
 				throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
 			}
 
-			if (logger.isDebugEnabled()) {
-				logger.debug("Completed processing for {} orchestration {}", this.jobName, this.orchestrationId);
-			}
+			logger.debug("Completed processing for {} orchestration {}", this.jobName, this.orchestrationId);
 
 			return RepeatStatus.FINISHED;
 		}
@@ -272,9 +271,7 @@ public class JobLaunchingTasklet implements Tasklet {
 
 		String curOrchestrationId = jobExecution.getJobParameters().getString(XD_ORCHESTRATION_ID);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Received result for {} orchestration {}", this.jobName, curOrchestrationId);
-		}
+		logger.debug("Received result for {} orchestration {}", this.jobName, curOrchestrationId);
 
 		if (StringUtils.hasText(curOrchestrationId) &&
 				curOrchestrationId.equalsIgnoreCase(this.orchestrationId)) {

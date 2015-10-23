@@ -157,52 +157,56 @@ public class JobLaunchingTasklet implements Tasklet {
 
 		setOrchestrationId(chunkContext);
 
-		configureChannels();
+		bindChannels();
 
-		validateJobDeployment();
+		try {
+			validateJobDeployment();
 
-		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
+			JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
 
-		String jobExecutionId = String.valueOf(
-				chunkContext.getStepContext().getStepExecution().getJobExecution().getId());
+			String jobExecutionId = String.valueOf(
+					chunkContext.getStepContext().getStepExecution().getJobExecution().getId());
 
-		JobParameters jobParameters = new JobParametersBuilder(originalJobParameters).addParameter(XD_ORCHESTRATION_ID,
-				new JobParameter(this.orchestrationId)).addParameter(XD_PARENT_JOB_EXECUTION_ID,
-						new JobParameter(jobExecutionId)).toJobParameters();
+			JobParameters jobParameters = new JobParametersBuilder(originalJobParameters).addParameter(
+					XD_ORCHESTRATION_ID,
+					new JobParameter(this.orchestrationId)).addParameter(XD_PARENT_JOB_EXECUTION_ID,
+							new JobParameter(jobExecutionId)).toJobParameters();
 
-		String jobParametersString = this.extractor.extract(jobParameters);
+			String jobParametersString = this.extractor.extract(jobParameters);
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("Launching request for {} orchestration {}", this.jobName, this.orchestrationId);
+			if (logger.isDebugEnabled()) {
+				logger.debug("Launching request for {} orchestration {}", this.jobName, this.orchestrationId);
+			}
+
+			this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
+
+			Date startTime = new Date();
+
+			long remaining = this.timeout;
+			JobExecution results = null;
+			while (results == null && (this.timeout > 0 ? remaining > 0 : true)) {
+				Message<?> resultMessage = this.timeout > 0 ? this.listeningChannel.receive(remaining)
+						: this.listeningChannel.receive();
+				results = getResult(resultMessage);
+				remaining = startTime.getTime() - System.currentTimeMillis() + this.timeout;
+			}
+
+			if (results != null) {
+				processResult(contribution, results);
+			}
+			else {
+				throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
+			}
+
+			if (logger.isDebugEnabled()) {
+				logger.debug("Completed processing for {} orchestration {}", this.jobName, this.orchestrationId);
+			}
+
+			return RepeatStatus.FINISHED;
 		}
-
-		this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
-
-		Date startTime = new Date();
-
-		long remaining = this.timeout;
-		JobExecution results = null;
-		while (results == null && (this.timeout > 0 ? remaining > 0 : true)) {
-			Message<?> resultMessage = this.timeout > 0 ? this.listeningChannel.receive(remaining)
-					: this.listeningChannel.receive();
-			results = getResult(resultMessage);
-			remaining = startTime.getTime() - System.currentTimeMillis() + this.timeout;
+		finally {
+			unbindChannels();
 		}
-
-		if (results != null) {
-			processResult(contribution, results);
-		}
-		else {
-			throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
-		}
-
-		//TODO unbind producer and consumer (success or fail)
-
-		if (logger.isDebugEnabled()) {
-			logger.debug("Completed processing for {} orchestration {}", this.jobName, this.orchestrationId);
-		}
-
-		return RepeatStatus.FINISHED;
 	}
 
 	private void processResult(StepContribution contribution, JobExecution results) {
@@ -222,9 +226,14 @@ public class JobLaunchingTasklet implements Tasklet {
 		}
 	}
 
-	private void configureChannels() {
+	private void bindChannels() {
 		messageBus.bindPubSubConsumer(getEventListenerChannelName(jobName), this.listeningChannel, null);
 		messageBus.bindProducer("job:" + jobName, this.launchingChannel, null);
+	}
+
+	private void unbindChannels() {
+		messageBus.unbindConsumer(getEventListenerChannelName(jobName), this.listeningChannel);
+		messageBus.unbindProducer("job:" + jobName, this.launchingChannel);
 	}
 
 	private void validateJobDeployment() {

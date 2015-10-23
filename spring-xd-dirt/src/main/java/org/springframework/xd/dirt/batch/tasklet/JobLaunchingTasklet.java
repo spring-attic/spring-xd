@@ -19,6 +19,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -29,6 +30,7 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
+import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
@@ -44,6 +46,7 @@ import org.springframework.messaging.MessagingException;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
@@ -149,16 +152,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 		validateJobDeployment();
 
-		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
-
-		String jobExecutionId = String.valueOf(chunkContext.getStepContext().getStepExecution().getJobExecution().getId());
-
-		JobParameters jobParameters = new JobParametersBuilder(originalJobParameters)
-				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
-				.addParameter(XD_PARENT_JOB_EXECUTION_ID, new JobParameter(jobExecutionId))
-				.toJobParameters();
-
-		String jobParametersString = this.extractor.extract(jobParameters);
+		String jobParametersString = getJobParameters(chunkContext);
 
 		this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
 
@@ -176,6 +170,19 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 		}
 
 		return RepeatStatus.FINISHED;
+	}
+
+	private String getJobParameters(ChunkContext chunkContext) throws JsonProcessingException {
+		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
+
+		Properties jobParameterValues = originalJobParameters.toProperties();
+		jobParameterValues.remove("+" + ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY + DefaultJobParametersConverter.STRING_TYPE);
+
+		JobParameters jobParameters = new JobParametersBuilder(jobParameterValues)
+				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
+				.toJobParameters();
+
+		return this.extractor.extract(jobParameters);
 	}
 
 	private void processResult(StepContribution contribution) {

@@ -28,7 +28,7 @@
 
 		<bean class="org.springframework.xd.dirt.plugins.job.DistributedJobService">
 			<constructor-arg ref="jobInstanceDao" />
-			<constructor-arg ref="jobExecutionDao" />
+			<constructor-arg ref="xdJdbcSearchableJobExecutionDao" />
 			<constructor-arg ref="stepExecutionDao" />
 			<constructor-arg ref="jobRepository" />
 			<constructor-arg ref="jobLauncher" />
@@ -48,8 +48,8 @@
 			<property name="jdbcTemplate" ref="jdbcTemplate" />
 		</bean>
 
-		<bean id="jobExecutionDao"
-			class="org.springframework.batch.admin.service.JdbcSearchableJobExecutionDao">
+		<bean id="xdJdbcSearchableJobExecutionDao"
+			class="org.springframework.xd.dirt.job.dao.XdJdbcSearchableJobExecutionDao">
 			<property name="dataSource" ref="dataSource" />
 		</bean>
 

@@ -168,8 +168,8 @@ public class BatchJobExecutionsControllerIntegrationTests extends AbstractContro
 		when(jobService.isIncrementable(job1.getName())).thenReturn(false);
 		when(jobService.isIncrementable(job2.getName())).thenReturn(true);
 
-		when(jobService.listJobExecutions(5, 5)).thenReturn(jobExecutions1);
-		when(jobService.listJobExecutions(0, 20)).thenReturn(jobExecutions1);
+		when(jobService.getTopLevelJobExecutions(5, 5)).thenReturn(jobExecutions1);
+		when(jobService.getTopLevelJobExecutions(0, 20)).thenReturn(jobExecutions1);
 		when(jobService.listJobExecutionsForJob(job2.getName(), 0, 20)).thenReturn(jobExecutions2);
 		when(jobService.getJobExecution(jobExecution1.getId())).thenReturn(jobExecution1);
 		when(jobService.getJobExecution(99999L)).thenThrow(new NoSuchJobExecutionException("Not found."));

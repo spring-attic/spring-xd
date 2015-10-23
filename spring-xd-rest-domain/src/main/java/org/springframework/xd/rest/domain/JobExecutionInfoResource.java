@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@
 package org.springframework.xd.rest.domain;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Properties;
 import java.util.TimeZone;
 
@@ -41,6 +43,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  *
  * @author Dave Syer
  * @author Ilayaperumal Gopinathan
+ * @author Gunnar Hillert
  */
 @XmlRootElement
 public class JobExecutionInfoResource extends ResourceSupport {
@@ -82,9 +85,13 @@ public class JobExecutionInfoResource extends ResourceSupport {
 
 	private boolean deleted = false;
 
+	private boolean composedJob = false;
+
 	private JobParametersConverter converter = new DefaultJobParametersConverter();
 
 	private final TimeZone timeZone;
+
+	final List<JobExecutionInfoResource> childJobExecutions = new ArrayList<JobExecutionInfoResource>(0);
 
 	public JobExecutionInfoResource() {
 		this.timeZone = TimeUtils.getDefaultTimeZone();
@@ -225,6 +232,34 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	 */
 	public void setDeleted(boolean deleted) {
 		this.deleted = deleted;
+	}
+
+	/**
+	 * Is this a composed Job? ?
+	 *
+	 * @return True if this is a composed job.
+	 */
+	public boolean isComposedJob() {
+		return composedJob;
+	}
+
+	/**
+	 * Set if this is a composed Job. If not specified, the underlying property
+	 * will default to {@code false}.
+	 *
+	 * @return True if this is a composed job.
+	 */
+	public void setComposedJob(boolean composedJob) {
+		this.composedJob = composedJob;
+	}
+
+	/**
+	 * Returns a {@link List} of {@link JobExecutionInfoResource}s, if any.
+	 *
+	 * @return Should never return null.
+	 */
+	public List<JobExecutionInfoResource> getChildJobExecutions() {
+		return childJobExecutions;
 	}
 
 	/**

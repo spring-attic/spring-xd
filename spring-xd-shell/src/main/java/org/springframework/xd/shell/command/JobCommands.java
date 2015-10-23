@@ -22,6 +22,7 @@ import static org.springframework.xd.shell.command.DeploymentOptionKeys.PROPERTI
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -145,8 +146,12 @@ public class JobCommands implements CommandMarker {
 
 	@CliCommand(value = LIST_JOB_EXECUTIONS, help = "List all job executions")
 	public Table listJobExecutions() {
-
 		final PagedResources<JobExecutionInfoResource> jobExecutions = jobOperations().listJobExecutions();
+		return createJobExecutionsTable(jobExecutions.getContent());
+	}
+
+	private Table createJobExecutionsTable(Collection<JobExecutionInfoResource> jobExecutions) {
+
 		final Table table = new Table();
 		table.addHeader(1, new TableHeader("Id"))
 				.addHeader(2, new TableHeader("Job Name"))
@@ -154,7 +159,8 @@ public class JobCommands implements CommandMarker {
 				.addHeader(4, new TableHeader("Step Execution Count"))
 				.addHeader(5, new TableHeader("Execution Status"))
 				.addHeader(6, new TableHeader("Deployment Status"))
-				.addHeader(7, new TableHeader("Definition Status"));
+				.addHeader(7, new TableHeader("Definition Status"))
+				.addHeader(8, new TableHeader("Composed"));
 
 		for (JobExecutionInfoResource jobExecutionInfoResource : jobExecutions) {
 			final TableRow row = new TableRow();
@@ -166,13 +172,14 @@ public class JobCommands implements CommandMarker {
 					.addValue(4, String.valueOf(jobExecutionInfoResource.getStepExecutionCount()))
 					.addValue(5, jobExecutionInfoResource.getJobExecution().getStatus().name())
 					.addValue(6, (jobExecutionInfoResource.isDeployed()) ? "Deployed" : "Undeployed")
-					.addValue(7, (jobExecutionInfoResource.isDeleted()) ? "Destroyed" : "Exists");
+					.addValue(7, (jobExecutionInfoResource.isDeleted()) ? "Destroyed" : "Exists")
+					.addValue(8, (jobExecutionInfoResource.isComposedJob()) ? "   *" : "");
 			table.getRows().add(row);
 		}
-
+ 
 		return table;
 	}
-
+	
 	@CliCommand(value = LIST_STEP_EXECUTIONS, help = "List all step executions for the provided job execution id")
 	public Table listStepExecutions(
 			@CliOption(mandatory = true, key = { "", "id" }, help = "the id of the job execution") long jobExecutionId) {
@@ -261,6 +268,8 @@ public class JobCommands implements CommandMarker {
 
 		jobExecutionTable.addRow("Job Execution ID", String.valueOf(jobExecutionInfoResource.getExecutionId()))
 				.addRow("Job Name", jobExecutionInfoResource.getName())
+				.addRow("Job Instance", String.valueOf(jobExecutionInfoResource.getJobExecution().getJobInstance().getId()))
+				.addRow("Composed Job", String.valueOf(jobExecutionInfoResource.isComposedJob()))
 				.addRow("Create Time", localCreateTime)
 				.addRow("Start Time", localStartTime)
 				.addRow("End Time", localEndTime)
@@ -311,6 +320,12 @@ public class JobCommands implements CommandMarker {
 		details.append("Underlying Job Definition Status: " + jobDefinitionStatus + "\n");
 		details.append(UiUtils.HORIZONTAL_LINE);
 
+		if (!jobExecutionInfoResource.getChildJobExecutions().isEmpty()) {
+			details.append("Composed Job - Child Job Executions:\n");
+			details.append(UiUtils.HORIZONTAL_LINE);
+			details.append(createJobExecutionsTable(jobExecutionInfoResource.getChildJobExecutions()));
+		}
+		
 		return details.toString();
 	}
 

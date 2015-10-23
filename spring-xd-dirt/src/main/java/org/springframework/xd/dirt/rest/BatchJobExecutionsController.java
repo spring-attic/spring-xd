@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,14 +92,20 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		final Set<String> deployedJobs = new HashSet<String>(jobLocator.getJobNames());
 		final Set<String> jobDefinitionNames = new HashSet<String>(getJobDefinitionNames());
 
-		for (JobExecution jobExecution : jobService.listJobExecutions(pageable.getOffset(), pageable.getPageSize())) {
+		for (JobExecution jobExecution : jobService.getTopLevelJobExecutions(pageable.getOffset(),
+				pageable.getPageSize())) {
+
 			stepExecutionDao.addStepExecutions(jobExecution);
 			final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
 					restartableJobs, deployedJobs, jobDefinitionNames);
+			boolean isComposed = jobService.isComposedJobExecution(jobExecution.getId());
+			jobExecutionInfoResource.setComposedJob(isComposed);
+
 			resources.add(jobExecutionInfoResource);
 		}
 
-		final PagedResources<JobExecutionInfoResource> pagedResources = new PagedResources<JobExecutionInfoResource>(resources,
+		final PagedResources<JobExecutionInfoResource> pagedResources = new PagedResources<JobExecutionInfoResource>(
+				resources,
 				new PageMetadata(pageable.getPageSize(), pageable.getPageNumber(),
 						Long.valueOf(jobService.countJobExecutions())));
 		return pagedResources;
@@ -204,7 +210,22 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		final Set<String> deployedJobs = new HashSet<String>(jobLocator.getJobNames());
 		final Set<String> jobDefinitionNames = new HashSet<String>(getJobDefinitionNames());
 
-		return getJobExecutionInfoResource(jobExecution, restartableJobs, deployedJobs, jobDefinitionNames);
+		final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
+				restartableJobs, deployedJobs, jobDefinitionNames);
+
+		for (JobExecution childJobExecution : jobService.getChildJobExecutions(jobExecution.getId())) {
+			jobExecutionInfoResource.setComposedJob(true);
+			stepExecutionDao.addStepExecutions(childJobExecution);
+			final JobExecutionInfoResource childJobExecutionInfoResource = getJobExecutionInfoResource(
+					childJobExecution,
+					restartableJobs, deployedJobs, jobDefinitionNames);
+			boolean isComposed = jobService.isComposedJobExecution(childJobExecution.getId());
+			childJobExecutionInfoResource.setComposedJob(isComposed);
+
+			jobExecutionInfoResource.getChildJobExecutions().add(childJobExecutionInfoResource);
+		}
+
+		return jobExecutionInfoResource;
 	}
 
 	private JobExecutionInfoResource getJobExecutionInfoResource(JobExecution jobExecution,
@@ -212,9 +233,10 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			Set<String> deployedJobs,
 			Set<String> jobDefinitionNames) {
 
-		final JobExecutionInfoResource jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(new JobExecutionInfo(
-				jobExecution,
-				timeZone));
+		final JobExecutionInfoResource jobExecutionInfoResource = jobExecutionInfoResourceAssembler.toResource(
+				new JobExecutionInfo(
+						jobExecution,
+						timeZone));
 		final String jobName = jobExecution.getJobInstance().getJobName();
 		jobExecutionInfoResource.setDeleted(!jobDefinitionNames.contains(jobName));
 		jobExecutionInfoResource.setDeployed(deployedJobs.contains(jobName));
@@ -293,7 +315,7 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		catch (JobParametersInvalidException e) {
 			throw new org.springframework.xd.dirt.job.JobParametersInvalidException(
 					"The Job Parameters for Job Execution " + jobExecution.getId()
-					+ " are invalid.");
+							+ " are invalid.");
 		}
 
 		final BatchStatus status = jobExecution.getStatus();
@@ -308,8 +330,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 					"The job '" + lastInstance.getJobName() + "' is not restartable.");
 		}
 
-		final String jobParametersAsString = expandedJobParametersConverter
-				.getJobParametersAsString(jobParameters, true);
+		final String jobParametersAsString = expandedJobParametersConverter.getJobParametersAsString(jobParameters,
+				true);
 		jobDeployer.launch(lastInstance.getJobName(), jobParametersAsString);
 	}
 

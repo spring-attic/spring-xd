@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.batch.tasklet;
 
 import java.util.Date;
@@ -23,29 +24,33 @@ import java.util.Properties;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepContribution;
+import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.batch.repeat.RepeatStatus;
-import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.integration.channel.DirectChannel;
-import org.springframework.integration.channel.PublishSubscribeChannel;
+import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessagingException;
+import org.springframework.messaging.PollableChannel;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
+import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.plugins.job.ExpandedJobParametersConverter;
 import org.springframework.xd.dirt.stream.JobDefinition;
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
@@ -64,9 +69,12 @@ import org.springframework.xd.store.DomainRepository;
  * will also be "BAR".
  *
  * @author Michael Minella
+ * @author Gary Russell
  * @since 1.3.0
  */
-public class JobLaunchingTasklet implements Tasklet, MessageHandler {
+public class JobLaunchingTasklet implements Tasklet {
+
+	private final Logger logger = LoggerFactory.getLogger(JobLaunchingTasklet.class);
 
 	public static final String XD_ORCHESTRATION_ID = "xd_orchestration_id";
 
@@ -74,13 +82,9 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	private long timeout;
 
-	private long pollInterval;
-
 	private String jobName;
 
 	private MessageBus messageBus;
-
-	private volatile JobExecution results = null;
 
 	private JobDefinitionRepository definitionRepository;
 
@@ -92,16 +96,16 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 	private MessageChannel launchingChannel;
 
-	private PublishSubscribeChannel listeningChannel;
+	private PollableChannel listeningChannel;
 
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
-			Long timeout, Long pollInterval) {
+			Long timeout) {
 		this(messageBus, jobDefinitionRepository, instanceRepository, jobName,
-				timeout, pollInterval,
-				new DirectChannel(),
-				new PublishSubscribeChannel((new SimpleAsyncTaskExecutor())));
+				timeout,
+				createLaunchingChannel(jobName),
+				createListeningChannel(jobName));
 	}
 
 	/**
@@ -117,8 +121,8 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 	protected JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
 			DomainRepository instanceRepository, String jobName,
-			Long timeout, Long pollInterval,
-			MessageChannel launchingChannel, PublishSubscribeChannel listeningChannel) {
+			Long timeout,
+			MessageChannel launchingChannel, PollableChannel listeningChannel) {
 		Assert.notNull(messageBus, "A message bus is required");
 		Assert.notNull(jobDefinitionRepository, "A JobDefinitionRepository is required");
 		Assert.notNull(instanceRepository, "A DomainRepository is required");
@@ -132,7 +136,18 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 		this.listeningChannel = listeningChannel;
 
 		this.timeout = timeout == null ? -1 : timeout;
-		this.pollInterval = pollInterval == null ? 1000 : pollInterval;
+	}
+
+	private static DirectChannel createLaunchingChannel(String jobName) {
+		DirectChannel launchingChannel = new DirectChannel();
+		launchingChannel.setBeanName(jobName + ":launcher");
+		return launchingChannel;
+	}
+
+	private static QueueChannel createListeningChannel(String jobName) {
+		QueueChannel listeningChannel = new QueueChannel();
+		listeningChannel.setBeanName(jobName + ":resultListener");
+		return listeningChannel;
 	}
 
 	/**
@@ -148,63 +163,89 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 
 		setOrchestrationId(chunkContext);
 
-		configureChannels();
+		String driverJobName = chunkContext.getStepContext().getStepExecution().getJobExecution().getJobInstance()
+				.getJobName();
 
-		validateJobDeployment();
+		bindChannels(driverJobName);
 
-		String jobParametersString = getJobParameters(chunkContext);
+		try {
+			validateJobDeployment();
 
-		this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
+			String jobParametersString = getJobParameters(chunkContext);
 
-		Date startTime = new Date();
+			logger.debug("Launching request for {} orchestration {}", this.jobName, this.orchestrationId);
 
-		while(results == null && !timeout(startTime)) {
-			Thread.sleep(this.pollInterval);
+			this.launchingChannel.send(MessageBuilder.withPayload(jobParametersString).build());
+
+			Date startTime = new Date();
+
+			long remaining = this.timeout;
+			JobExecution results = null;
+			while (results == null && (this.timeout > 0 ? remaining > 0 : true)) {
+				Message<?> resultMessage = this.timeout > 0 ? this.listeningChannel.receive(remaining)
+						: this.listeningChannel.receive();
+				if (resultMessage != null) {
+					results = getResult(resultMessage);
+				}
+				remaining = startTime.getTime() - System.currentTimeMillis() + this.timeout;
+			}
+
+			if (results != null) {
+				processResult(contribution, results);
+			}
+			else {
+				throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
+			}
+
+			logger.debug("Completed processing for {} orchestration {}", this.jobName, this.orchestrationId);
+
+			return RepeatStatus.FINISHED;
 		}
-
-		if(results != null) {
-			processResult(contribution);
+		finally {
+			unbindChannels(driverJobName);
 		}
-		else {
-			throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
-		}
-
-		return RepeatStatus.FINISHED;
 	}
 
 	private String getJobParameters(ChunkContext chunkContext) throws JsonProcessingException {
-		JobParameters originalJobParameters = chunkContext.getStepContext().getStepExecution().getJobParameters();
+		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
+		JobParameters originalJobParameters = stepExecution.getJobParameters();
 
 		Properties jobParameterValues = originalJobParameters.toProperties();
 		jobParameterValues.remove("+" + ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY + DefaultJobParametersConverter.STRING_TYPE);
 
 		JobParameters jobParameters = new JobParametersBuilder(jobParameterValues)
 				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
+				.addParameter(XD_PARENT_JOB_EXECUTION_ID, new JobParameter(stepExecution.getJobExecutionId()))
 				.toJobParameters();
 
 		return this.extractor.extract(jobParameters);
 	}
 
-	private void processResult(StepContribution contribution) {
+	private void processResult(StepContribution contribution, JobExecution results) {
 		contribution.setExitStatus(results.getExitStatus());
 
-		if(results.getStatus().isUnsuccessful()) {
+		if (results.getStatus().isUnsuccessful()) {
 			List<Throwable> allFailureExceptions = results.getAllFailureExceptions();
 
 			Throwable failureException = null;
 
-			if(allFailureExceptions.size() > 0) {
+			if (allFailureExceptions.size() > 0) {
 				failureException = allFailureExceptions.get(0);
 			}
 
-			throw new UnexpectedJobExecutionException(String.format("Step failure: %s failed.", jobName), failureException);
+			throw new UnexpectedJobExecutionException(String.format("Step failure: %s failed.", jobName),
+					failureException);
 		}
 	}
 
-	private void configureChannels() {
-		messageBus.bindPubSubConsumer(getEventListenerChannelName(jobName), this.listeningChannel, null);
-		this.listeningChannel.subscribe(this);
+	private void bindChannels(String driverJobName) {
+		messageBus.bindPubSubConsumer(getEventListenerChannelName(this.jobName, driverJobName), this.listeningChannel, null);
 		messageBus.bindProducer("job:" + jobName, this.launchingChannel, null);
+	}
+
+	private void unbindChannels(String driverJobName) {
+		messageBus.unbindConsumer(getEventListenerChannelName(jobName, driverJobName), this.listeningChannel);
+		messageBus.unbindProducer("job:" + jobName, this.launchingChannel);
 	}
 
 	private void validateJobDeployment() {
@@ -221,11 +262,12 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 	}
 
 	private void setOrchestrationId(ChunkContext chunkContext) {
-		this.orchestrationId = String.valueOf(chunkContext.getStepContext().getStepExecution().getJobExecution().getJobInstance().getInstanceId());
+		this.orchestrationId = String.valueOf(
+				chunkContext.getStepContext().getStepExecution().getJobExecution().getJobInstance().getInstanceId());
 
 		ExecutionContext stepExecutionContext = chunkContext.getStepContext().getStepExecution().getExecutionContext();
 
-		if(stepExecutionContext.containsKey(XD_ORCHESTRATION_ID)) {
+		if (stepExecutionContext.containsKey(XD_ORCHESTRATION_ID)) {
 			this.orchestrationId = (String) stepExecutionContext.get(XD_ORCHESTRATION_ID);
 		}
 		else {
@@ -233,34 +275,28 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 		}
 	}
 
-	private String getEventListenerChannelName(String jobName) {
-		return String.format("tap:job:%s.job", jobName);
+	private String getEventListenerChannelName(String jobName, String driverJobName) {
+		String tapName = String.format("tap:job:%s.job", jobName);
+		if (this.messageBus.isCapable(Capability.DURABLE_PUBSUB)) {
+			tapName = BusUtils.addGroupToPubSub(driverJobName, tapName);
+		}
+		return tapName;
 	}
 
-	private boolean timeout(Date startTime) {
-		return this.timeout >= 0 &&
-				new Date().getTime() - startTime.getTime() > this.timeout;
-	}
-
-	/**
-	 * Called as job events are received from the job launched in the
-	 * {@link #execute(StepContribution, ChunkContext)} method.
-	 *
-	 * @param message The event
-	 * @throws MessagingException
-	 */
-	@Override
-	public void handleMessage(Message<?> message) throws MessagingException {
+	public JobExecution getResult(Message<?> message) throws MessagingException {
 		JobExecution jobExecution = (JobExecution) message.getPayload();
 
 		String curOrchestrationId = jobExecution.getJobParameters().getString(XD_ORCHESTRATION_ID);
 
-		if(StringUtils.hasText(curOrchestrationId) &&
+		logger.debug("Received result for {} orchestration {}", this.jobName, curOrchestrationId);
+
+		if (StringUtils.hasText(curOrchestrationId) &&
 				curOrchestrationId.equalsIgnoreCase(this.orchestrationId)) {
-			if(!jobExecution.isRunning()) {
-				this.results = jobExecution;
+			if (!jobExecution.isRunning()) {
+				return jobExecution;
 			}
 		}
+		return null;
 	}
 
 	private static class JobParametersExtractor {
@@ -274,7 +310,7 @@ public class JobLaunchingTasklet implements Tasklet, MessageHandler {
 				JobParameter curParameter = curParameterEntry.getValue();
 				String dataTypeToUse = "(" + curParameter.getType().toString().toLowerCase() + ")";
 
-				if(curParameter.isIdentifying()) {
+				if (curParameter.isIdentifying()) {
 					parameters.put("+" + curParameterEntry.getKey() + dataTypeToUse, curParameter.getValue());
 				}
 				else {

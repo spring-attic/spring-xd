@@ -2,53 +2,49 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
   <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
-    <step id="AA">
-      <tasklet ref="jobRunner-AA"/>
-      <next on="*" to="split1"/>
+    <step id="aaa">
+      <tasklet ref="jobRunner-aaa"/>
+      <next on="failed" to="ccc"/>
+      <next on="*" to="bbb"/>
     </step>
-    <split id="split1" task-executor="taskExecutor">
-      <flow>
-        <step id="BB">
-          <tasklet ref="jobRunner-BB"/>
-        </step>
-      </flow>
-      <flow>
-        <step id="CC">
-          <tasklet ref="jobRunner-CC"/>
-        </step>
-      </flow>
-      <next on="*" to="DD"/>
-    </split>
-    <step id="DD">
-      <tasklet ref="jobRunner-DD"/>
+    <step id="bbb">
+      <tasklet ref="jobRunner-bbb"/>
+      <next on="*" to="ccc"/>
+    </step>
+    <step id="ccc">
+      <tasklet ref="jobRunner-ccc"/>
+      <next on="*" to="ddd"/>
+    </step>
+    <step id="ddd">
+      <tasklet ref="jobRunner-ddd"/>
     </step>
   </batch:job>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-AA" scope="step">
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-aaa" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
-    <constructor-arg value="AA"/>
+    <constructor-arg value="aaa"/>
     <constructor-arg value="${timeout}"/>
   </bean>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-BB" scope="step">
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-ccc" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
-    <constructor-arg value="BB"/>
+    <constructor-arg value="ccc"/>
     <constructor-arg value="${timeout}"/>
   </bean>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-CC" scope="step">
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-bbb" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
-    <constructor-arg value="CC"/>
+    <constructor-arg value="bbb"/>
     <constructor-arg value="${timeout}"/>
   </bean>
-  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-DD" scope="step">
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-ddd" scope="step">
     <constructor-arg ref="messageBus"/>
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
-    <constructor-arg value="DD"/>
+    <constructor-arg value="ddd"/>
     <constructor-arg value="${timeout}"/>
   </bean>
 </beans>

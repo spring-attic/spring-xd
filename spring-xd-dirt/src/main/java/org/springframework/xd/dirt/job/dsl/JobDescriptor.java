@@ -31,8 +31,11 @@ public abstract class JobDescriptor extends JobNode {
 	 */
 	List<Transition> transitions;
 
-	public JobDescriptor(int startpos, int endpos) {
+	ArgumentNode[] args;
+
+	public JobDescriptor(int startpos, int endpos, ArgumentNode[] args) {
 		super(startpos, endpos);
+		this.args = args;
 	}
 
 	void setTransitions(List<Transition> transitions) {
@@ -64,5 +67,15 @@ public abstract class JobDescriptor extends JobNode {
 	public boolean hasTransitions() {
 		return transitions != null;
 	}
+
+	public boolean hasArguments() {
+		return args != null;
+	}
+
+	public ArgumentNode[] getArguments() {
+		return args;
+	}
+
+	public abstract String getName();
 
 }

@@ -2,18 +2,17 @@
 <beans xmlns="http://www.springframework.org/schema/beans" xmlns:batch="http://www.springframework.org/schema/batch" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
   <bean class="org.springframework.core.task.SimpleAsyncTaskExecutor" id="taskExecutor"/>
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
-    <split id="split1" task-executor="taskExecutor">
-      <flow>
-        <step id="foo">
-          <tasklet ref="jobRunner-foo"/>
-        </step>
-      </flow>
-      <flow>
-        <step id="bar">
-          <tasklet ref="jobRunner-bar"/>
-        </step>
-      </flow>
-    </split>
+    <step id="foo">
+      <tasklet ref="jobRunner-foo"/>
+      <next on="*" to="bar"/>
+    </step>
+    <step id="bar">
+      <tasklet ref="jobRunner-bar"/>
+      <next on="failed" to="goo"/>
+    </step>
+    <step id="goo">
+      <tasklet ref="jobRunner-goo"/>
+    </step>
   </batch:job>
   <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-foo" scope="step">
     <constructor-arg ref="messageBus"/>
@@ -27,6 +26,13 @@
     <constructor-arg ref="jobDefinitionRepository"/>
     <constructor-arg ref="xdJobRepository"/>
     <constructor-arg value="bar"/>
+    <constructor-arg value="${timeout}"/>
+  </bean>
+  <bean class="org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet" id="jobRunner-goo" scope="step">
+    <constructor-arg ref="messageBus"/>
+    <constructor-arg ref="jobDefinitionRepository"/>
+    <constructor-arg ref="xdJobRepository"/>
+    <constructor-arg value="goo"/>
     <constructor-arg value="${timeout}"/>
   </bean>
 </beans>

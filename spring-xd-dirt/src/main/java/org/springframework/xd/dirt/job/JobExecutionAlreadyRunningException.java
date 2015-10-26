@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception that is raised when {@link org.springframework.batch.core.JobExecution}
  * is already running.
@@ -25,7 +23,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class JobExecutionAlreadyRunningException extends XDRuntimeException {
+public class JobExecutionAlreadyRunningException extends JobException {
 
 	public JobExecutionAlreadyRunningException(String message) {
 		super(message);

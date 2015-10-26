@@ -16,16 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
-
 /**
  * Exception thrown when the batch job with the given name already exists.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class BatchJobAlreadyExistsException extends XDRuntimeException {
+public class BatchJobAlreadyExistsException extends JobException {
 
 	public BatchJobAlreadyExistsException(String name) {
 		super("Batch Job with the name " + name + " already exists");

@@ -17,7 +17,7 @@
 package org.springframework.xd.dirt.util;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 /**
  * Exception thrown when a {@link Pageable} requests a page that does not exist.
@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class PageNotFoundException extends XDRuntimeException {
+public class PageNotFoundException extends DirtException {
 
 	public PageNotFoundException(String message) {
 		super(message);

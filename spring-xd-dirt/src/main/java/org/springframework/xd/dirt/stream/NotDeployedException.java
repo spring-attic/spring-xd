@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 /**
  * Thrown when a definition was assumed to be deployed when it actually was not.
@@ -24,7 +24,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NotDeployedException extends XDRuntimeException {
+public class NotDeployedException extends DirtException {
 
 	private final String offendingName;
 

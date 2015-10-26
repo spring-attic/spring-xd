@@ -1,7 +1,5 @@
 rootProject.name = 'spring-xd'
 
-include 'spring-xd-spi-common'
-
 include 'spring-xd-analytics'
 include 'spring-xd-analytics-ml'
 

@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception thrown where the batch job is not restartable.
  *
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class JobRestartException extends XDRuntimeException {
+public class JobRestartException extends JobException {
 
 	public JobRestartException(String message) {
 		super(message);

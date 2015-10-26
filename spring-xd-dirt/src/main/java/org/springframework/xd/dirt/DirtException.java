@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.springframework.xd.dirt.zookeeper;
-
-import org.springframework.xd.dirt.DirtException;
+package org.springframework.xd.dirt;
 
 /**
- * Runtime exception used to wrap native ZooKeeper checked exceptions thrown while
- * accessing ZooKeeper nodes.
- * @author dturanski
+ * Root of the hierarchy of exceptions for DIRT (Distributed Integration RunTime).
+ * 
+ * @author Mark Pollack
  */
 @SuppressWarnings("serial")
-public class ZooKeeperAccessException extends DirtException {
+public class DirtException extends RuntimeException {
 
-	public ZooKeeperAccessException(String message, Throwable cause) {
+    public DirtException(String message) {
+        super(message);
+    }
+	public DirtException(String message, Throwable cause) {
 		super(message, cause);
 	}
-
 }

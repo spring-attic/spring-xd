@@ -18,7 +18,7 @@ package org.springframework.xd.dirt.plugins.job;
 
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.configuration.JobRegistry;
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 
 /**
@@ -27,7 +27,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Mark Pollack
  */
 @SuppressWarnings("serial")
-public class BatchJobAlreadyExistsInRegistryException extends XDRuntimeException {
+public class BatchJobAlreadyExistsInRegistryException extends DirtException {
 
 	/**
 	 * Creates a new {@link BatchJobAlreadyExistsInRegistryException} with the given job name.

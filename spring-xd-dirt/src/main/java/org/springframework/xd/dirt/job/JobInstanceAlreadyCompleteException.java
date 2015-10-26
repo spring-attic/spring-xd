@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.job;
 
 import org.springframework.batch.core.JobInstance;
-import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Exception thrown when the {@link JobInstance} is already complete.
@@ -25,7 +24,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class JobInstanceAlreadyCompleteException extends XDRuntimeException {
+public class JobInstanceAlreadyCompleteException extends JobException {
 
 	public JobInstanceAlreadyCompleteException(String message) {
 		super(message);

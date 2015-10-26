@@ -17,7 +17,6 @@
 package org.springframework.xd.dirt.job;
 
 import org.springframework.batch.core.StepExecution;
-import org.springframework.xd.dirt.XDRuntimeException;
 
 /**
  * Thrown when attempting to refer to {@link StepExecution} that does not exist.
@@ -25,7 +24,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class NoSuchStepExecutionException extends XDRuntimeException {
+public class NoSuchStepExecutionException extends JobException {
 
 	/**
 	 * Create a new exception.

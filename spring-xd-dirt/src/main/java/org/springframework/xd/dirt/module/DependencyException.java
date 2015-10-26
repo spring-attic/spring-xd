@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.module;
 
 import java.util.Set;
 
-import org.springframework.xd.dirt.XDRuntimeException;
 import org.springframework.xd.module.ModuleType;
 
 
@@ -28,7 +27,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class /* Module? */DependencyException extends XDRuntimeException {
+public class DependencyException extends ModuleException {
 
 	private final Set<String> dependents;
 

@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 /**
  * Thrown when an attempt is made to deploy a definition that is already deployed.
@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  *
  */
 @SuppressWarnings("serial")
-public class AlreadyDeployedException extends XDRuntimeException {
+public class AlreadyDeployedException extends DirtException {
 
 	/**
 	 * Create a new exception.

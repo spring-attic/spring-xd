@@ -18,16 +18,16 @@ package org.springframework.xd.dirt.core;
 
 import java.io.IOException;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
+import org.springframework.xd.dirt.DirtException;
 
 /**
- * Thrown when something goes wrong during some IO operation. Unchecked, as opposed to the {@link IOException} it wraps.
+ * Thrown when something goes wrong during some IO operation. Unchecked, as opposed to the
+ * {@link IOException} it wraps.
  * 
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class RuntimeIOException extends XDRuntimeException {
+public class RuntimeIOException extends DirtException {
 
 	public RuntimeIOException(String message, IOException cause) {
 		super(message, cause);

@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Thrown when a problem is detected with the (DSL) definition of an XD resource.
  *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class ResourceDefinitionException extends XDRuntimeException {
+public class ResourceDefinitionException extends ModuleException {
 
 	public ResourceDefinitionException(String message, Throwable cause) {
 		super(message, cause);

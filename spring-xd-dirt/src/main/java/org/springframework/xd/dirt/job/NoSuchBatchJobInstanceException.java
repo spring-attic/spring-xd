@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception thrown when there is no such batch job instance with the given instanceId.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class NoSuchBatchJobInstanceException extends XDRuntimeException {
+public class NoSuchBatchJobInstanceException extends JobException {
 
 	public NoSuchBatchJobInstanceException(long instanceId) {
 		super("Batch Job instance with the id " + instanceId + " doesn't exist");

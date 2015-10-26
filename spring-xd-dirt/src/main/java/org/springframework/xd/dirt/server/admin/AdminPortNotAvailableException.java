@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.server.admin;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 
 /**
@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class AdminPortNotAvailableException extends XDRuntimeException {
+public class AdminPortNotAvailableException extends DirtException {
 
 	/**
 	 * Construct an {@code AdminPortNotAvailableException}.

@@ -26,6 +26,10 @@ package org.springframework.xd.dirt.integration.bus;
 @SuppressWarnings("serial")
 public class MessageBusException extends RuntimeException {
 
+	public MessageBusException(String message) {
+		super(message);
+	}
+
 	public MessageBusException(String message, Throwable cause) {
 		super(message, cause);
 	}

@@ -16,7 +16,6 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.XDRuntimeException;
 import org.springframework.xd.module.ModuleType;
 
 
@@ -26,7 +25,7 @@ import org.springframework.xd.module.ModuleType;
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class ModuleAlreadyExistsException extends XDRuntimeException {
+public class ModuleAlreadyExistsException extends ModuleException {
 
 	private final String name;
 

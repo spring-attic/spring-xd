@@ -16,7 +16,7 @@
 
 package org.springframework.xd.dirt.integration.bus.converter;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 
 /**
@@ -25,7 +25,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author David Turanski
  */
 @SuppressWarnings("serial")
-public class ConversionException extends XDRuntimeException {
+public class ConversionException extends DirtException {
 
 	public ConversionException(String message) {
 		super(message);

@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.module;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception thrown when a module doesn't exist in the container.
  *
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class ModuleNotDeployedException extends XDRuntimeException {
+public class ModuleNotDeployedException extends ModuleException {
 
 	public ModuleNotDeployedException(String containerId, String moduleId) {
 		super("The module with id '" + moduleId + "' doesn't exist in the container with id '" + containerId + "'");

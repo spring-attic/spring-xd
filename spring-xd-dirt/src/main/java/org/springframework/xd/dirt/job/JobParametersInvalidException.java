@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception thrown when the job parameters are invalid.
  *
  * @author Gunnar Hillert
  */
 @SuppressWarnings("serial")
-public class JobParametersInvalidException extends XDRuntimeException {
+public class JobParametersInvalidException extends JobException {
 
 	public JobParametersInvalidException(String message) {
 		super(message);

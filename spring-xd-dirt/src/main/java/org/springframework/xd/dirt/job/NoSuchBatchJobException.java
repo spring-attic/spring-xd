@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Exception thrown when there is no such batch job with the given name.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class NoSuchBatchJobException extends XDRuntimeException {
+public class NoSuchBatchJobException extends JobException {
 
 	public NoSuchBatchJobException(String name) {
 		super("Batch Job with the name " + name + " doesn't exist");

@@ -15,7 +15,7 @@
  */
 package org.springframework.xd.dirt.server.admin.deployment;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 /**
  * Exception thrown when {@link DeploymentHandler} encounters problem
@@ -24,7 +24,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class DeploymentException extends XDRuntimeException {
+public class DeploymentException extends DirtException {
 
 	public DeploymentException(String message){
 		super(message);

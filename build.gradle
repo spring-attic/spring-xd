@@ -101,7 +101,6 @@ ext {
 			'spring-xd-extension-kafka',
 			'spring-xd-extension-cassandra',
 			'spring-xd-messagebus-spi',
-			'spring-xd-spi-common'
 	].collect { p -> project(p) } + messagebusProjects
 }
 
@@ -997,14 +996,9 @@ project('spring-xd-rest-domain') {
 	}
 }
 
-project('spring-xd-spi-common') {
-	description = 'Spring XD SPI shared code'
-}
-
 project('spring-xd-messagebus-spi') {
 	description = 'Spring XD MessageBus Service Provider Interface'
 	dependencies {
-		compile project(':spring-xd-spi-common')
 		compile "org.springframework:spring-messaging"
 		compile "org.springframework:spring-web"
 		compile "org.springframework.retry:spring-retry"

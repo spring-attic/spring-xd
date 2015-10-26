@@ -18,22 +18,22 @@ package org.springframework.xd.dirt.core;
 
 import java.util.concurrent.TimeoutException;
 
-import org.springframework.xd.dirt.XDRuntimeException;
+import org.springframework.xd.dirt.DirtException;
 
 /**
- * Exception thrown when a blocking operation times out. This
- * is a runtime version of {@link TimeoutException} and can accept
- * an instance of {@code TimeoutException} as a root cause.
+ * Exception thrown when a blocking operation times out. This is a runtime version of
+ * {@link TimeoutException} and can accept an instance of {@code TimeoutException} as a
+ * root cause.
  *
  * @author Patrick Peralta
  */
 @SuppressWarnings("serial")
-public class RuntimeTimeoutException extends XDRuntimeException {
+public class RuntimeTimeoutException extends DirtException {
 
 	/**
 	 * Construct a {@code RuntimeTimeoutException}.
 	 *
-	 * @param message  detailed message
+	 * @param message detailed message
 	 */
 	public RuntimeTimeoutException(String message) {
 		super(message);
@@ -43,7 +43,7 @@ public class RuntimeTimeoutException extends XDRuntimeException {
 	 * Construct a {@code RuntimeTimeoutException}.
 	 *
 	 * @param message detailed message
-	 * @param cause   root cause exception
+	 * @param cause root cause exception
 	 */
 	public RuntimeTimeoutException(String message, TimeoutException cause) {
 		super(message, cause);

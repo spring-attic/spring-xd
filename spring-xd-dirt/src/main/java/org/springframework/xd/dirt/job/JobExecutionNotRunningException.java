@@ -16,16 +16,13 @@
 
 package org.springframework.xd.dirt.job;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
-
 /**
  * Exception for the job execution that is not running.
  * 
  * @author Ilayaperumal Gopinathan
  */
 @SuppressWarnings("serial")
-public class JobExecutionNotRunningException extends XDRuntimeException {
+public class JobExecutionNotRunningException extends JobException {
 
 	public JobExecutionNotRunningException(Long executionId) {
 		super("Job execution with executionId " + executionId + " is not running.");

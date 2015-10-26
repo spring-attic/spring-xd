@@ -16,19 +16,13 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
 /**
  * Thrown when something goes wrong with inter-module communication.
  *
  * @author David Turanski
  */
 @SuppressWarnings("serial")
-public class SerializationException extends XDRuntimeException {
-
-	public SerializationException(String message) {
-		super(message);
-	}
+public class SerializationException extends MessageBusException {
 
 	public SerializationException(String message, Throwable t) {
 		super(message, t);

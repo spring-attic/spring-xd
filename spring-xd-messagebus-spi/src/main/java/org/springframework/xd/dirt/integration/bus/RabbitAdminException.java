@@ -16,9 +16,6 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import org.springframework.xd.dirt.XDRuntimeException;
-
-
 /**
  * Exceptions thrown while interfacing with the RabbitMQ admin plugin.
  *
@@ -26,7 +23,7 @@ import org.springframework.xd.dirt.XDRuntimeException;
  * @since 1.2
  */
 @SuppressWarnings("serial")
-public class RabbitAdminException extends XDRuntimeException {
+public class RabbitAdminException extends MessageBusException {
 
 	public RabbitAdminException(String message, Throwable cause) {
 		super(message, cause);

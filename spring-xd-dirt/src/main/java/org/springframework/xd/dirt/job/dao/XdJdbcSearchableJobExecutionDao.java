@@ -34,6 +34,7 @@ import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.incrementer.AbstractDataFieldMaxValueIncrementer;
 import org.springframework.util.Assert;
+import org.springframework.xd.dirt.batch.tasklet.JobLaunchingTasklet;
 
 /**
  * @author Dave Syer
@@ -81,12 +82,16 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 		});
 
 		final String subQuery = getQuery(
-				"not exists (select * from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = 'xd_parent_execution_id' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID)");
-		allExecutionsPagingQueryProvider = getPagingQueryProvider(null, subQuery);
+				"not exists (select * from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = '"
+						+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID
+						+ "' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID)");
+		allExecutionsPagingQueryProvider = getPagingQueryProvider(subQuery);
 
 		final String childJobExecutionsSubQuery = getQuery(
-				"exists (select * from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = 'xd_parent_execution_id' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID and long_val=?)");
-		childJobExecutionsPagingQueryProvider = getPagingQueryProvider(null, childJobExecutionsSubQuery);
+				"exists (select * from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = '"
+						+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID
+						+ "' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID and long_val=?)");
+		childJobExecutionsPagingQueryProvider = getPagingQueryProvider(childJobExecutionsSubQuery);
 
 		super.afterPropertiesSet();
 
@@ -97,10 +102,10 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 	 * query
 	 * @throws Exception
 	 */
-	private PagingQueryProvider getPagingQueryProvider(String fromClause, String whereClause) throws Exception {
+	private PagingQueryProvider getPagingQueryProvider(String whereClause) throws Exception {
 		SqlPagingQueryProviderFactoryBean factory = new SqlPagingQueryProviderFactoryBean();
 		factory.setDataSource(dataSource);
-		fromClause = "%PREFIX%JOB_EXECUTION E, %PREFIX%JOB_INSTANCE I" + (fromClause == null ? "" : ", " + fromClause);
+		String fromClause = "%PREFIX%JOB_EXECUTION E, %PREFIX%JOB_INSTANCE I";
 		factory.setFromClause(getQuery(fromClause));
 		factory.setSelectClause(FIELDS);
 		Map<String, Order> sortKeys = new HashMap<String, Order>();
@@ -152,7 +157,8 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 	 * @return
 	 */
 	public boolean isComposedJobExecution(long jobExecutionId) {
-		String query = "select count(*) from BATCH_JOB_EXECUTION_PARAMS a where key_name = 'xd_parent_execution_id' and long_val = ?";
+		String query = "select count(*) from BATCH_JOB_EXECUTION_PARAMS a where key_name = '"
+				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID + "' and long_val = ?";
 		int count = getJdbcTemplate().queryForObject(query, Integer.class, jobExecutionId);
 		return count > 0 ? true : false;
 	}

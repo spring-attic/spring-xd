@@ -98,8 +98,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			stepExecutionDao.addStepExecutions(jobExecution);
 			final JobExecutionInfoResource jobExecutionInfoResource = getJobExecutionInfoResource(jobExecution,
 					restartableJobs, deployedJobs, jobDefinitionNames);
-			boolean isCompposed = jobService.isComposedJobExecution(jobExecution.getId());
-			jobExecutionInfoResource.setComposedJob(isCompposed);
+			boolean isComposed = jobService.isComposedJobExecution(jobExecution.getId());
+			jobExecutionInfoResource.setComposedJob(isComposed);
 
 			resources.add(jobExecutionInfoResource);
 		}
@@ -219,8 +219,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 			final JobExecutionInfoResource childJobExecutionInfoResource = getJobExecutionInfoResource(
 					childJobExecution,
 					restartableJobs, deployedJobs, jobDefinitionNames);
-			boolean isCompposed = jobService.isComposedJobExecution(childJobExecution.getId());
-			childJobExecutionInfoResource.setComposedJob(isCompposed);
+			boolean isComposed = jobService.isComposedJobExecution(childJobExecution.getId());
+			childJobExecutionInfoResource.setComposedJob(isComposed);
 
 			jobExecutionInfoResource.getChildJobExecutions().add(childJobExecutionInfoResource);
 		}

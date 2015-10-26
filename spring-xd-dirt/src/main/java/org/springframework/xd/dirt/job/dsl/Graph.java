@@ -339,16 +339,6 @@ public class Graph {
 		printNode(graphText, target, unvisitedNodes);
 		List<Link> toFollow = findLinksFrom(target, false);
 		printTransitions(graphText, unfollowedLinks, toFollow);
-
-		// if there isn't a node to finish following at and to follow is empty - look for the next 'head' ?
-		//		if (nodeToFinishFollowingAt == null && toFollow.size() == 0 && unvisitedNodes.size() != 0) {
-		//			// Find another head to follow. We will join it via '||' which is not right but it is all we have...
-		//			// I'm asserting it will be OK because it won't be confusing or misrepresent the actual definition.
-		//			// What else can we assert here? Assert the previous node had 'all exits covered' ?
-		//			int stop = 1;
-		//			findNexth
-		//		}
-
 		followLinks(graphText, toFollow, nodeToFinishFollowingAt, unvisitedNodes, unfollowedLinks);
 	}
 

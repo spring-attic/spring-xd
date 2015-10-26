@@ -81,6 +81,11 @@ public class Node {
 	}
 
 	@JsonIgnore
+	public boolean isFail() {
+		return name.equals("FAIL");
+	}
+
+	@JsonIgnore
 	public boolean isSync() {
 		return name.equals("SYNC");
 	}

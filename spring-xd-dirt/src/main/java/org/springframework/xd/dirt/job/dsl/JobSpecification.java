@@ -36,6 +36,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.w3c.dom.DOMImplementation;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 
 import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xml.transform.StringResult;
@@ -149,7 +150,7 @@ public class JobSpecification extends AstNode {
 	 * @throws JobSpecificationException if validation fails
 	 */
 	public void validate(JobDefinitionRepository jobDefinitionRepository) {
-		// TODO !
+		// TODO validate the job references (this will be done at deploy time but we could do it earlier)
 
 	}
 
@@ -372,6 +373,7 @@ public class JobSpecification extends AstNode {
 				if (batchJobId != null) {
 					batchJobElement.setAttribute("id", batchJobId);
 				}
+				transitionNamesToElementIdsInFlow.push(new LinkedHashMap<String, String>());
 				this.currentElement.push(batchJobElement);
 			}
 			catch (Exception e) {
@@ -380,8 +382,97 @@ public class JobSpecification extends AstNode {
 			return null;
 		};
 
+		/**
+		 * Determine if a step element has any &lt;next.../&gt; elements. If it does then
+		 * it is mapping the exit space from this step.
+		 * @param step the XML element representing the step
+		 * @return true if the supplied step specifies any transitions via next elements
+		 */
+		private boolean isMappingExitSpace(Element step) {
+			NodeList children = step.getChildNodes();
+			for (int c = 0; c < children.getLength(); c++) {
+				String nodeName = children.item(c).getNodeName();
+				if (nodeName.equals("next") || nodeName.equals("end") || nodeName.equals("fail")) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Check if the XML element for a step indicates a &lt;next.../&gt; element for a specific
+		 * exit status.
+		 * @param step the XML element representing the step
+		 * @param exitStatus the exit status to check for
+		 * @return true if the step specifies a next attribute for the supplied exit status
+		 */
+		private boolean isMappingExitStatus(Element step, String exitStatus) {
+			NodeList children = step.getChildNodes();
+			for (int c = 0; c < children.getLength(); c++) {
+				String nodeName = children.item(c).getNodeName();
+				if (nodeName.equals("next") || nodeName.equals("end") || nodeName.equals("fail")) {
+					String onAttributeValue = children.item(c).getAttributes().getNamedItem("on").getNodeValue();
+					if (onAttributeValue.equals(exitStatus)) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Create a &lt;next on=  to=&gt; attribute and attach it to the supplied step element.
+		 * @param step the step that will get the new attribute
+		 * @param jobExitStatus the jobExitStatus to fill in as the 'on' attribute value field
+		 * @param targetId the target XML ID to fill in as the 'to' attribute value field
+		 */
+		private void addNextAttribute(Element step, String jobExitStatus, String targetId) {
+			Element next = doc.createElement("next");
+			next.setAttribute("on", jobExitStatus);
+			next.setAttribute("to", targetId);
+			step.appendChild(next);
+		}
+
+		/**
+		 * Create a &lt;fail on=&gt; attribute and attach it to the supplied step element.
+		 * @param step the step that will get the new attribute
+		 * @param jobExitStatus the jobExitStatus to fill in as the 'on' attribute value field
+		 */
+		private void addFailAttribute(Element step, String jobExitStatus) {
+			Element fail = doc.createElement("fail");
+			fail.setAttribute("on", jobExitStatus);
+			step.appendChild(fail);
+		}
+
+		/**
+		 * Create a &lt;end on=&gt; attribute and attach it to the supplied step element.
+		 * @param step the step that will get the new attribute
+		 * @param jobExitStatus the jobExitStatus to fill in as the 'on' attribute value field
+		 */
+		private void addEndAttribute(Element step, String jobExitStatus) {
+			Element fail = doc.createElement("end");
+			fail.setAttribute("on", jobExitStatus);
+			step.appendChild(fail);
+		}
+
 		@Override
 		public void postJobSpecWalk(Element[] elements, JobSpecification jobSpec) {
+			if (elements != null) {
+				// These are the final elements that were visited
+				for (Element element : elements) {
+					if (isMappingExitSpace(element)) {
+						if (!isMappingExitStatus(element, "*")) {
+							addFailAttribute(element, "*");
+						}
+					}
+				}
+			}
+			Map<String, String> transitionStepsToCreate = transitionNamesToElementIdsInFlow.pop();
+			for (Map.Entry<String, String> transitionStepToCreate : transitionStepsToCreate.entrySet()) {
+				Element step = createStep(transitionStepToCreate.getValue(), transitionStepToCreate.getKey());
+				currentElement.peek().appendChild(step);
+			}
+
 			Set<String> generatedBeans = new HashSet<>();
 			for (String jobRunnerBeanName : jobRunnerBeanNames) {
 				if (generatedBeans.contains(jobRunnerBeanName)) {
@@ -471,18 +562,24 @@ public class JobSpecification extends AstNode {
 			Element next = null;
 			if (jd.hasTransitions()) {
 				for (Transition t : jd.transitions) {
-					next = doc.createElement("next");
-					next.setAttribute("on", t.getStateName());
-					next.setAttribute("to", t.getTargetJobName());
-					step.appendChild(next);
+					if (t.getTargetJobName().equals(Transition.FAIL)) {
+						addFailAttribute(step, t.getStateName());
+					}
+					else if (t.getTargetJobName().equals(Transition.END)) {
+						addEndAttribute(step, t.getStateName());
+					}
+					else {
+						addNextAttribute(step, t.getStateName(), t.getTargetJobName());
+					}
 				}
+				// If there are transitions, it is necessary to ensure the whole exit space is covered from this
 			}
 			if (context != null) {
 				// context is an array of earlier elements that should point to this one
 				Element[] elements = context;
 				for (Element element : elements) {
 					next = doc.createElement("next");
-					next.setAttribute("on", "*");
+					next.setAttribute("on", "COMPLETED");
 					next.setAttribute("to", jd.getJobName());
 					element.appendChild(next);
 				}
@@ -525,8 +622,9 @@ public class JobSpecification extends AstNode {
 			// <flow">
 			//   <step id="sqoop-6e44">
 			//	   <tasklet ref="jobRunner-6e44"/>
-			//	   <next on="*" to="sqoop-e07a"/>
+			//	   <next on="COMPLETED" to="sqoop-e07a"/>
 			//	   <next on="FAILED" to="kill1"/>
+			//     <fail on="*"/>
 			//   </step>
 			// </flow>
 
@@ -542,9 +640,21 @@ public class JobSpecification extends AstNode {
 			Element step = createStep(stepId, jr.getName());
 			currentElement.peek().appendChild(step);
 			jobRunnerBeanNames.add(jr.getName());
+			boolean explicitWildcardExit = false;
 			if (jr.hasTransitions()) {
 				for (Transition t : jr.transitions) {
+					if (t.getStateName().equals("*")) {
+						explicitWildcardExit = true;
+					}
 					String targetJob = t.getTargetJobName();
+					if (targetJob.equals(Transition.END)) {
+						addEndAttribute(step, t.getStateName());
+						continue;
+					}
+					else if (targetJob.equals(Transition.FAIL)) {
+						addFailAttribute(step, t.getStateName());
+						continue;
+					}
 					Map<String, String> transitionNamesToElementIdsInCurrentFlow = transitionNamesToElementIdsInFlow.peek();
 					if (transitionNamesToElementIdsInCurrentFlow.containsKey(targetJob)) {
 						// already exists, share the ID
@@ -566,21 +676,31 @@ public class JobSpecification extends AstNode {
 						}
 						targetJob = id;
 					}
-					step.appendChild(createNextElement(t.getStateName(), targetJob));
+					addNextAttribute(step, t.getStateName(), targetJob);
 					jobRunnerBeanNames.add(t.getTargetJobName());
+				}
+				if (inSplit) {
+					// The split is the element that will be analyzed to see if all exit
+					// statuses are covered. So for a job reference created here we need to
+					// ensure we do the analysis here.
+					if (!isMappingExitStatus(step, "*")) {
+						addFailAttribute(step, "*");
+					}
 				}
 			}
 			if (context != null) {
 				// context is an array of earlier elements that should be updated now to point to this one
-				Element[] elements = context;
-				for (Element element : elements) {
-					element.appendChild(createNextElement("*", stepId));
+				for (Element element : context) {
+					addNextAttribute(element, "COMPLETED", stepId);
+					if (!isMappingExitStatus(element, "*")) {
+						addFailAttribute(element, "*");
+					}
 				}
 			}
 			if (inSplit) {
 				currentElement.pop();
 			}
-			return new Element[] { step };
+			return explicitWildcardExit ? new Element[] {} : new Element[] { step };
 		}
 
 		@Override
@@ -596,12 +716,11 @@ public class JobSpecification extends AstNode {
 
 			if (context != null) {
 				// context is an array of earlier elements that should point to this one
-				Element next = null;
 				for (Element element : context) {
-					next = doc.createElement("next");
-					next.setAttribute("on", "*");
-					next.setAttribute("to", splitId);
-					element.appendChild(next);
+					addNextAttribute(element, "COMPLETED", splitId);
+					if (!isMappingExitStatus(element, "*")) {
+						addFailAttribute(element, "*");
+					}
 				}
 			}
 
@@ -636,13 +755,6 @@ public class JobSpecification extends AstNode {
 			tasklet.setAttribute("ref", "jobRunner-" + jobRunnerBeanIdSuffix);
 			step.appendChild(tasklet);
 			return step;
-		}
-
-		private Element createNextElement(String on, String to) {
-			Element next = doc.createElement("next");
-			next.setAttribute("on", on);
-			next.setAttribute("to", to);
-			return next;
 		}
 
 		private String getReferenceToExistingJob(String jobName) {
@@ -705,23 +817,41 @@ public class JobSpecification extends AstNode {
 
 		@Override
 		public void postJobSpecWalk(int[] finalNodes, JobSpecification jobSpec) {
+
+			// Insert an END node
+			int endId = id++;
+			Node endNode = new Node(Integer.toString(endId), "END");
+			nodes.add(endNode);
+
+			int failId;
+			Node failNode;
+
 			// Deal with transitions
 			for (TransitionToMap ttm : transitions) {
 				int nodeInGraph = findNode(ttm.targetJob);
 				if (nodeInGraph == -1) {
-					// target isn't in graph yet
-					int nextId = id++;
-					Node n = new Node(Integer.toString(nextId), ttm.targetJob);
-					nodes.add(n);
-					nodeInGraph = nextId;
-					finalNodes = merge(finalNodes, new int[] { nextId });
+					if (ttm.targetJob.equals(Transition.FAIL)) {
+						// Insert a $FAIL node and link to it
+						failId = id++;
+						failNode = new Node(Integer.toString(failId), "FAIL");
+						nodeInGraph = failId;
+						nodes.add(failNode);
+					}
+					else if (ttm.targetJob.equals(Transition.END)) {
+						// END node has been added above
+						nodeInGraph = endId;
+					}
+					else {
+						// target isn't in graph yet
+						int nextId = id++;
+						Node n = new Node(Integer.toString(nextId), ttm.targetJob);
+						nodes.add(n);
+						nodeInGraph = nextId;
+						finalNodes = merge(finalNodes, new int[] { nextId });
+					}
 				}
 				links.add(new Link(ttm.from, nodeInGraph, ttm.transitionName));
 			}
-			// Insert an END node at the end of the graph
-			int endId = id++;
-			Node n = new Node(Integer.toString(endId), "END");
-			nodes.add(n);
 			for (int i : finalNodes) {
 				links.add(new Link(i, endId));
 			}
@@ -810,12 +940,16 @@ public class JobSpecification extends AstNode {
 					links.add(l);
 				}
 			}
+			boolean explicitWildcardUsed = false;
 			if (jr.hasTransitions()) {
 				for (Transition t : jr.getTransitions()) {
+					if (t.getStateNameInDSLForm().equals("'*'")) {
+						explicitWildcardUsed = true;
+					}
 					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
 				}
 			}
-			return new int[] { nextId };
+			return (explicitWildcardUsed ? new int[] {} : new int[] { nextId });
 		}
 
 		@Override

@@ -63,7 +63,7 @@ class Tokenizer {
 				continue;
 			}
 
-			if (isAlphabetic(ch) || isDigit(ch) || ch == '_' || ch == '.') {
+			if (isAlphabetic(ch) || isDigit(ch) || ch == '_' || ch == '.' || ch == '$') {
 				lexIdentifier();
 			}
 			else {
@@ -82,7 +82,7 @@ class Tokenizer {
 							pushPairToken(TokenKind.DOUBLE_PIPE);
 						}
 						else {
-							pushPairToken(TokenKind.PIPE);
+							pushCharToken(TokenKind.PIPE);
 						}
 						break;
 					case '-':

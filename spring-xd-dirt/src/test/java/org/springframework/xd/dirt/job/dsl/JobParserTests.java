@@ -35,13 +35,41 @@ import org.junit.Test;
 
 /**
  * Parse job specifications and verify either the correct abstract syntax tree is produced or the current exception comes out.
- * The parser does not semantic validation, it is purely syntax checking.
+ * The parser does no semantic validation, it is purely syntax checking.
  *
  * @author Andy Clement
  */
 public class JobParserTests {
 
 	private JobSpecification js;
+
+	@Test
+	public void jobTokenization() {
+		Tokens tokens = new Tokens("jobA | BROKEN = $END |'*'=something");
+		assertToken(TokenKind.IDENTIFIER, "jobA", 0, 4, tokens.next());
+		assertToken(TokenKind.PIPE, "|", 5, 6, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "BROKEN", 7, 13, tokens.next());
+		assertToken(TokenKind.EQUALS, "=", 14, 15, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "$END", 16, 20, tokens.next());
+		assertToken(TokenKind.PIPE, "|", 21, 22, tokens.next());
+		assertToken(TokenKind.LITERAL_STRING, "'*'", 22, 25, tokens.next());
+		assertToken(TokenKind.EQUALS, "=", 25, 26, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "something", 26, 35, tokens.next());
+	}
+
+	@Test
+	public void jobTokenization2() {
+		Tokens tokens = new Tokens("jobA|BROKEN=$END|'*'=something");
+		assertToken(TokenKind.IDENTIFIER, "jobA", 0, 4, tokens.next());
+		assertToken(TokenKind.PIPE, "|", 4, 5, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "BROKEN", 5, 11, tokens.next());
+		assertToken(TokenKind.EQUALS, "=", 11, 12, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "$END", 12, 16, tokens.next());
+		assertToken(TokenKind.PIPE, "|", 16, 17, tokens.next());
+		assertToken(TokenKind.LITERAL_STRING, "'*'", 17, 20, tokens.next());
+		assertToken(TokenKind.EQUALS, "=", 20, 21, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "something", 21, 30, tokens.next());
+	}
 
 	@Test
 	public void globalOptions() {
@@ -58,6 +86,16 @@ public class JobParserTests {
 	@Test
 	public void graphToText() {
 		checkDSLToGraphAndBackToDSL("foojob");
+	}
+
+	@Test
+	public void graphToTextWithAllExitsCoveredNode() {
+		//		checkDSLToGraphAndBackToDSL("aaa | FOO = XXX | B = bbb | '*' = ccc || bbb || ccc");
+		js = parse("aaa | FOO = XXX | B = bbb | '*' = ccc || bbb || ccc");
+		Graph g = js.toGraph();
+		System.out.println(g);
+		assertEquals("aaa | FOO = XXX | B = bbb | '*' = ccc || bbb || ccc", g.toDSLText());
+		//		checkDSLToGraphAndBackToDSL("aaa | '*' = ccc | S1 = bbb || bbb || ccc");
 	}
 
 	@Test
@@ -141,6 +179,27 @@ public class JobParserTests {
 		checkDSLToGraphAndBackToDSL("<foojob & bbb || ccc>");
 	}
 
+	@Ignore
+	@Test
+	public void toDSLTextTransitions() {
+		js = parse("aaa | '*' = $END || bbb");
+		assertEquals("", js.stringify());
+		// Unclear if this is valid, there isn't really any orchestration going on, what drives bbb?
+		checkDSLToGraphAndBackToDSL("aaa | '*' = $END || bbb");
+	}
+
+	@Ignore
+	@Test
+	// You can't draw this on the graph, it would end up looking like "aaa | '*' = $END || bbb || ccc
+	public void toDSLTextTransitionsSplit() {
+		checkDSLToGraphAndBackToDSL("aaa | '*' = $END || <bbb & ccc>");
+	}
+
+	@Test
+	public void toDSLTextTransitionsFlow() {
+		checkDSLToGraphAndBackToDSL("aaa | '*' = $END || bbb || ccc");
+	}
+
 	@Test
 	public void toDSLTextSplitToFlow() {
 		checkDSLToGraphAndBackToDSL("<a & b> || foo");
@@ -173,6 +232,7 @@ public class JobParserTests {
 	@Test
 	public void toDSLTextSplitFlowSplit() {
 		checkDSLToGraphAndBackToDSL("<a & b> || foo || <c & d>");
+		checkDSLToGraphAndBackToDSL("<a & b> || foo | wibble = $END || <c & d>");
 	}
 
 	@Test
@@ -186,7 +246,7 @@ public class JobParserTests {
 	public void toDSLTextSplitTransitions() {
 		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill & bbb> || ccc");
 		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill & bbb | COMPLETED = kill> || ccc");
-		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill | '*' = kill2 & bbb | COMPLETED = kill> || ccc");
+		//		checkDSLToGraphAndBackToDSL("<aaa | COMPLETED = kill | '*' = kill2 & bbb | COMPLETED = kill> || ccc");
 	}
 
 	@Test
@@ -267,6 +327,30 @@ public class JobParserTests {
 		assertEquals("<A & B>", js.stringify());
 		js = parse("<A||B&C>");
 		assertEquals("<A || B & C>", js.stringify());
+	}
+
+	@Test
+	public void endTransition() {
+		js = parse("jobA | BROKEN=$END");
+		assertEquals("jobA | BROKEN = $END", js.stringify());
+		js = parse("jobA|BROKEN=$END");
+		assertEquals("jobA | BROKEN = $END", js.stringify());
+		js = parse("jobA |BROKEN =$END");
+		assertEquals("jobA | BROKEN = $END", js.stringify());
+		js = parse("jobA |BROKEN= $END");
+		assertEquals("jobA | BROKEN = $END", js.stringify());
+	}
+
+	@Test
+	public void failTransition() {
+		js = parse("jobA | BROKEN=$FAIL");
+		assertEquals("jobA | BROKEN = $FAIL", js.stringify());
+		js = parse("jobA|BROKEN=$FAIL");
+		assertEquals("jobA | BROKEN = $FAIL", js.stringify());
+		js = parse("jobA |BROKEN =$FAIL");
+		assertEquals("jobA | BROKEN = $FAIL", js.stringify());
+		js = parse("jobA |BROKEN= $FAIL");
+		assertEquals("jobA | BROKEN = $FAIL", js.stringify());
 	}
 
 	@Test
@@ -577,6 +661,88 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void toGraph$END() {
+		js = parse("foo | oranges=$END");
+
+		// AST creation (and DSL printing from it)
+		assertEquals("foo | oranges = $END", js.stringify());
+
+		// Graph creation
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:END,l:0:1,l:1:2:transitionName=oranges,l:1:2"),
+				js.toGraph().toJSON());
+
+		// Graph to DSL
+		checkDSLToGraphAndBackToDSL("foo | oranges = $END");
+
+		// toXML
+		assertEquals(loadXml("end1"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toGraph$END2() {
+		js = parse("aaa | foo = $END | B = bbb | '*' = ccc || bbb || ccc");
+
+		// AST creation (and DSL printing from it)
+		assertEquals("aaa | foo = $END | B = bbb | '*' = ccc || bbb || ccc", js.stringify());
+
+		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"aaa"},{"id":"2","name":"bbb"},{"id":"3","name":"ccc"},
+		//           {"id":"4","name":"END"}],
+		//  "links":[{"from":"0","to":"1"},{"from":"2","to":"3"},{"from":"1","to":"4","properties":{"transitionName":"foo"}},
+		//           {"from":"1","to":"2","properties":{"transitionName":"B"}},
+		//           {"from":"1","to":"3","properties":{"transitionName":"'*'"}},{"from":"3","to":"4"}]}
+		// Graph creation
+		assertEquals(
+				toExpectedGraph("n:0:START,n:1:aaa,n:2:bbb,n:3:ccc,n:4:END," +
+						"l:0:1,l:2:3,l:1:4:transitionName=foo,l:1:2:transitionName=B,l:1:3:transitionName='*',l:3:4"),
+				js.toGraph().toJSON());
+
+		// Graph to DSL
+		checkDSLToGraphAndBackToDSL("aaa | foo = $END | B = bbb | '*' = ccc || bbb || ccc");
+
+		// toXML
+		assertEquals(loadXml("end2"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toGraph$END3() {
+		// The trailing 'bbb' is redundant here...
+		js = parse("aaa | foo = $END | B = bbb | '*' = $END || bbb");
+
+		// AST creation (and DSL printing from it)
+		assertEquals("aaa | foo = $END | B = bbb | '*' = $END || bbb", js.stringify());
+
+		// Graph creation
+		//		assertEquals(
+		//				toExpectedGraph("n:0:START,n:1:aaa,n:2:bbb,n:3:ccc,n:4:END," +
+		//						"l:0:1,l:2:3,l:1:4:transitionName=foo,l:1:2:transitionName=B,l:1:3:transitionName='*',l:3:4"),
+		//				js.toGraph().toJSON());
+
+		// Graph to DSL
+		checkDSLToGraphAndBackToDSL("aaa | foo = $END | B = bbb | '*' = $END");
+
+		// toXML
+		assertEquals(loadXml("end3"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toGraph$FAIL() {
+		js = parse("foo | oranges=$FAIL");
+
+		// AST creation (and DSL printing from it)
+		assertEquals("foo | oranges = $FAIL", js.stringify());
+
+		// Graph creation
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:END,n:3:FAIL,l:0:1,l:1:3:transitionName=oranges,l:1:2"),
+				js.toGraph().toJSON());
+
+		// Graph to DSL
+		checkDSLToGraphAndBackToDSL("foo | oranges = $FAIL");
+
+		// XML creation
+		assertEquals(loadXml("fail1"), js.toXML("test1", true));
+	}
+
+	@Test
 	public void toGraphInlineJob() {
 		if (JobParser.SUPPORTS_INLINE_JOB_DEFINITIONS) {
 			js = parse("filejdbc foo --aaa=bbb || bar");
@@ -622,7 +788,7 @@ public class JobParserTests {
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
 		assertEquals(
 				toExpectedGraph(
-				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:hoo,n:6:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:5:transitionName=completed,l:4:6,l:5:6"),
+				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,n:6:hoo,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:6:transitionName=completed,l:4:5,l:6:5"),
 				js.toGraph().toJSON());
 	}
 
@@ -630,6 +796,12 @@ public class JobParserTests {
 	public void toXML() {
 		js = parse("foo");
 		assertEquals(loadXml("simpleJob"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXMLallExitsCovered() {
+		js = parse("aaa | foo = $END | B = bbb | '*' = ccc || bbb || ccc");
+		assertEquals(loadXml("allExitsCovered"), js.toXML("test1", true));
 	}
 
 	@Ignore
@@ -711,6 +883,7 @@ public class JobParserTests {
 	@Test
 	public void toXMLFlowWithMultiTransitionOnSameJobToSameTarget() {
 		js = parse("foo | failed = bbb | error = bbb || bar | failed = bbb");
+		assertEquals("foo | failed = bbb | error = bbb || bar | failed = bbb", js.stringify());
 		assertEquals(loadXml("simpleFlowWithTransition3"), js.toXML("test1", true));
 	}
 
@@ -730,6 +903,42 @@ public class JobParserTests {
 	public void toXMLFlowSplitDupModule() {
 		js = parse("foo || <foo & foo>");
 		assertEquals(loadXml("flowSplitDupModule"), js.toXML("test1", true));
+	}
+
+	@Test
+	public void toXML1() {
+		js = parse("aaa || <bbb & ccc> || farg || ddd");
+		assertXml("xml1", js.toXML("foo_COMPOSED", true));
+	}
+
+	@Test
+	public void lotsOfTransitions() {
+		js = parse("aaa | 'FAILED'=iii ||< bbb | 'FAILED'=iii & ccc | 'FAILED'=jjj> ||" +
+				"ddd| 'FAILED'=iii||eee| 'FAILED'=iii||fff| 'FAILED'=iii||<ggg| 'FAILED'=kkk & hhh| 'FAILED'=kkk>");
+		assertEquals(
+				"aaa | 'FAILED' = iii || <bbb | 'FAILED' = iii & ccc | 'FAILED' = jjj> || "
+						+
+						"ddd | 'FAILED' = iii || eee | 'FAILED' = iii || fff | 'FAILED' = iii || <ggg | 'FAILED' = kkk & hhh | 'FAILED' = kkk>",
+				js.stringify());
+		assertXml("lotsOfTransitions", js.toXML("lotsOfTransitions", true));
+	}
+
+	@Test
+	public void lotsOfTransitions2() {
+		js = parse("aaa | 'FAILED'=iii ||< bbb | 'FAILED'=iii|| zzz  & ccc | 'FAILED'=jjj> ||" +
+				"ddd| 'FAILED'=iii||eee| 'FAILED'=iii||fff| 'FAILED'=iii||<ggg| 'FAILED'=kkk & hhh| 'FAILED'=kkk>");
+		assertEquals(
+				"aaa | 'FAILED' = iii || <bbb | 'FAILED' = iii || zzz & ccc | 'FAILED' = jjj> || "
+						+
+						"ddd | 'FAILED' = iii || eee | 'FAILED' = iii || fff | 'FAILED' = iii || <ggg | 'FAILED' = kkk & hhh | 'FAILED' = kkk>",
+				js.stringify());
+		assertXml("lotsOfTransitions2", js.toXML("lotsOfTransitions2", true));
+	}
+
+	@Test
+	public void toXML2() {
+		js = parse("aaa|| bbb || farg | 'FAILED'=ccc ||ddd");
+		assertXml("xml2", js.toXML("foo_COMPOSED", true));
 	}
 
 	@Test
@@ -1006,7 +1215,7 @@ public class JobParserTests {
 		return new JobParser();
 	}
 
-	JobSpecification parse(String jobSpecification) {
+	private JobSpecification parse(String jobSpecification) {
 		JobSpecification jobSpec = getParser().parse(jobSpecification);
 		return jobSpec;
 	}
@@ -1017,7 +1226,7 @@ public class JobParserTests {
 	 * @param graphTestDSL the shorthand DSL for a graph description
 	 * @return a JSON string representing the complete graph
 	 */
-	public String toExpectedGraph(String graphTestDSL) {
+	private String toExpectedGraph(String graphTestDSL) {
 		StringBuilder s = new StringBuilder();
 		s.append("{");
 		s.append("\"nodes\":[");
@@ -1165,4 +1374,14 @@ public class JobParserTests {
 		assertEquals(specification, g.toDSLText());
 	}
 
+	private void assertToken(TokenKind kind, String string, int start, int end, Token t) {
+		assertEquals(kind, t.kind);
+		assertEquals(string, t.getKind().hasPayload() ? t.stringValue() : new String(t.getKind().getTokenChars()));
+		assertEquals(start, t.startpos);
+		assertEquals(end, t.endpos);
+	}
+
+	private void assertXml(String xmlFileName, String expectedText) {
+		assertEquals(loadXml(xmlFileName), expectedText);
+	}
 }

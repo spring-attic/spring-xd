@@ -29,6 +29,10 @@ import org.springframework.xd.dirt.stream.dsl.AstNode;
  */
 public class Transition extends AstNode {
 
+	public final static String FAIL = "$FAIL";
+
+	public final static String END = "$END";
+
 	private Token stateNameToken;
 
 	private String stateName;
@@ -75,6 +79,23 @@ public class Transition extends AstNode {
 	 */
 	public String getStateNameInDSLForm() {
 		return stateNameToken.data;
+	}
+
+	/**
+	 * Some target names for a transition are 'well known' like $FAIL and $END - these
+	 * do not indicate a following job step, they instead indicate a termination state.
+	 * @return true if the target of this transition is a special state ($FAIL/$END)
+	 */
+	public boolean isSpecialTransition() {
+		return isFailTransition() || isEndTransition();
+	}
+
+	public boolean isFailTransition() {
+		return getStateNameInDSLForm().equals(FAIL);
+	}
+
+	public boolean isEndTransition() {
+		return getStateNameInDSLForm().equals(END);
 	}
 
 }

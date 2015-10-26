@@ -4,7 +4,8 @@
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <step id="foo">
       <tasklet ref="jobRunner-foo"/>
-      <next on="*" to="split1"/>
+      <next on="COMPLETED" to="split1"/>
+      <fail on="*"/>
     </step>
     <split id="split1" task-executor="taskExecutor">
       <flow>

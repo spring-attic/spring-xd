@@ -4,13 +4,15 @@
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <step id="AA">
       <tasklet ref="jobRunner-AA"/>
-      <next on="*" to="split1"/>
+      <next on="COMPLETED" to="split1"/>
+      <fail on="*"/>
     </step>
     <split id="split1" task-executor="taskExecutor">
       <flow>
         <step id="BB">
           <tasklet ref="jobRunner-BB"/>
-          <next on="*" to="CC"/>
+          <next on="COMPLETED" to="CC"/>
+          <fail on="*"/>
         </step>
         <step id="CC">
           <tasklet ref="jobRunner-CC"/>
@@ -21,7 +23,8 @@
           <tasklet ref="jobRunner-DD"/>
         </step>
       </flow>
-      <next on="*" to="EE"/>
+      <next on="COMPLETED" to="EE"/>
+      <fail on="*"/>
     </split>
     <step id="EE">
       <tasklet ref="jobRunner-EE"/>

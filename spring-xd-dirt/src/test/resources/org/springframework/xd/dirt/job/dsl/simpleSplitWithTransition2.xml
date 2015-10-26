@@ -7,6 +7,7 @@
         <step id="foo">
           <tasklet ref="jobRunner-foo"/>
           <next on="failed" to="boo"/>
+          <fail on="*"/>
         </step>
         <step id="boo">
           <tasklet ref="jobRunner-boo"/>
@@ -16,6 +17,7 @@
         <step id="bar">
           <tasklet ref="jobRunner-bar"/>
           <next on="failed" to="boo1"/>
+          <fail on="*"/>
         </step>
         <step id="boo1">
           <tasklet ref="jobRunner-boo"/>

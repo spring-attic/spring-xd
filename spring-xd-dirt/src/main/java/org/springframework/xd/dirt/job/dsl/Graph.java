@@ -90,20 +90,66 @@ public class Graph {
 	public String toDSLText() {
 		StringBuilder graphText = new StringBuilder();
 		List<Node> unvisitedNodes = new ArrayList<>();
+		List<Link> unfollowedLinks = new ArrayList<>();
 		unvisitedNodes.addAll(nodes);
+		unfollowedLinks.addAll(links);
 		Node start = findNodeByName("START");
+		unvisitedNodes.remove(start);
 		Node end = findNodeByName("END");
+		unvisitedNodes.remove(end);
+		Node fail = findNodeByName("FAIL");
+		if (fail != null) {
+			unvisitedNodes.remove(fail);
+		}
 		if (start == null || end == null) {
 			throw new IllegalStateException("Graph is malformed - problems finding START and END nodes");
 		}
 		List<Link> toFollow = findLinksFrom(start, false);
-		followLinks(graphText, toFollow, null);
+		followLinks(graphText, toFollow, null, unvisitedNodes, unfollowedLinks);
+
+		if (unvisitedNodes.size() != 0) {
+			int loopCount = 0;
+			while (unvisitedNodes.size() != 0 && loopCount < 10000) {
+				Node nextHead = findAHead(unvisitedNodes, unfollowedLinks);
+				unvisitedNodes.remove(nextHead);
+				toFollow = findLinksFrom(nextHead, false);
+				// If the new head we find has no links to anything, we don't need to mention it in the DSL.
+				// Transitions will refer to it and it will get a step in the XML but there is no need
+				// to explicitly mention in the DSL. This might change once the job references support properties.
+				if (toFollow.size() != 0) {
+					graphText.append(" || ");
+					printNode(graphText, nextHead, unvisitedNodes);
+					followLinks(graphText, toFollow, null, unvisitedNodes, unfollowedLinks);
+				}
+				loopCount++;
+			}
+		}
+
 		if (properties != null) {
 			for (Map.Entry<String, String> property : properties.entrySet()) {
 				graphText.append(" --").append(property.getKey()).append("=").append(property.getValue());
 			}
 		}
+
 		return graphText.toString();
+	}
+
+	private Node findAHead(List<Node> unvisitedNodes, List<Link> unvisitedLinks) {
+		if (unvisitedNodes.size() == 0) {
+			return null;
+		}
+		Node candidate = unvisitedNodes.get(0);
+		boolean changedCandidate = true;
+		while (changedCandidate) {
+			changedCandidate = false;
+			for (Link link : unvisitedLinks) {
+				if (link.to == candidate.id) {
+					changedCandidate = true;
+					candidate = findNodeById(link.from);
+				}
+			}
+		}
+		return candidate;
 	}
 
 	/**
@@ -113,12 +159,13 @@ public class Graph {
 	 * @param toFollow the links to follow
 	 * @param nodeToTerminateFollow the node that should trigger termination of following
 	 */
-	private void followLinks(StringBuilder graphText, List<Link> toFollow, Node nodeToTerminateFollow) {
+	private void followLinks(StringBuilder graphText, List<Link> toFollow, Node nodeToTerminateFollow,
+			List<Node> unvisitedNodes, List<Link> unfollowedLinks) {
 		while (toFollow.size() != 0) {
 			if (toFollow.size() > 1) { // SPLIT
 				if (graphText.length() != 0) {
 					// If there is something already in the text, a || is needed to
-					// join it to the preceeding element
+					// join it to the preceding element
 					graphText.append(" || ");
 				}
 				graphText.append("<");
@@ -128,7 +175,7 @@ public class Graph {
 						graphText.append(" & ");
 					}
 					Link l = toFollow.get(i);
-					followLink(graphText, l, endOfSplit);
+					followLink(graphText, l, endOfSplit, unvisitedNodes, unfollowedLinks);
 				}
 				graphText.append(">");
 				if (endOfSplit == null || endOfSplit.isEnd()) {
@@ -139,20 +186,30 @@ public class Graph {
 					// Time to finish if termination node hit
 					break;
 				}
+				unvisitedNodes.remove(endOfSplit);
 				if (!endOfSplit.isSync()) {
 					// If not a sync node, include it in the output text
 					graphText.append(" || ");
-					printNode(graphText, endOfSplit);
+					printNode(graphText, endOfSplit, unvisitedNodes);
+					List<Link> transitionalLinks = findLinksFrom(endOfSplit, false);
+					printTransitions(graphText, unfollowedLinks, transitionalLinks);
 				}
 				toFollow = findLinksFromWithoutTransitions(endOfSplit, false);
 			}
 			else if (toFollow.size() == 1) { // FLOW
-				if (findNodeById(toFollow.get(0).to) != nodeToTerminateFollow) {
-					if (graphText.length() != 0) {
-						// First one doesn't need a || on the front
-						graphText.append(" || ");
+				Link linkToFollow = toFollow.get(0);
+				Node linkToFollowTarget = findNodeById(linkToFollow.to);
+				if (linkToFollowTarget != nodeToTerminateFollow) {
+					if (linkToFollowTarget.isEnd() || linkToFollowTarget.isFail()) {
+						unfollowedLinks.remove(linkToFollow);
 					}
-					followLink(graphText, toFollow.get(0), nodeToTerminateFollow);
+					else {
+						if (graphText.length() != 0) {
+							// First one doesn't need a || on the front
+							graphText.append(" || ");
+						}
+						followLink(graphText, linkToFollow, nodeToTerminateFollow, unvisitedNodes, unfollowedLinks);
+					}
 				}
 				break;
 			}
@@ -246,7 +303,8 @@ public class Graph {
 		return count;
 	}
 
-	private void printNode(StringBuilder graphText, Node node) {
+	private void printNode(StringBuilder graphText, Node node, List<Node> unvisitedNodes) {
+		unvisitedNodes.remove(node);
 		// What to generate depends on whether it is a job definition or reference
 		if (node.metadata != null && node.metadata.containsKey(Node.METADATAKEY_JOBMODULENAME)) {
 			graphText.append(node.metadata.get(Node.METADATAKEY_JOBMODULENAME)).append(" ");
@@ -263,7 +321,8 @@ public class Graph {
 			}
 		}
 		else {
-			graphText.append(node.name);
+			String nameInDSL = node.name;
+			graphText.append(nameInDSL);
 			if (node.properties != null) {
 				for (Map.Entry<String, String> entry : node.properties.entrySet()) {
 					graphText.append(" ");
@@ -273,21 +332,35 @@ public class Graph {
 		}
 	}
 
-	private void followLink(StringBuilder graphText, Link link, Node nodeToFinishFollowingAt) {
+	private void followLink(StringBuilder graphText, Link link, Node nodeToFinishFollowingAt,
+			List<Node> unvisitedNodes, List<Link> unfollowedLinks) {
+		unfollowedLinks.remove(link);
 		Node target = findNodeById(link.to);
-		printNode(graphText, target);
+		printNode(graphText, target, unvisitedNodes);
 		List<Link> toFollow = findLinksFrom(target, false);
+		printTransitions(graphText, unfollowedLinks, toFollow);
+		followLinks(graphText, toFollow, nodeToFinishFollowingAt, unvisitedNodes, unfollowedLinks);
+	}
+
+	private void printTransitions(StringBuilder graphText, List<Link> unfollowedLinks, List<Link> toFollow) {
 		for (Iterator<Link> iterator = toFollow.iterator(); iterator.hasNext();) {
 			Link l = iterator.next();
 			if (l.hasTransitionSet()) {
 				// capture the target of this link as a simple transition
 				String transitionName = l.getTransitionName();
 				Node transitionTarget = findNodeById(l.to);
-				graphText.append(" | ").append(transitionName).append(" = ").append(transitionTarget.name);
+				String transitionTargetName = transitionTarget.name;
+				if (transitionTargetName.equals("FAIL")) {
+					transitionTargetName = Transition.FAIL;
+				}
+				else if (transitionTargetName.equals("END")) {
+					transitionTargetName = Transition.END;
+				}
+				graphText.append(" | ").append(transitionName).append(" = ").append(transitionTargetName);
+				unfollowedLinks.remove(l);
 				iterator.remove();
 			}
 		}
-		followLinks(graphText, toFollow, nodeToFinishFollowingAt);
 	}
 
 	private Node findNodeById(String id) {
@@ -325,7 +398,8 @@ public class Graph {
 		List<Link> result = new ArrayList<>();
 		for (Link link : links) {
 			if (link.from.equals(n.id)) {
-				if (includeThoseLeadingToEnd || !findNodeById(link.to).name.equals("END")) {
+				// Only include links to 'END' if there are properties on it
+				if (includeThoseLeadingToEnd || !(findNodeById(link.to).name.equals("END") && link.properties == null)) {
 					result.add(link);
 				}
 			}

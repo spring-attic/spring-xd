@@ -4,11 +4,13 @@
   <batch:job xmlns="http://www.springframework.org/schema/batch" id="test1">
     <step id="foo">
       <tasklet ref="jobRunner-foo"/>
-      <next on="*" to="bar"/>
+      <next on="COMPLETED" to="bar"/>
+      <fail on="*"/>
     </step>
     <step id="bar">
       <tasklet ref="jobRunner-bar"/>
       <next on="failed" to="goo"/>
+      <fail on="*"/>
     </step>
     <step id="goo">
       <tasklet ref="jobRunner-goo"/>

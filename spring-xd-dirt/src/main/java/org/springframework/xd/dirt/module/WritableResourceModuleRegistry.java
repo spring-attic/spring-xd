@@ -20,11 +20,14 @@ import java.io.IOException;
 import java.security.DigestInputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.util.Iterator;
 import java.util.Properties;
 
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
 import org.springframework.core.env.Environment;
+import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.core.io.WritableResource;
@@ -44,8 +47,10 @@ import org.springframework.xd.module.ModuleType;
  * <p>Will generate MD5 hash files for written modules.</p>
  *
  * @author Eric Bottard
+ * @author Janne Valkealahti
  */
-public class WritableResourceModuleRegistry extends ResourceModuleRegistry implements WritableModuleRegistry, InitializingBean {
+public class WritableResourceModuleRegistry extends ResourceModuleRegistry
+		implements WritableModuleRegistry, InitializingBean {
 
 	final protected static byte[] HEX_DIGITS = "0123456789ABCDEF".getBytes();
 
@@ -67,7 +72,8 @@ public class WritableResourceModuleRegistry extends ResourceModuleRegistry imple
 	@Override
 	public boolean delete(ModuleDefinition definition) {
 		try {
-			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
+			Resource archive = getResources(definition.getType().name(), definition.getName(),
+					ARCHIVE_AS_FILE_EXTENSION).iterator().next();
 			if (archive instanceof WritableResource) {
 				WritableResource writableResource = (WritableResource) archive;
 				WritableResource hashResource = (WritableResource) hashResource(writableResource);
@@ -92,10 +98,12 @@ public class WritableResourceModuleRegistry extends ResourceModuleRegistry imple
 		}
 		UploadedModuleDefinition uploadedModuleDefinition = (UploadedModuleDefinition) definition;
 		try {
-			Resource archive = getResources(definition.getType().name(), definition.getName(), ARCHIVE_AS_FILE_EXTENSION).iterator().next();
+			Resource archive = getResources(definition.getType().name(), definition.getName(),
+					ARCHIVE_AS_FILE_EXTENSION).iterator().next();
 			if (archive instanceof WritableResource) {
 				WritableResource writableResource = (WritableResource) archive;
-				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition + " at location " + writableResource + " as that file already exists");
+				Assert.isTrue(!writableResource.exists(), "Could not install " + uploadedModuleDefinition
+						+ " at location " + writableResource + " as that file already exists");
 
 				MessageDigest md = MessageDigest.getInstance("MD5");
 				DigestInputStream dis = new DigestInputStream(uploadedModuleDefinition.getInputStream(), md);
@@ -137,13 +145,16 @@ public class WritableResourceModuleRegistry extends ResourceModuleRegistry imple
 				userPrincipal = environment.getProperty("spring.hadoop.security.userPrincipal");
 				userKeytab = environment.getProperty("spring.hadoop.security.userKeytab");
 			}
-			// if needed check hadoop.properties
+			// check hadoop.properties and load it as
+			// Properties to get additional configs
+			Properties hadoopProps = null;
 			if (!securityConfigProvided && environment != null) {
-				String xdConfigHadoopProps = environment.getProperty(XD_CONFIG_HOME)+ "hadoop.properties";
-				Properties hadoopProps = null;
+				String xdConfigHadoopProps = environment.getProperty(XD_CONFIG_HOME) + "hadoop.properties";
 				try {
 					hadoopProps = PropertiesLoaderUtils.loadProperties(new UrlResource(xdConfigHadoopProps));
-				} catch (IOException ignore) {}
+				}
+				catch (IOException ignore) {
+				}
 				if (hadoopProps != null && (hadoopProps.containsKey("spring.hadoop.security.authMethod") ||
 						hadoopProps.containsKey("hadoop.security.authentication"))) {
 					securityConfigProvided = true;
@@ -163,9 +174,34 @@ public class WritableResourceModuleRegistry extends ResourceModuleRegistry imple
 					userKeytab = hadoopProps.getProperty("spring.hadoop.security.userKeytab");
 				}
 			}
+
+			// get 'spring.hadoop.config.' props from other
+			// sources to support generic hadoop settings
+			// via yml
+			Properties factoryProps = new Properties();
+			if (environment != null) {
+				Iterator<PropertySource<?>> i = environment.getPropertySources().iterator();
+				while (i.hasNext()) {
+					PropertySource<?> p = i.next();
+					if (p instanceof EnumerablePropertySource) {
+						for (String name : ((EnumerablePropertySource) p).getPropertyNames()) {
+							if (name.startsWith("spring.hadoop.config.")) {
+								// remove 'spring.hadoop.config.' prefix
+								factoryProps.put(name.substring(21), environment.getProperty(name));
+							}
+						}
+					}
+				}
+			}
+
 			ConfigurationFactoryBean configurationFactoryBean = new ConfigurationFactoryBean();
 			configurationFactoryBean.setRegisterUrlHandler(true);
 			configurationFactoryBean.setFileSystemUri(root);
+			if (hadoopProps != null) {
+				// hadoop.properties will override
+				factoryProps.putAll(hadoopProps);
+			}
+			configurationFactoryBean.setProperties(factoryProps);
 			if (securityConfigProvided && "kerberos".equals(authMethod)) {
 				configurationFactoryBean.setSecurityMethod(authMethod);
 				configurationFactoryBean.setNamenodePrincipal(namenodePrincipal);

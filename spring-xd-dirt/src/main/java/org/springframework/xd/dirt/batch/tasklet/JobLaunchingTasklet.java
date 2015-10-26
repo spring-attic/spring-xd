@@ -18,7 +18,6 @@ package org.springframework.xd.dirt.batch.tasklet;
 
 import java.util.Date;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 
@@ -30,11 +29,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.JobExecution;
 import org.springframework.batch.core.JobParameter;
 import org.springframework.batch.core.JobParameters;
-import org.springframework.batch.core.JobParametersBuilder;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
 import org.springframework.batch.core.converter.DefaultJobParametersConverter;
+import org.springframework.batch.core.explore.JobExplorer;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
@@ -91,8 +90,6 @@ public class JobLaunchingTasklet implements Tasklet {
 	private DomainRepository<JobDefinition, String> instanceRepository;
 
 	private String orchestrationId;
-
-	private JobParametersExtractor extractor = new JobParametersExtractor();
 
 	private MessageChannel launchingChannel;
 
@@ -191,7 +188,7 @@ public class JobLaunchingTasklet implements Tasklet {
 			}
 
 			if (results != null) {
-				processResult(contribution, results);
+				processResult(contribution, chunkContext, results);
 			}
 			else {
 				throw new UnexpectedJobExecutionException("The job timed out while waiting for a result");
@@ -207,34 +204,43 @@ public class JobLaunchingTasklet implements Tasklet {
 	}
 
 	private String getJobParameters(ChunkContext chunkContext) throws JsonProcessingException {
+
 		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
 		JobParameters originalJobParameters = stepExecution.getJobParameters();
 
-		Properties jobParameterValues = originalJobParameters.toProperties();
-		jobParameterValues.remove("+" + ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY + DefaultJobParametersConverter.STRING_TYPE);
+		Properties currentJobParameters = new Properties(originalJobParameters.toProperties());
+		currentJobParameters.remove("+" + ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY + DefaultJobParametersConverter.STRING_TYPE);
 
-		JobParameters jobParameters = new JobParametersBuilder(jobParameterValues)
-				.addParameter(XD_ORCHESTRATION_ID, new JobParameter(this.orchestrationId))
-				.addParameter(XD_PARENT_JOB_EXECUTION_ID, new JobParameter(stepExecution.getJobExecutionId()))
-				.toJobParameters();
 
-		return this.extractor.extract(jobParameters);
+		String random = null;
+
+		//This is a restart
+		Map<String, Object> stepExecutionContext = chunkContext.getStepContext().getStepExecutionContext();
+		if(stepExecutionContext.containsKey(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY)) {
+			random = (String) stepExecutionContext.get(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY);
+		}
+
+		currentJobParameters.put(XD_ORCHESTRATION_ID, this.orchestrationId);
+		currentJobParameters.put("-" + XD_PARENT_JOB_EXECUTION_ID, stepExecution.getJobExecutionId());
+
+		if(random != null) {
+			currentJobParameters.put(ExpandedJobParametersConverter.IS_RESTART_JOB_PARAMETER_KEY, true);
+			currentJobParameters.put(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY, random);
+		}
+
+		return new ObjectMapper().writeValueAsString(currentJobParameters);
 	}
 
-	private void processResult(StepContribution contribution, JobExecution results) {
+	private void processResult(StepContribution contribution, ChunkContext chunkContext, JobExecution results) {
 		contribution.setExitStatus(results.getExitStatus());
 
 		if (results.getStatus().isUnsuccessful()) {
-			List<Throwable> allFailureExceptions = results.getAllFailureExceptions();
-
-			Throwable failureException = null;
-
-			if (allFailureExceptions.size() > 0) {
-				failureException = allFailureExceptions.get(0);
-			}
-
-			throw new UnexpectedJobExecutionException(String.format("Step failure: %s failed.", jobName),
-					failureException);
+			chunkContext.getStepContext()
+					.getStepExecution()
+					.getExecutionContext()
+					.put(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY,
+							results.getJobParameters().getString(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY));
+			throw new UnexpectedJobExecutionException(String.format("Step failure: %s failed.", jobName));
 		}
 	}
 
@@ -297,28 +303,5 @@ public class JobLaunchingTasklet implements Tasklet {
 			}
 		}
 		return null;
-	}
-
-	private static class JobParametersExtractor {
-
-		private ObjectMapper mapper = new ObjectMapper();
-
-		public String extract(JobParameters jobParameters) throws JsonProcessingException {
-			Map<String, Object> parameters = new HashMap<>(jobParameters.getParameters().size());
-
-			for (Map.Entry<String, JobParameter> curParameterEntry : jobParameters.getParameters().entrySet()) {
-				JobParameter curParameter = curParameterEntry.getValue();
-				String dataTypeToUse = "(" + curParameter.getType().toString().toLowerCase() + ")";
-
-				if (curParameter.isIdentifying()) {
-					parameters.put("+" + curParameterEntry.getKey() + dataTypeToUse, curParameter.getValue());
-				}
-				else {
-					parameters.put("-" + curParameterEntry.getKey() + dataTypeToUse, curParameter.getValue());
-				}
-			}
-
-			return mapper.writeValueAsString(parameters);
-		}
 	}
 }

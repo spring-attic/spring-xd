@@ -150,22 +150,6 @@ public class Graph {
 			}
 		}
 		return candidate;
-		//		if (unvisitedLinks.size() == 0) {
-		//			return null;
-		//		}
-		//		Link candidate = unvisitedLinks.get(0);
-		//		boolean changedCandidate = true;
-		//		while (changedCandidate) {
-		//			changedCandidate = false;
-		//			Node n = findNodeById(candidate.from);
-		//			for (Link link : unvisitedLinks) {
-		//				if (link.to == n.id) {
-		//					changedCandidate = true;
-		//					candidate = link;
-		//				}
-		//			}
-		//		}
-		//		return findNodeById(candidate.from);
 	}
 
 	/**

@@ -47,14 +47,11 @@ public class ToolsController {
 
 	private XDStreamParser.MultiLineDocumentParser multilineStreamParser;
 
-	private JobParser jobParser;
-
 	private DocumentParseResultResourceAssembler assembler = new DocumentParseResultResourceAssembler();
 
 	@Autowired
 	public ToolsController(XDStreamParser streamParser) {
 		this.multilineStreamParser = new XDStreamParser.MultiLineDocumentParser(streamParser);
-		this.jobParser = new JobParser();
 	}
 
 	/**
@@ -72,6 +69,7 @@ public class ToolsController {
 	@RequestMapping(value = "/parseJobToGraph", method = RequestMethod.GET)
 	public Map<String, Object> parseJobToGraph(@RequestParam("specification") String specification) {
 		Map<String, Object> response = new HashMap<>();
+		JobParser jobParser = new JobParser();
 		try {
 			Graph graph = jobParser.getGraph(specification);
 			response.put("graph", graph);

@@ -13,9 +13,13 @@
 
 package org.springframework.xd.tuple;
 
+import java.util.List;
+
 import org.springframework.core.convert.converter.Converter;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.BaseJsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
@@ -44,24 +48,44 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 
 	private ObjectNode toObjectNode(Tuple source) {
 		ObjectNode root = mapper.createObjectNode();
-//		root.put("id", source.getId().toString());
-//		root.put("timestamp", source.getTimestamp());
 		for (int i = 0; i < source.size(); i++) {
 			Object value = source.getValues().get(i);
 			String name = source.getFieldNames().get(i);
-			if (value != null) {
-				if (value instanceof Tuple) {
-					root.putPOJO(name, toObjectNode((Tuple) value));
-				}
-				else if (!value.getClass().isPrimitive()) {
-					root.putPOJO(name, root.pojoNode(value));
-				}
-				else {
-					root.put(name, value.toString());
-				}
+			if (value == null) {
+				root.putNull(name);
+			} else {
+				root.putPOJO(name, toNode(value));
 			}
 		}
 		return root;
+	}
+
+	private ArrayNode toArrayNode(List<?> source) {
+		ArrayNode array = mapper.createArrayNode();
+		for (Object value : source) {
+			if (value != null) {
+				array.add(toNode(value));
+			}
+		}
+		return array;
+	}
+
+	private BaseJsonNode toNode(Object value) {
+		if (value != null) {
+			if (value instanceof Tuple) {
+				return toObjectNode((Tuple) value);
+			}
+			else if (value instanceof List<?>) {
+				return toArrayNode((List<?>) value);
+			}
+			else if (!value.getClass().isPrimitive()) {
+				return mapper.getNodeFactory().pojoNode(value);
+			}
+			else {
+				return mapper.valueToTree(value);
+			}
+		}
+		return null;
 	}
 
 }

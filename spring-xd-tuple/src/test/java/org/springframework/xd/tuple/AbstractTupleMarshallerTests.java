@@ -13,18 +13,25 @@
 
 package org.springframework.xd.tuple;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-import static org.springframework.xd.tuple.TupleBuilder.tuple;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.junit.Before;
+import org.junit.Test;
+import org.springframework.core.io.Resource;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import org.junit.Before;
-import org.junit.Test;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
+import static org.springframework.xd.tuple.TupleBuilder.tuple;
 
 /**
  * @author David Turanski
@@ -34,9 +41,12 @@ public abstract class AbstractTupleMarshallerTests {
 
 	private TupleStringMarshaller marshaller;
 
+	private ObjectMapper mapper = new ObjectMapper();
+
 	@Before
 	public void setUp() {
 		marshaller = getMarshaller();
+		mapper.enable(SerializationFeature.INDENT_OUTPUT);
 	}
 
 	@Test
@@ -95,6 +105,18 @@ public abstract class AbstractTupleMarshallerTests {
 		assertEquals("v1", newTuple.getTuple("map").getString("k1"));
 		assertEquals("v2", newTuple.getTuple("map").getString("k2"));
 	}
+
+	public String prettyPrintJson(String json) throws IOException {
+		Object jsonObject = mapper.readValue(json, Object.class);
+		return mapper.writeValueAsString(jsonObject);
+	}
+
+	public String readJson(Resource resource) throws IOException {
+		Object jsonObject = mapper.readValue(resource.getInputStream(), Object.class);
+		return mapper.writeValueAsString(jsonObject);
+	}
+
+
 
 	protected abstract TupleStringMarshaller getMarshaller();
 }

@@ -19,8 +19,13 @@ import static org.junit.Assert.assertTrue;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.StringWriter;
 import java.util.List;
+import java.util.Map;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
@@ -38,7 +43,7 @@ public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 	 * @see org.springframework.xd.tuple.AbstractTupleMarshallerTests#getMarshaller()
 	 */
 	@Override
-	protected TupleStringMarshaller getMarshaller() {
+	protected TupleJsonMarshaller getMarshaller() {
 		return new TupleJsonMarshaller();
 	}
 
@@ -47,19 +52,8 @@ public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 		Resource jsonFile = new ClassPathResource("/tweet.json");
 		assertTrue(jsonFile.exists());
 
-		BufferedReader reader = new BufferedReader(new InputStreamReader(jsonFile.getInputStream()));
-		String line = null;
-		StringBuilder stringBuilder = new StringBuilder();
-		String ls = System.getProperty("line.separator");
-
-		while ((line = reader.readLine()) != null) {
-			stringBuilder.append(line);
-			stringBuilder.append(ls);
-		}
-		reader.close();
-
-		String source = stringBuilder.toString();
-		TupleStringMarshaller marshaller = getMarshaller();
+		String source = readJson(jsonFile);
+		TupleJsonMarshaller marshaller = getMarshaller();
 		Tuple tuple = marshaller.toTuple(source);
 		assertEquals("Gabriel", tuple.getTuple("user").getString("name"));
 		List<?> mentions = (List<?>) tuple.getTuple("entities").getValue("user_mentions");
@@ -68,4 +62,27 @@ public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 		Tuple t = (Tuple) mentions.get(0);
 		assertEquals("someoneFollowed", t.getString("screen_name"));
 	}
+
+	@Test
+	public void testJsonWithArrays() throws IOException {
+		Resource jsonFile = new ClassPathResource("/jsonWithArrays.json");
+		assertTrue(jsonFile.exists());
+		String json = readJson(jsonFile);
+
+		//Convert to tuple
+		TupleJsonMarshaller marshaller = getMarshaller();
+		Tuple tuple = marshaller.toTuple(json);
+
+		//Validate contents
+		List<Tuple> body = (List<Tuple>) tuple.getValue("body");
+		Tuple t2 = body.get(0).getTuple("har");
+		Tuple t3 = t2.getTuple("log");
+		List<?> pages = (List<?>)t3.getValue("pages");
+		assertEquals(2, pages.size());
+
+		//Convert back to json.
+		String convertedJson = prettyPrintJson(marshaller.fromTuple(tuple));
+		assertEquals(json, convertedJson);
+	}
+
 }

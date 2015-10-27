@@ -21,6 +21,7 @@ import java.util.Map.Entry;
 import org.springframework.core.convert.converter.Converter;
 
 import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -53,16 +54,17 @@ public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 				else if (node.isArray()) {
 					builder.addEntry(name, nodeToList(node));
 				}
+				else if (node.isNull()) {
+					builder.addEntry(name, null);
+				}
+				else if (node.isBoolean()) {
+					builder.addEntry(name, node.booleanValue());
+				}
+				else if (node.isNumber()) {
+					builder.addEntry(name, node.numberValue());
+				}
 				else {
-					if (name.equals("id")) {//NOSONAR
-						// TODO how should this be handled?
-					}
-					else if (name.equals("timestamp")) {//NOSONAR
-						// TODO how should this be handled?
-					}
-					else {
-						builder.addEntry(name, node.asText());
-					}
+					builder.addEntry(name, mapper.treeToValue(node, Object.class));
 				}
 			}
 		}
@@ -72,7 +74,7 @@ public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 		return builder.build();
 	}
 
-	private List<Object> nodeToList(JsonNode node) {
+	private List<Object> nodeToList(JsonNode node) throws JsonProcessingException {
 		List<Object> list = new ArrayList<Object>(node.size());
 		for (int i = 0; i < node.size(); i++) {
 			JsonNode item = node.get(i);
@@ -82,8 +84,17 @@ public class JsonStringToTupleConverter implements Converter<String, Tuple> {
 			else if (item.isArray()) {
 				list.add(nodeToList(item));
 			}
+			else if (item.isNull()) {
+				list.add(null);
+			}
+			else if (item.isBoolean()) {
+				list.add(item.booleanValue());
+			}
+			else if (item.isNumber()) {
+				list.add(item.numberValue());
+			}
 			else {
-				list.add(item.asText());
+				list.add(mapper.treeToValue(item, Object.class));
 			}
 		}
 		return list;

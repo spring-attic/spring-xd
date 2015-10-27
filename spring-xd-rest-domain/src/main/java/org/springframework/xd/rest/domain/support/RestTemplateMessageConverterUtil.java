@@ -16,34 +16,14 @@
 
 package org.springframework.xd.rest.domain.support;
 
-import java.lang.reflect.Field;
 import java.util.List;
-import java.util.Map;
-
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
 
 import org.springframework.hateoas.PagedResources;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.converter.support.AllEncompassingFormHttpMessageConverter;
-import org.springframework.http.converter.xml.AbstractJaxb2HttpMessageConverter;
-import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.client.RestTemplate;
-import org.springframework.xd.rest.domain.DetailedContainerResource;
-import org.springframework.xd.rest.domain.JobDefinitionResource;
-import org.springframework.xd.rest.domain.ModuleDefinitionResource;
-import org.springframework.xd.rest.domain.ModuleMetadataResource;
-import org.springframework.xd.rest.domain.StreamDefinitionResource;
-import org.springframework.xd.rest.domain.XDRuntime;
-import org.springframework.xd.rest.domain.metrics.AggregateCountsResource;
-import org.springframework.xd.rest.domain.metrics.CounterResource;
-import org.springframework.xd.rest.domain.metrics.FieldValueCounterResource;
-import org.springframework.xd.rest.domain.metrics.GaugeResource;
-import org.springframework.xd.rest.domain.metrics.MetricResource;
-import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
 
 /**
  * Utility class that does two things:
@@ -63,29 +43,10 @@ import org.springframework.xd.rest.domain.metrics.RichGaugeResource;
  */
 public class RestTemplateMessageConverterUtil {
 
-	private static final boolean jaxb2Present = ClassUtils.isPresent("javax.xml.bind.Binder",
-			RestTemplateMessageConverterUtil.class.getClassLoader());
-
 	private static final boolean jackson2Present = ClassUtils.isPresent("com.fasterxml.jackson.databind.ObjectMapper",
 			RestTemplateMessageConverterUtil.class.getClassLoader())
 			&& ClassUtils.isPresent("com.fasterxml.jackson.core.JsonGenerator",
 					RestTemplateMessageConverterUtil.class.getClassLoader());
-
-	private static final boolean jacksonPresent = ClassUtils.isPresent("org.codehaus.jackson.map.ObjectMapper",
-			RestTemplateMessageConverterUtil.class.getClassLoader())
-			&& ClassUtils.isPresent("org.codehaus.jackson.JsonGenerator",
-					RestTemplateMessageConverterUtil.class.getClassLoader());
-
-	private static final Class<?>[] ourClasses = { PagedResources.class, StreamDefinitionResource.class,
-		JobDefinitionResource.class, ModuleDefinitionResource.class, DetailedContainerResource.class,
-		ModuleMetadataResource.class,
-		MetricResource.class, GaugeResource.class,
-		AggregateCountsResource.class, CounterResource.class, XDRuntime.class, FieldValueCounterResource.class,
-		RichGaugeResource.class };
-
-	private RestTemplateMessageConverterUtil() {
-
-	}
 
 	/**
 	 * Install message converters we're interested in, with json coming before xml.
@@ -95,34 +56,7 @@ public class RestTemplateMessageConverterUtil {
 		if (jackson2Present) {
 			messageConverters.add(new MappingJackson2HttpMessageConverter());
 		}
-		else if (jacksonPresent) {
-			// avoiding import of MappingJacksonHttpMessageConverter to prevent deprecation warning
-			messageConverters.add(new MappingJackson2HttpMessageConverter());
-		}
-		if (jaxb2Present) {
-			Jaxb2RootElementHttpMessageConverter jaxbConverter = new Jaxb2RootElementHttpMessageConverter();
-			initializeJAXBContexts(jaxbConverter);
-			messageConverters.add(jaxbConverter);
-		}
 		return messageConverters;
-	}
-
-	private static void initializeJAXBContexts(AbstractJaxb2HttpMessageConverter<?> c) {
-
-		// Ugliest hack ever to workaround https://jira.springsource.org/browse/SPR-10262
-		Field f = ReflectionUtils.findField(AbstractJaxb2HttpMessageConverter.class, "jaxbContexts");
-		ReflectionUtils.makeAccessible(f);
-		@SuppressWarnings("unchecked")
-		Map<Class<?>, JAXBContext> contexts = (Map<Class<?>, JAXBContext>) ReflectionUtils.getField(f, c);
-		try {
-			for (Class<?> clazz : ourClasses) {
-				JAXBContext context = JAXBContext.newInstance(ourClasses);
-				contexts.put(clazz, context);
-			}
-		}
-		catch (JAXBException e) {
-			throw new IllegalStateException(e);
-		}
 	}
 
 }

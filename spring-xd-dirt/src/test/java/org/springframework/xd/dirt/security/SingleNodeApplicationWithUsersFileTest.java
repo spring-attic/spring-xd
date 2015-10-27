@@ -18,18 +18,16 @@
 
 package org.springframework.xd.dirt.security;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-import static org.springframework.xd.dirt.security.SecurityTestUtils.basicAuthorizationHeader;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.xd.dirt.security.SecurityTestUtils.*;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Map;
 
+import com.google.common.collect.ImmutableMap;
 import org.junit.ClassRule;
 import org.junit.Test;
 import org.junit.rules.TestRule;
@@ -46,8 +44,6 @@ import org.springframework.test.web.servlet.ResultMatcher;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.util.CollectionUtils;
 import org.springframework.xd.dirt.security.support.UserCredentials;
-
-import com.google.common.collect.ImmutableMap;
 
 /**
  * Tests for security configuration backed by a file-based user list.
@@ -95,29 +91,23 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.GET, HttpStatus.UNAUTHORIZED, "/modules", wrongPassword, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions", createOnlyUser, null }, //AuthenticatedButUnauthorized
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.json", createOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions", adminOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.xml", adminOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/streams/definitions.json", adminOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.json", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/streams/definitions.json", viewOnlyUser,
 				ImmutableMap.of("page", "0", "size", "10") },
 
 			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions", viewOnlyUser, null },
-			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.xml", viewOnlyUser, null },
 			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.json", viewOnlyUser, null },
 
 			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions", adminOnlyUser, null },
-			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.xml", adminOnlyUser, null },
 			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/streams/definitions.json", adminOnlyUser, null },
 
 			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions", createOnlyUser, null },
-			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions.xml", createOnlyUser, null },
 			{ HttpMethod.DELETE, HttpStatus.OK, "/streams/definitions.json", createOnlyUser, null },
 
 			{ HttpMethod.POST, HttpStatus.FORBIDDEN, "/streams/deployments/abcd", viewOnlyUser, null },
@@ -133,10 +123,8 @@ public class SingleNodeApplicationWithUsersFileTest {
 			{ HttpMethod.DELETE, HttpStatus.NOT_FOUND, "/streams/definitions/abcd", createOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/jobs/definitions", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/jobs/definitions.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/jobs/definitions.json", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/definitions.json", createOnlyUser,
 				ImmutableMap.of("page", "0", "size", "10") },
@@ -164,7 +152,6 @@ public class SingleNodeApplicationWithUsersFileTest {
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/configurations", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/jobs/configurations", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/configurations.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/configurations.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/jobs/configurations.json", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/configurations.json", createOnlyUser,
@@ -173,7 +160,6 @@ public class SingleNodeApplicationWithUsersFileTest {
 				ImmutableMap.of("page", "0", "size", "10") },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/executions.json", createOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.UNAUTHORIZED, "/jobs/executions/333/steps/123/progress", null, null },
@@ -190,31 +176,24 @@ public class SingleNodeApplicationWithUsersFileTest {
 				null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/jobs/instances.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.BAD_REQUEST, "/jobs/instances", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.NOT_FOUND, "/jobs/instances", viewOnlyUser,
 				ImmutableMap.of("jobname", "testjobname") },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/modules", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/modules.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/modules.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/modules", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/modules.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/modules.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/modules", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/modules.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/modules.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/modules", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/runtime/modules.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/modules.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/containers", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/containers.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/runtime/containers.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/runtime/containers.json", viewOnlyUser, null },
 			{ HttpMethod.DELETE, HttpStatus.FORBIDDEN, "/runtime/containers", viewOnlyUser, null },
 			{ HttpMethod.DELETE, HttpStatus.BAD_REQUEST, "/runtime/containers", createOnlyUser, null },
@@ -222,38 +201,28 @@ public class SingleNodeApplicationWithUsersFileTest {
 				ImmutableMap.of("containerId", "123456789") },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/counters", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/counters.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/counters.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/counters", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/metrics/counters.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/counters.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/field-value-counters", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/field-value-counters.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/field-value-counters.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/field-value-counters", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/metrics/field-value-counters.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/field-value-counters.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/aggregate-counters", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/aggregate-counters.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/aggregate-counters.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/aggregate-counters", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/metrics/aggregate-counters.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/aggregate-counters.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/gauges", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/gauges.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/gauges.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/gauges", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/metrics/gauges.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/gauges.json", viewOnlyUser, null },
 
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/rich-gauges", createOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/rich-gauges.xml", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.FORBIDDEN, "/metrics/rich-gauges.json", createOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/rich-gauges", viewOnlyUser, null },
-			{ HttpMethod.GET, HttpStatus.OK, "/metrics/rich-gauges.xml", viewOnlyUser, null },
 			{ HttpMethod.GET, HttpStatus.OK, "/metrics/rich-gauges.json", viewOnlyUser, null }
 		});
 	}

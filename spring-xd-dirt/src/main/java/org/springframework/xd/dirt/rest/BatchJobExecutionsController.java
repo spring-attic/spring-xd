@@ -240,7 +240,8 @@ public class BatchJobExecutionsController extends AbstractBatchJobsController {
 		final String jobName = jobExecution.getJobInstance().getJobName();
 		jobExecutionInfoResource.setDeleted(!jobDefinitionNames.contains(jobName));
 		jobExecutionInfoResource.setDeployed(deployedJobs.contains(jobName));
-		if (restartableJobs.contains(jobName)) {
+
+		if (restartableJobs.contains(jobName) && !jobExecutionInfoResource.isDeleted()) {
 			// Set restartable flag for the JobExecutionResource based on the actual JobInstance
 			// If any one of the jobExecutions for the jobInstance is complete, set the restartable flag for
 			// all the jobExecutions to false.

@@ -868,7 +868,7 @@ Also, the shared module configuration file is refernced using profile variants, 
 
 Another common case is access to a relational database from a job or the JDBC Sink module.
 
-As an example, to provide the properties for the batch job `jdbchdfs` the file `XD_MODULE_CONFIG_LOCATION\job\jdbchdfs\jdbchdfs.properites` should contain
+As an example, to provide the properties for the batch job `jdbchdfs` the file `XD_MODULE_CONFIG_LOCATION\job\jdbchdfs\jdbchdfs.properties` should contain
 ----
 driverClass=org.hsqldb.jdbc.JDBCDriver
 url=jdbc:hsqldb:mem:xd
@@ -876,4 +876,4 @@ username=sa
 password=
 ----
 
-A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properites`.
+A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properties`.

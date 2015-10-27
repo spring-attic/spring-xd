@@ -30,8 +30,8 @@
 # variables defined in servers.yml
 #
 # If you uncomment this section, you should also uncomment related lines in 
-#   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properites
-#   - XD_HOME/xd/config/modules/sink/rabbit/rabbit.properites
+#   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properties
+#   - XD_HOME/xd/config/modules/sink/rabbit/rabbit.properties
 #
 #rabbit:
 #  addresses: localhost:5672

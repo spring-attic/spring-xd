@@ -18,23 +18,28 @@ package org.springframework.xd.header.enricher;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.xd.dirt.test.process.SingleNodeProcessingChainSupport.chain;
 
+import java.util.Collections;
+import java.util.Map;
+
+import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.process.SingleNodeProcessingChain;
 import org.springframework.xd.test.RandomConfigurationSupport;
 
 /**
  * @author David Turanski
+ * @author Gary Russell
  */
 public class HeaderEnricherIntegrationTests {
 
 	private static SingleNodeApplication application;
-
-	private static RandomConfigurationSupport randomConfigSupport;
 
 	private static int RECEIVE_TIMEOUT = 5000;
 
@@ -49,7 +54,7 @@ public class HeaderEnricherIntegrationTests {
 	@BeforeClass
 	public static void setUp() {
 		System.setProperty("XD_HOME", "../..");
-		randomConfigSupport = new RandomConfigurationSupport();
+		new RandomConfigurationSupport();
 		application = new SingleNodeApplication().run();
 	}
 
@@ -57,6 +62,11 @@ public class HeaderEnricherIntegrationTests {
 	public static void tearDown() {
 		application.close();
 		RandomConfigurationSupport.cleanup();
+	}
+
+	@After
+	public void testTearDown() {
+		this.chain.destroy();
 	}
 
 	@Test
@@ -73,7 +83,41 @@ public class HeaderEnricherIntegrationTests {
 		Message<?> message = chain.receive(RECEIVE_TIMEOUT);
 		assertEquals("ello", message.getHeaders().get("bar"));
 
-		chain.destroy();
+	}
+
+	@Test
+	public void testOverwriteHeaders() {
+		String streamName = "testOverwrite";
+
+		String headers = "{\"bar\":\"payload.substring(1)\"}";
+
+		String processingChainUnderTest = String.format("%s --headers=%s --overwrite=true", moduleName, headers);
+
+		chain = chain(application, streamName, processingChainUnderTest);
+		Map<String, Object> messageHeaders = Collections.singletonMap("bar", (Object) "oldValue");
+		Message<String> message = MessageBuilder.createMessage("hello", new MessageHeaders(messageHeaders));
+
+		chain.send(message);
+		Message<?> transformed = chain.receive(RECEIVE_TIMEOUT);
+		assertEquals("ello", transformed.getHeaders().get("bar"));
+
+	}
+
+	@Test
+	public void testDontOverwriteHeaders() {
+		String streamName = "testDontOverwrite";
+
+		String headers = "{\"bar\":\"payload.substring(1)\"}";
+
+		String processingChainUnderTest = String.format("%s --headers=%s --overwrite=false", moduleName, headers);
+
+		chain = chain(application, streamName, processingChainUnderTest);
+		Map<String, Object> messageHeaders = Collections.singletonMap("bar", (Object) "oldValue");
+		Message<String> message = MessageBuilder.createMessage("hello", new MessageHeaders(messageHeaders));
+
+		chain.send(message);
+		Message<?> transformed = chain.receive(RECEIVE_TIMEOUT);
+		assertEquals("oldValue", transformed.getHeaders().get("bar"));
 
 	}
 
@@ -92,8 +136,6 @@ public class HeaderEnricherIntegrationTests {
 		assertEquals("HELLO,WORLD!", message.getHeaders().get("foo"));
 		assertEquals("ello", message.getHeaders().get("bar"));
 
-		chain.destroy();
-
 	}
 
 	@Test
@@ -109,8 +151,6 @@ public class HeaderEnricherIntegrationTests {
 		chain.sendPayload("hello");
 		Message<?> message = chain.receive(RECEIVE_TIMEOUT);
 		assertEquals("literal", message.getHeaders().get("foo"));
-
-		chain.destroy();
 
 	}
 
@@ -128,7 +168,6 @@ public class HeaderEnricherIntegrationTests {
 		Message<?> message = chain.receive(RECEIVE_TIMEOUT);
 		assertEquals("this is a literal", message.getHeaders().get("foo"));
 
-		chain.destroy();
 	}
 
 	@Test
@@ -145,6 +184,6 @@ public class HeaderEnricherIntegrationTests {
 		Message<?> message = chain.receive(RECEIVE_TIMEOUT);
 		assertEquals(123, message.getHeaders().get("foo"));
 
-		chain.destroy();
 	}
+
 }

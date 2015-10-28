@@ -30,7 +30,6 @@ import org.springframework.batch.core.JobParameters;
 import org.springframework.batch.core.StepContribution;
 import org.springframework.batch.core.StepExecution;
 import org.springframework.batch.core.UnexpectedJobExecutionException;
-import org.springframework.batch.core.converter.DefaultJobParametersConverter;
 import org.springframework.batch.core.scope.context.ChunkContext;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.item.ExecutionContext;
@@ -205,9 +204,9 @@ public class JobLaunchingTasklet implements Tasklet {
 		StepExecution stepExecution = chunkContext.getStepContext().getStepExecution();
 		JobParameters originalJobParameters = stepExecution.getJobParameters();
 
-		Properties currentJobParameters = new Properties(originalJobParameters.toProperties());
-		currentJobParameters.remove("+" + ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY + DefaultJobParametersConverter.STRING_TYPE);
+		Properties currentJobParameters = originalJobParameters.toProperties();
 
+		currentJobParameters.remove(ExpandedJobParametersConverter.UNIQUE_JOB_PARAMETER_KEY);
 
 		String random = null;
 

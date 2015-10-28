@@ -16,8 +16,6 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.DirtException;
-
 /**
  * Thrown when an attempt is made to deploy a definition that is already deployed.
  *
@@ -25,7 +23,7 @@ import org.springframework.xd.dirt.DirtException;
  *
  */
 @SuppressWarnings("serial")
-public class AlreadyDeployedException extends DirtException {
+public class AlreadyDeployedException extends StreamException {
 
 	/**
 	 * Create a new exception.

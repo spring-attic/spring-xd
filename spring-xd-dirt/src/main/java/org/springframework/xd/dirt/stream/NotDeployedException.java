@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.DirtException;
-
 /**
  * Thrown when a definition was assumed to be deployed when it actually was not.
  *
  * @author Eric Bottard
  */
 @SuppressWarnings("serial")
-public class NotDeployedException extends DirtException {
+public class NotDeployedException extends StreamException {
 
 	private final String offendingName;
 

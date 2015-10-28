@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.DirtException;
-
 /**
  * Exception which is raised when a named resource definition cannot be found.
  *
  * @author Luke Taylor
  */
 @SuppressWarnings("serial")
-public class NoSuchDefinitionException extends DirtException {
+public class NoSuchDefinitionException extends StreamException {
 
 	private final String offendingName;
 

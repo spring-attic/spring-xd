@@ -24,7 +24,7 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,33 +46,33 @@ import org.springframework.util.StringUtils;
  */
 public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 
-	private final AtomicBoolean running = new AtomicBoolean();
+	private volatile boolean running = false;
 
 	private final ProcessBuilder processBuilder;
 
-	private Process process;
+	private volatile Process process;
 
-	private InputStream stdout;
+	private volatile InputStream stdout;
 
-	private OutputStream stdin;
+	private volatile OutputStream stdin;
 
 	private boolean redirectErrorStream;
 
-	private Map<String, String> environment;
+	private final Map<String, String> environment = new ConcurrentHashMap<>();
 
-	private String workingDirectory;
+	private volatile String workingDirectory;
 
-	private String charset = "UTF-8";
+	private volatile String charset = "UTF-8";
 
 	private final AbstractByteArraySerializer serializer;
 
 	private final static Logger log = LoggerFactory.getLogger(ShellCommandProcessor.class);
 
-	private final ShellWordsParser shellWordsParser = new ShellWordsParser();
-
-	private TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
+	private final TaskExecutor taskExecutor = new SimpleAsyncTaskExecutor();
 
 	private final String command;
+
+	private final Object lifecycleLock = new Object();
 
 
 	/**
@@ -85,7 +85,8 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 		Assert.hasLength(command, "A shell command is required");
 		Assert.notNull(serializer, "'serializer' cannot be null");
 		this.command = command;
-		List<String> commandPlusArgs = this.shellWordsParser.parse(command);
+		ShellWordsParser shellWordsParser = new ShellWordsParser();
+		List<String> commandPlusArgs = shellWordsParser.parse(command);
 		Assert.notEmpty(commandPlusArgs, "The shell command is invalid: '" + command + "'");
 		this.serializer = serializer;
 		processBuilder = new ProcessBuilder(commandPlusArgs);
@@ -95,32 +96,33 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * Start the process.
 	 */
 	@Override
-	public synchronized void start() {
-		if (!isRunning()) {
+	public void start() {
+		synchronized (lifecycleLock) {
+			if (!isRunning()) {
+				if (log.isDebugEnabled()) {
+					log.debug("starting process. Command = [" + command + "]");
+				}
 
-			if (log.isDebugEnabled()) {
-				log.debug("starting process. Command = [" + command + "]");
-			}
+				try {
+					process = processBuilder.start();
+				}
+				catch (IOException e) {
+					log.error(e.getMessage(), e);
+					throw new RuntimeException(e.getMessage(), e);
+				}
 
-			try {
-				process = processBuilder.start();
-			}
-			catch (IOException e) {
-				log.error(e.getMessage(), e);
-				throw new RuntimeException(e.getMessage(), e);
-			}
+				if (!processBuilder.redirectErrorStream()) {
+					monitorErrorStream();
+				}
+				monitorProcess();
 
-			if (!processBuilder.redirectErrorStream()) {
-				monitorErrorStream();
-			}
-			monitorProcess();
+				stdout = process.getInputStream();
+				stdin = process.getOutputStream();
 
-			stdout = process.getInputStream();
-			stdin = process.getOutputStream();
-
-			running.set(true);
-			if (log.isDebugEnabled()) {
-				log.debug("process started. Command = [" + command + "]");
+				running = true;
+				if (log.isDebugEnabled()) {
+					log.debug("process started. Command = [" + command + "]");
+				}
 			}
 		}
 	}
@@ -164,28 +166,28 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param data the input
 	 * @return the output
 	 */
-	public String sendAndReceive(String data) {
+	public synchronized String sendAndReceive(String data) {
 		Assert.isTrue(isRunning(), "Shell process is not started");
-		synchronized (process) {
-			send(data);
-			return receive();
-		}
+		send(data);
+		return receive();
 	}
 
 	/**
 	 * Stop the process and close streams.
 	 */
 	@Override
-	public synchronized void stop() {
-		if (isRunning()) {
-			process.destroy();
-			running.set(false);
+	public void stop() {
+		synchronized (lifecycleLock) {
+			if (isRunning()) {
+				process.destroy();
+				running = false;
+			}
 		}
 	}
 
 	@Override
 	public boolean isRunning() {
-		return running.get();
+		return running;
 	}
 
 	/**
@@ -201,7 +203,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 	 * @param environment
 	 */
 	public void setEnvironment(Map<String, String> environment) {
-		this.environment = environment;
+		this.environment.putAll(environment);
 	}
 
 	/**
@@ -248,7 +250,7 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 					return;
 				}
 
-				int result = Integer.MIN_VALUE;
+				int result;
 				try {
 					if (log.isDebugEnabled()) {
 						log.debug("Monitoring process '" + command + "'");
@@ -256,7 +258,6 @@ public class ShellCommandProcessor implements Lifecycle, InitializingBean {
 					result = process.waitFor();
 					if (log.isInfoEnabled()) {
 						log.info("Process '" + command + "' terminated with value " + result);
-
 					}
 				}
 				catch (InterruptedException e) {

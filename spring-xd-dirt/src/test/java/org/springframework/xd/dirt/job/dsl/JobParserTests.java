@@ -58,6 +58,28 @@ public class JobParserTests {
 	}
 
 	@Test
+	public void rogueTokenization() {
+		Tokens tokens = new Tokens("<(xx | '*'=$END) & yy>");
+		assertToken(TokenKind.SPLIT_OPEN, "<", 0, 1, tokens.next());
+		assertToken(TokenKind.OPEN_PAREN, "(", 1, 2, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "xx", 2, 4, tokens.next());
+		assertToken(TokenKind.PIPE, "|", 5, 6, tokens.next());
+		assertToken(TokenKind.LITERAL_STRING, "'*'", 7, 10, tokens.next());
+		assertToken(TokenKind.EQUALS, "=", 10, 11, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "$END", 11, 15, tokens.next());
+		assertToken(TokenKind.CLOSE_PAREN, ")", 15, 16, tokens.next());
+		assertToken(TokenKind.AMPERSAND, "&", 17, 18, tokens.next());
+		assertToken(TokenKind.IDENTIFIER, "yy", 19, 21, tokens.next());
+		assertToken(TokenKind.SPLIT_CLOSE, ">", 21, 22, tokens.next());
+	}
+
+	@Test
+	public void rogueParsing() {
+		js = parse("<(xx | '*'=$END) & yy>");
+		assertEquals("<xx | '*' = $END & yy>", js.stringify());
+	}
+
+	@Test
 	public void jobTokenization2() {
 		Tokens tokens = new Tokens("jobA|BROKEN=$END|'*'=something");
 		assertToken(TokenKind.IDENTIFIER, "jobA", 0, 4, tokens.next());
@@ -86,6 +108,7 @@ public class JobParserTests {
 	@Test
 	public void graphToText() {
 		checkDSLToGraphAndBackToDSL("foojob");
+		checkDSLToGraphAndBackToDSL("<aa | xx = foo & bb>");
 	}
 
 	@Test
@@ -251,6 +274,7 @@ public class JobParserTests {
 
 	@Test
 	public void toDSLTextNestedSplits() {
+		checkDSLToGraphAndBackToDSL("<aaa & ccc & ddd> || eee");
 		checkDSLToGraphAndBackToDSL("<aaa & bbb || <ccc & ddd>> || eee");
 		checkDSLToGraphAndBackToDSL("<aaa || <bbb & ccc> || foo & ddd || eee> || fff");
 		checkDSLToGraphAndBackToDSL("<aaa || <bbb & ccc> & ddd || eee> || fff");
@@ -261,7 +285,8 @@ public class JobParserTests {
 
 	@Test
 	public void toDSLTextLong() {
-		checkDSLToGraphAndBackToDSL("<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
+		checkDSLToGraphAndBackToDSL(
+				"<aaa || fff & bbb || ggg || <ccc & ddd>> || eee || hhh || iii || <jjj & kkk || lll>");
 	}
 
 	@Test
@@ -660,6 +685,15 @@ public class JobParserTests {
 				js.toGraph().toJSON());
 	}
 
+
+	@Test
+	public void complexToGraphAndBack() {
+		js = parse(
+				"aaa | 'FAILED' = iii || <bbb | 'FAILED' = iii | '*' = $END & ccc | 'FAILED'=jjj | '*'=$END> ||ddd| 'FAILED'=iii||eee| 'FAILED'=iii||fff| 'FAILED'=iii||<ggg| 'FAILED'=kkk | '*'=$END& hhh| 'FAILED'=kkk| '*'=$END>    ");
+		checkDSLToGraphAndBackToDSL(
+				"aaa | 'FAILED' = iii || <bbb | 'FAILED' = iii | '*' = $END & ccc | 'FAILED' = jjj | '*' = $END> || ddd | 'FAILED' = iii || eee | 'FAILED' = iii || fff | 'FAILED' = iii || <ggg | 'FAILED' = kkk | '*' = $END & hhh | 'FAILED' = kkk | '*' = $END>");
+	}
+
 	@Test
 	public void toGraph$END() {
 		js = parse("foo | oranges=$END");
@@ -668,7 +702,10 @@ public class JobParserTests {
 		assertEquals("foo | oranges = $END", js.stringify());
 
 		// Graph creation
-		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:END,l:0:1,l:1:2:transitionName=oranges,l:1:2"),
+		// Note: node '2' does not exist, it was an $END node for the transition, when we discovered that was
+		// going to be joined to the final $END node we re-routed the links targeting '2' to the real end
+		// node and removed it
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:3:END,l:0:1,l:1:3:transitionName=oranges"),
 				js.toGraph().toJSON());
 
 		// Graph to DSL
@@ -685,15 +722,16 @@ public class JobParserTests {
 		// AST creation (and DSL printing from it)
 		assertEquals("aaa | foo = $END | B = bbb | '*' = ccc || bbb || ccc", js.stringify());
 
-		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"aaa"},{"id":"2","name":"bbb"},{"id":"3","name":"ccc"},
-		//           {"id":"4","name":"END"}],
-		//  "links":[{"from":"0","to":"1"},{"from":"2","to":"3"},{"from":"1","to":"4","properties":{"transitionName":"foo"}},
-		//           {"from":"1","to":"2","properties":{"transitionName":"B"}},
-		//           {"from":"1","to":"3","properties":{"transitionName":"'*'"}},{"from":"3","to":"4"}]}
+		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"aaa"},{"id":"3","name":"bbb"},{"id":"4","name":"ccc"},
+		//           {"id":"5","name":"END"}],
+		//  "links":[{"from":"0","to":"1"},{"from":"1","to":"5","properties":{"transitionName":"foo"}},
+		//           {"from":"1","to":"3","properties":{"transitionName":"B"}},
+		//           {"from":"1","to":"4","properties":{"transitionName":"'*'"}},
+		//           {"from":"3","to":"4"},{"from":"4","to":"5"}]}
 		// Graph creation
 		assertEquals(
-				toExpectedGraph("n:0:START,n:1:aaa,n:2:bbb,n:3:ccc,n:4:END," +
-						"l:0:1,l:2:3,l:1:4:transitionName=foo,l:1:2:transitionName=B,l:1:3:transitionName='*',l:3:4"),
+				toExpectedGraph("n:0:START,n:1:aaa,n:3:bbb,n:4:ccc,n:5:END," +
+						"l:0:1,l:1:5:transitionName=foo,l:1:3:transitionName=B,l:1:4:transitionName='*',l:3:4,l:4:5"),
 				js.toGraph().toJSON());
 
 		// Graph to DSL
@@ -724,6 +762,7 @@ public class JobParserTests {
 		assertEquals(loadXml("end3"), js.toXML("test1", true));
 	}
 
+
 	@Test
 	public void toGraph$FAIL() {
 		js = parse("foo | oranges=$FAIL");
@@ -731,8 +770,12 @@ public class JobParserTests {
 		// AST creation (and DSL printing from it)
 		assertEquals("foo | oranges = $FAIL", js.stringify());
 
+		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"foo"},{"id":"2","name":"FAIL"},
+		//           {"id":"3","name":"END"}],
+		//  "links":[{"from":"0","to":"1"},{"from":"1","to":"2","properties":{"transitionName":"oranges"}},
+		//           {"from":"2","to":"3"}]}
 		// Graph creation
-		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:END,n:3:FAIL,l:0:1,l:1:3:transitionName=oranges,l:1:2"),
+		assertEquals(toExpectedGraph("n:0:START,n:1:foo,n:2:FAIL,n:3:END,l:0:1,l:1:2:transitionName=oranges,l:2:3"),
 				js.toGraph().toJSON());
 
 		// Graph to DSL
@@ -776,9 +819,14 @@ public class JobParserTests {
 	@Test
 	public void toGraphWithTransition() throws Exception {
 		js = parse("<foo | completed=goo & bar> || boo || goo");
+		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"foo"},{"id":"2","name":"goo"},
+		//           {"id":"3","name":"bar"},{"id":"4","name":"boo"},{"id":"5","name":"goo"},{"id":"6","name":"END"}],
+		//  "links":[{"from":"0","to":"1"},{"from":"1","to":"2","properties":{"transitionName":"completed"}},
+		//           {"from":"0","to":"3"},{"from":"2","to":"4"},{"from":"3","to":"4"},{"from":"4","to":"5"},
+		//           {"from":"5","to":"6"}]}
 		assertEquals(
 				toExpectedGraph(
-				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:4:transitionName=completed,l:4:5"),
+						"n:0:START,n:1:foo,n:2:goo,n:3:bar,n:4:boo,n:5:goo,n:6:END,l:0:1,l:1:2:transitionName=completed,l:0:3,l:2:4,l:3:4,l:4:5,l:5:6"),
 				js.toGraph().toJSON());
 	}
 
@@ -786,9 +834,15 @@ public class JobParserTests {
 	public void toGraphWithTransition2() {
 		// The target transition node is not elsewhere on the list
 		js = parse("<foo | completed=hoo & bar> || boo || goo");
+		checkDSLToGraphAndBackToDSL("<foo | completed = hoo & bar> || boo || goo");
+		// {"nodes":[{"id":"0","name":"START"},{"id":"1","name":"foo"},{"id":"2","name":"hoo"},
+		//           {"id":"3","name":"bar"},{"id":"4","name":"boo"},{"id":"5","name":"goo"},{"id":"6","name":"END"}],
+		//  "links":[{"from":"0","to":"1"},{"from":"1","to":"2","properties":{"transitionName":"completed"}},
+		//           {"from":"0","to":"3"},{"from":"2","to":"4"},{"from":"3","to":"4"},{"from":"4","to":"5"},
+		//           {"from":"5","to":"6"}]}
 		assertEquals(
 				toExpectedGraph(
-				"n:0:START,n:1:foo,n:2:bar,n:3:boo,n:4:goo,n:5:END,n:6:hoo,l:0:1,l:0:2,l:1:3,l:2:3,l:3:4,l:1:6:transitionName=completed,l:4:5,l:6:5"),
+						"n:0:START,n:1:foo,n:2:hoo,n:3:bar,n:4:boo,n:5:goo,n:6:END,l:0:1,l:1:2:transitionName=completed,l:0:3,l:2:4,l:3:4,l:4:5,l:5:6"),
 				js.toGraph().toJSON());
 	}
 

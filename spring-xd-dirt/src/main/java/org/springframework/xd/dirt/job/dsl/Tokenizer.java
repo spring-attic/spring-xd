@@ -212,10 +212,10 @@ class Tokenizer {
 	private boolean isArgValueIdentifierTerminator(char ch, boolean quoteOpen) {
 		return (ch == '&' && !quoteOpen) || (ch == '|' && !quoteOpen) || (ch == ';' && !quoteOpen) || ch == '\0'
 				|| (ch == ' ' && !quoteOpen)
-				|| (ch == '\t' && !quoteOpen) || (ch == '>' && !quoteOpen)
+				|| (ch == '\t' && !quoteOpen) || (ch == '>' && !quoteOpen) || (ch == ')' && !quoteOpen)
 				|| ch == '\r' || ch == '\n';
 	}
-
+	
 	/**
 	 * To prevent the need to quote all argument values, this identifier lexing function is used just after an '=' when
 	 * we are about to digest an arg value. It is much more relaxed about what it will include in the identifier.

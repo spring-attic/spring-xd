@@ -78,4 +78,12 @@ public class Link {
 	public String getTransitionName() {
 		return properties != null ? properties.get("transitionName") : null;
 	}
+	
+	public void updateFrom(String newFrom) {
+		this.from = newFrom;
+	}
+	
+	public void updateTo(String newTo) {
+		this.to = newTo;
+	}
 }

@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -778,23 +779,39 @@ public class JobSpecification extends AstNode {
 
 		private Map<String, Node> createdNodes = new HashMap<>();
 
-		static class TransitionToMap {
+		// As the visit proceeds different contexts are entered/left - into a flow, into a split, etc.
+		// The context object on top of the stack allows a particular visit method
+		// to know what the current context is.
+		private Stack<Context> contexts = new Stack<>();
 
-			int from;
+		/**
+		 * Encapsulates the current context
+		 */
+		static class Context {
 
-			String transitionName;
+			// Set when processing the last element of a flow
+			boolean isEndOfFlow = false;
 
-			String targetJob;
+			List<Integer> flowExits;
 
-			public TransitionToMap(int from, String transitionName, String targetJob) {
-				super();
-				this.from = from;
-				this.transitionName = transitionName;
-				this.targetJob = targetJob;
+			Map<String, Node> nodesSharedInFlow = new LinkedHashMap<String, Node>();
+
+			// Set whilst in a flow, allows us to recognize forward references from
+			// transitions (references to jobs named explicitly later in the flow)
+			List<String> jobsInFlow;
+
+			Context(boolean inFlow) {
+				if (inFlow) {
+					flowExits = new ArrayList<Integer>();
+				}
+			}
+
+			public void setJobsInFlow(List<String> jobsNamedInFlow) {
+				jobsInFlow = jobsNamedInFlow;
 			}
 		}
 
-		private List<TransitionToMap> transitions = new ArrayList<>();
+		// The constructed graph elements (nodes, links, properties):
 
 		private List<Node> nodes = new ArrayList<>();
 
@@ -812,48 +829,39 @@ public class JobSpecification extends AstNode {
 			// Insert a START node at the beginning of the graph
 			Node node = new Node(Integer.toString(id++), "START");
 			nodes.add(node);
+			contexts.push(new Context(false));
 			return new int[] { 0 };
 		}
 
 		@Override
 		public void postJobSpecWalk(int[] finalNodes, JobSpecification jobSpec) {
-
 			// Insert an END node
 			int endId = id++;
 			Node endNode = new Node(Integer.toString(endId), "END");
 			nodes.add(endNode);
+			contexts.pop();
 
-			int failId;
-			Node failNode;
-
-			// Deal with transitions
-			for (TransitionToMap ttm : transitions) {
-				int nodeInGraph = findNode(ttm.targetJob);
-				if (nodeInGraph == -1) {
-					if (ttm.targetJob.equals(Transition.FAIL)) {
-						// Insert a $FAIL node and link to it
-						failId = id++;
-						failNode = new Node(Integer.toString(failId), "FAIL");
-						nodeInGraph = failId;
-						nodes.add(failNode);
-					}
-					else if (ttm.targetJob.equals(Transition.END)) {
-						// END node has been added above
-						nodeInGraph = endId;
-					}
-					else {
-						// target isn't in graph yet
-						int nextId = id++;
-						Node n = new Node(Integer.toString(nextId), ttm.targetJob);
-						nodes.add(n);
-						nodeInGraph = nextId;
-						finalNodes = merge(finalNodes, new int[] { nextId });
-					}
-				}
-				links.add(new Link(ttm.from, nodeInGraph, ttm.transitionName));
-			}
+			// Handle special case where $END has been used. For example:
+			// foo | oranges=$END
+			// <foo | oranges = $END & xx>
+			// In both these cases it looks odd if the graph shows a line between two $ENDs, so
+			// they are collapsed together and the links from the former $END are forwarded to the
+			// final $END. (The former $END node is then deleted).
 			for (int i : finalNodes) {
-				links.add(new Link(i, endId));
+				// Is the incoming node a $END node?
+				Node incomingNode = findNodeById(i);
+				if (incomingNode.name.equals("END")) {
+					List<Link> linksToUpdate = getLinksTo(i);
+					for (Link link : linksToUpdate) {
+						link.updateTo(Integer.toString(endId));
+					}
+					// Everything to this END node has been re-routed, delete it now
+					nodes.remove(incomingNode);
+				}
+				else {
+					// Just link the final node to the real $END
+					links.add(new Link(i, endId));
+				}
 			}
 			Map<String, String> options = jobSpec.getGlobalOptionsMap();
 			if (options.size() != 0) {
@@ -863,23 +871,38 @@ public class JobSpecification extends AstNode {
 			}
 		}
 
-		private int findNode(String targetJob) {
-			for (Node n : nodes) {
-				if (n.name.equals(targetJob)) {
-					return Integer.parseInt(n.id);
-				}
-			}
-			return -1;
-		}
-
 		@Override
 		public int[] walk(int[] context, Flow jn) {
 			int[] result = context;
+			contexts.push(new Context(true));
+
+			// Compute the jobs in this flow to cope with
+			// forward references
+			List<String> jobsNamedInFlow = new ArrayList<String>();
 			for (JobNode j : jn.getSeries()) {
+				if (j instanceof JobDescriptor) {
+					jobsNamedInFlow.add(((JobDescriptor) j).getName());
+				}
+			}
+			contexts.peek().setJobsInFlow(jobsNamedInFlow);
+
+			Iterator<JobNode> seriesIterator = jn.getSeries().iterator();
+			while (seriesIterator.hasNext()) {
+				JobNode j = seriesIterator.next();
+				if (!seriesIterator.hasNext()) {
+					// For the last element in the series, set this flag
+					contexts.peek().isEndOfFlow = true;
+				}
 				result = walk(result, j);
 			}
-			// Only the last result is left dangling when visiting a sequence,
-			// return it here.
+
+			// Merge the outputs from the last node in the flow
+			// with any transitional exits from the flow
+			List<Integer> exits = contexts.pop().flowExits;
+			for (int r : result) {
+				exits.add(r);
+			}
+			result = toIntArray(exits);
 			return result;
 		}
 
@@ -904,10 +927,104 @@ public class JobSpecification extends AstNode {
 
 			int[] result = new int[0];
 			for (JobNode jn : pjs.getSeries()) {
+				contexts.push(new Context(false));
 				Object outputContext = walk(inputContext, jn);
+				contexts.pop();
 				result = merge(result, outputContext);
 			}
 			return result;
+		}
+
+		@Override
+		public int[] walk(int[] context, JobReference jr) {
+			Map<String, String> properties = null;
+			ArgumentNode[] args = jr.getArguments();
+			if (args != null && args.length != 0) {
+				properties = new LinkedHashMap<>();
+				for (ArgumentNode arg : args) {
+					properties.put(arg.getName(), arg.getValue());
+				}
+			}
+			Node node;
+			int nextId;
+
+			// Check if this walk has hit something created earlier in this flow
+			// which may have occurred if a transition referred to it, e.g.
+			// foo | fail=bar || goo || bar
+			// where 'walk'ing foo will have created a node for bar - reuse it.
+
+			Node existingNode = contexts.peek().nodesSharedInFlow.get(jr.getName());
+			if (existingNode != null) {
+				// Found it, reuse it here
+				node = existingNode;
+				nextId = Integer.parseInt(existingNode.id);
+			}
+			else {
+				// Not already in this flow, create a new one
+				nextId = id++;
+				node = new Node(Integer.toString(nextId), jr.getName(), null, properties);
+				nodes.add(node);
+			}
+			createdNodes.put(jr.getName(), node);
+
+			// Should nodes created in the mainline visit be inserted into the shared set?
+			// (In addition to those created for transitions). Do we need it to support
+			// back references (loops?)
+
+			// Create links from the previous nodes to this one
+			if (context != null) {
+				int[] s = context;
+				for (int i : s) {
+					Link l = new Link(i, nextId);
+					links.add(l);
+				}
+			}
+
+			// Process all the transitions
+			boolean explicitWildcardUsed = false; // Is '*' used in any transition?
+			boolean isMappingExitSpace = false; // Are they mapping the exit space (i.e. have transitions)
+
+			// This list will collect transitional exits and the 'usual' COMPLETED exit if it
+			// applies (i.e. they haven't used transitions that prevent it applying)
+			List<Integer> allExitsToReturn = new ArrayList<>();
+			if (jr.hasTransitions()) {
+				isMappingExitSpace = true;
+				List<Integer> flowExits = contexts.peek().flowExits;
+				for (Transition t : jr.getTransitions()) {
+					if (t.getStateNameInDSLForm().equals("'*'")) {
+						explicitWildcardUsed = true;
+					}
+					String jobExitStatus = t.getStateNameInDSLForm();
+					String targetJobName = t.getTargetJobName();
+					int transitionTargetId = buildTransition(nextId, jobExitStatus, targetJobName);
+					// If something was created and it isn't a node further down the flow, record the exit
+					if (transitionTargetId != -1 && !isForwardReferenceInFlow(targetJobName)) {
+						if (flowExits != null) {
+							flowExits.add(transitionTargetId);
+						}
+						else {
+							allExitsToReturn.add(transitionTargetId);
+						}
+					}
+				}
+			}
+
+			// Determine if this node should be linked to following nodes.
+			if (isMappingExitSpace) {
+				// Only automatic if not the last one in the flow
+				// The latter condition here is checking if this is a jobreference visit
+				// immediately inside a split (with no surrounding flow) which should
+				// be treated the same as the end of a flow
+				if (!explicitWildcardUsed) {
+					if ((!contexts.peek().isEndOfFlow && contexts.peek().flowExits != null)) {
+						allExitsToReturn.add(nextId);
+					}
+				}
+			}
+			else {
+				allExitsToReturn.add(nextId);
+			}
+			return toIntArray(allExitsToReturn);
 		}
 
 		int[] merge(int[] input, Object additional) {
@@ -918,69 +1035,133 @@ public class JobSpecification extends AstNode {
 			return result;
 		}
 
-		@Override
-		public int[] walk(int[] context, JobReference jr) {
-			int nextId = id++;
-			Map<String, String> properties = null;
-			ArgumentNode[] args = jr.getArguments();
-			if (args != null && args.length != 0) {
-				properties = new LinkedHashMap<>();
-				for (ArgumentNode arg : args) {
-					properties.put(arg.getName(), arg.getValue());
-				}
-			}
-			Node node = new Node(Integer.toString(nextId), jr.getName(), null, properties);
-			nodes.add(node);
-			createdNodes.put(jr.getName(), node);
-			// Create links from the previous nodes to this one
-			if (context != null) {
-				int[] s = context;
-				for (int i : s) {
-					Link l = new Link(i, nextId);
-					links.add(l);
-				}
-			}
-			boolean explicitWildcardUsed = false;
-			if (jr.hasTransitions()) {
-				for (Transition t : jr.getTransitions()) {
-					if (t.getStateNameInDSLForm().equals("'*'")) {
-						explicitWildcardUsed = true;
+		public Node findNodeInList(List<Integer> nodesInScope, String name) {
+			if (nodesInScope != null) {
+				for (Integer i : nodesInScope) {
+					for (Node n : nodes) {
+						if (n.id.equals(i)) {
+							// This one is in scope
+							if (n.name.equals(name)) {
+								return n;
+							}
+						}
 					}
-					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
 				}
 			}
-			return (explicitWildcardUsed ? new int[] {} : new int[] { nextId });
+			return null;
+		}
+
+		/**
+		 * Check if the specified job name refers to a job mentioned later
+		 * in this flow.
+		 * @param targetJobName the job name to search for
+		 * @return true if it is a reference to a job later in the flow
+		 */
+		private boolean isForwardReferenceInFlow(String searchJobName) {
+			List<String> jobsInFlow = contexts.peek().jobsInFlow;
+			if (jobsInFlow != null) {
+				for (String jobname : jobsInFlow) {
+					if (jobname.equals(searchJobName)) {
+						return true;
+					}
+				}
+			}
+			return false;
+		}
+
+		/**
+		 * Construct a transition link, and possibly a new node if a suitable candidate does not already exist.
+		 * If a transition has already referenced a particular job in the same flow, reuse it. If not then
+		 * create a new node and link to it.
+		 *
+		 * @param fromJobNodeId the id of the jobnode from which the transition is occurring
+		 * @param jobExitStatus the job exit status attached to this transition
+		 * @param targetJobName the transition target
+		 * @return the ID of the transition target node if a new node created, otherwise -1
+		 */
+		private int buildTransition(int fromJobNodeId, String jobExitStatus, String targetJobName) {
+			boolean createdNewTarget = false;
+			if (targetJobName.equals(Transition.FAIL)) {
+				targetJobName = "FAIL";
+			}
+			else if (targetJobName.equals(Transition.END)) {
+				targetJobName = "END";
+			}
+			Node targetNode = contexts.peek().nodesSharedInFlow.get(targetJobName);//scope.peek().get(targetJobName);
+			int transitionTargetId;
+			if (targetNode == null) {
+				transitionTargetId = id++;
+				targetNode = new Node(Integer.toString(transitionTargetId), targetJobName);
+				nodes.add(targetNode);
+				createdNewTarget = true;
+			}
+			else {
+				transitionTargetId = Integer.parseInt(targetNode.id);
+			}
+			links.add(new Link(fromJobNodeId, transitionTargetId, jobExitStatus));
+			//scope.peek().put(targetJobName, targetNode);
+			contexts.peek().nodesSharedInFlow.put(targetJobName, targetNode);
+			return createdNewTarget ? transitionTargetId : -1;
 		}
 
 		@Override
 		public int[] walk(int[] context, JobDefinition jd) {
-			int nextId = id++;
-			Map<String, String> properties = null;
-			ArgumentNode[] args = jd.getArguments();
-			if (args != null && args.length != 0) {
-				properties = new LinkedHashMap<>();
-				for (ArgumentNode arg : args) {
-					properties.put(arg.getName(), arg.getValue());
+			// Inline job definitions not yet supported
+			//			int nextId = id++;
+			//			Map<String, String> properties = null;
+			//			ArgumentNode[] args = jd.getArguments();
+			//			if (args != null && args.length != 0) {
+			//				properties = new LinkedHashMap<>();
+			//				for (ArgumentNode arg : args) {
+			//					properties.put(arg.getName(), arg.getValue());
+			//				}
+			//			}
+			//			Map<String, String> metadata = new HashMap<>();
+			//			metadata.put(Node.METADATAKEY_JOBMODULENAME, jd.getJobModuleName());
+			//			Node node = new Node(Integer.toString(nextId), jd.getJobName(), metadata, properties);
+			//			nodes.add(node);
+			//			createdNodes.put(node.name, node);
+			//			if (context != null) {
+			//				int[] s = context;
+			//				for (int i : s) {
+			//					Link l = new Link(i, nextId);
+			//					links.add(l);
+			//				}
+			//			}
+			//			if (jd.hasTransitions()) {
+			//				for (Transition t : jd.getTransitions()) {
+			//					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
+			//				}
+			//			}
+			//			return new int[] { nextId };
+			return new int[] {};
+		}
+
+		private List<Link> getLinksTo(int i) {
+			List<Link> result = new ArrayList<>();
+			for (Link link : links) {
+				if (i == Integer.parseInt(link.to)) {
+					result.add(link);
 				}
 			}
-			Map<String, String> metadata = new HashMap<>();
-			metadata.put(Node.METADATAKEY_JOBMODULENAME, jd.getJobModuleName());
-			Node node = new Node(Integer.toString(nextId), jd.getJobName(), metadata, properties);
-			nodes.add(node);
-			createdNodes.put(node.name, node);
-			if (context != null) {
-				int[] s = context;
-				for (int i : s) {
-					Link l = new Link(i, nextId);
-					links.add(l);
+			return result;
+		}
+
+		private Node findNodeById(int i) {
+			for (Node node : nodes) {
+				if (Integer.parseInt(node.id) == i) {
+					return node;
 				}
 			}
-			if (jd.hasTransitions()) {
-				for (Transition t : jd.getTransitions()) {
-					transitions.add(new TransitionToMap(nextId, t.getStateNameInDSLForm(), t.getTargetJobName()));
-				}
+			return null;
+		}
+
+		private int[] toIntArray(List<Integer> integers) {
+			int[] result = new int[integers.size()];
+			for (int i = 0; i < integers.size(); i++) {
+				result[i] = integers.get(i);
 			}
-			return new int[] { nextId };
+			return result;
 		}
 
 	}

@@ -238,6 +238,7 @@ the result:
 The **$$header-enricher$$** $$processor$$ has the following options:
 
 $$headers$$:: $$a JSON document representing headers in which values are SpEL expressions, e.g {"h1":"exp1","h2":"exp2"}$$ *($$String$$, no default)*
+$$overwrite$$:: $$set to true to overwrite any existing message headers$$ *($$Boolean$$, default: `false`)*
 //$processor.header-enricher
 
 [[http-client]]

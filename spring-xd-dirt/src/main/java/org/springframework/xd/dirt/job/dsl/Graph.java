@@ -93,6 +93,7 @@ public class Graph {
 		List<Link> unfollowedLinks = new ArrayList<>();
 		unvisitedNodes.addAll(nodes);
 		unfollowedLinks.addAll(links);
+
 		Node start = findNodeByName("START");
 		unvisitedNodes.remove(start);
 		Node end = findNodeByName("END");
@@ -104,9 +105,17 @@ public class Graph {
 		if (start == null || end == null) {
 			throw new IllegalStateException("Graph is malformed - problems finding START and END nodes");
 		}
+
 		List<Link> toFollow = findLinksFrom(start, false);
+		// This will build the main part of the DSL text based on walking the graph
 		followLinks(graphText, toFollow, null, unvisitedNodes, unfollowedLinks);
 
+		// This will follow up any loose ends that were not reachable down the regular path
+		// from the START node (eg. reachable only by transition).
+		// For example: aa | foo=bb | '*' = cc || bb || cc
+		// There is no implied link from aa to bb because aa is mapping the exit space
+		// so there is no implied transition 'COMPLETED=bb'. bb can only be reached via
+		// transition. For that case unvisitedNodes here will contain bb
 		if (unvisitedNodes.size() != 0) {
 			int loopCount = 0;
 			while (unvisitedNodes.size() != 0 && loopCount < 10000) {
@@ -121,7 +130,7 @@ public class Graph {
 					printNode(graphText, nextHead, unvisitedNodes);
 					followLinks(graphText, toFollow, null, unvisitedNodes, unfollowedLinks);
 				}
-				loopCount++;
+				loopCount++; // Just a guard on malformed input - a good graph will not trigger this
 			}
 		}
 
@@ -192,7 +201,8 @@ public class Graph {
 					graphText.append(" || ");
 					printNode(graphText, endOfSplit, unvisitedNodes);
 					List<Link> transitionalLinks = findLinksFrom(endOfSplit, false);
-					printTransitions(graphText, unfollowedLinks, transitionalLinks);
+					// null final param here probably not correct
+					printTransitions(graphText, unvisitedNodes, unfollowedLinks, transitionalLinks, null);
 				}
 				toFollow = findLinksFromWithoutTransitions(endOfSplit, false);
 			}
@@ -200,16 +210,12 @@ public class Graph {
 				Link linkToFollow = toFollow.get(0);
 				Node linkToFollowTarget = findNodeById(linkToFollow.to);
 				if (linkToFollowTarget != nodeToTerminateFollow) {
-					if (linkToFollowTarget.isEnd() || linkToFollowTarget.isFail()) {
-						unfollowedLinks.remove(linkToFollow);
+					// need special handling for end/fail??
+					if (graphText.length() != 0) {
+						// First one doesn't need a || on the front
+						graphText.append(" || ");
 					}
-					else {
-						if (graphText.length() != 0) {
-							// First one doesn't need a || on the front
-							graphText.append(" || ");
-						}
-						followLink(graphText, linkToFollow, nodeToTerminateFollow, unvisitedNodes, unfollowedLinks);
-					}
+					followLink(graphText, linkToFollow, nodeToTerminateFollow, unvisitedNodes, unfollowedLinks);
 				}
 				break;
 			}
@@ -239,7 +245,7 @@ public class Graph {
 			if (allLinksLeadToTheCandidate) {
 				return nextCandidate;
 			}
-			List<Link> links = findLinksFromWithoutTransitions(nextCandidate, true);
+			List<Link> links = findLinksFrom(nextCandidate, true);
 			if (links.size() == 0) {
 				nextCandidate = null;
 			}
@@ -247,14 +253,21 @@ public class Graph {
 				nextCandidate = findNodeById(links.get(0).to);
 			}
 			else {
-				while (countLinksWithoutTransitions(links) > 1) {
-					nextCandidate = findEndOfSplit(links);
-					links = findLinksFromWithoutTransitions(nextCandidate, true);
+				if (countLinksWithoutTransitions(links) == 0 || countLinksWithoutTransitions(links) == 1) {
+					// Assert: it doesn't therefore matter which one is chosen, they will come together at
+					// the same place
+					nextCandidate = findNodeById(links.get(0).to);
+				}
+				else {
+					while (countLinksWithoutTransitions(links) > 1) {
+						nextCandidate = findEndOfSplit(links);
+						links = findLinksFrom(nextCandidate, true);
+					}
 				}
 			}
 		}
 		// This indicates a broken graph
-		return null;
+		throw new IllegalStateException("Unable to find end of split");
 	}
 
 	/**
@@ -270,24 +283,12 @@ public class Graph {
 		if (targetNode == candidate) {
 			return true;
 		}
-		List<Link> outboundLinks = findLinksFromWithoutTransitions(targetNode, true);
-		while (outboundLinks.size() > 0) {
-			while (countLinksWithoutTransitions(outboundLinks) > 1) {
-				Node splitEnd = findEndOfSplit(outboundLinks);
-				// eee is found as the split end for ccc&ddd  - however, it is ALSO the end of the outer split
-				if (splitEnd == candidate) {
-					return true;
-				}
-				outboundLinks = findLinksFromWithoutTransitions(splitEnd, true);
-			}
-			// Now we are at a single link (or no links) in outbound links
-			if (outboundLinks.size() > 0) {
-				// single link
-				targetNode = findNodeById(outboundLinks.get(0).to);
-				if (targetNode == candidate) {
-					return true;
-				}
-				outboundLinks = findLinksFromWithoutTransitions(targetNode, true);
+		// This algorithm relies on a nicely structured graph with well defined flows and splits (no weird cross links
+		// across flows/splits)
+		List<Link> outboundLinks = findLinksFrom(targetNode, true);
+		for (Link lnk : outboundLinks) {
+			if (foundInChain(lnk, candidate)) {
+				return true;
 			}
 		}
 		return false;
@@ -338,11 +339,12 @@ public class Graph {
 		Node target = findNodeById(link.to);
 		printNode(graphText, target, unvisitedNodes);
 		List<Link> toFollow = findLinksFrom(target, false);
-		printTransitions(graphText, unfollowedLinks, toFollow);
+		printTransitions(graphText, unvisitedNodes, unfollowedLinks, toFollow, nodeToFinishFollowingAt);
 		followLinks(graphText, toFollow, nodeToFinishFollowingAt, unvisitedNodes, unfollowedLinks);
 	}
 
-	private void printTransitions(StringBuilder graphText, List<Link> unfollowedLinks, List<Link> toFollow) {
+	private void printTransitions(StringBuilder graphText, List<Node> unvisitedNodes, List<Link> unfollowedLinks,
+			List<Link> toFollow, Node nodeToFinishFollowingAt) {
 		for (Iterator<Link> iterator = toFollow.iterator(); iterator.hasNext();) {
 			Link l = iterator.next();
 			if (l.hasTransitionSet()) {
@@ -358,9 +360,27 @@ public class Graph {
 				}
 				graphText.append(" | ").append(transitionName).append(" = ").append(transitionTargetName);
 				unfollowedLinks.remove(l);
+				// We only want to consider it 'visited' if this node doesn't go anywhere after this
+				List<Link> linksFromTheTransitionTarget = findLinksFrom(transitionTarget, false);
+				if (linksFromTheTransitionTarget.isEmpty()
+						|| allLinksTarget(linksFromTheTransitionTarget, nodeToFinishFollowingAt)) {
+					unvisitedNodes.remove(transitionTarget);
+				}
 				iterator.remove();
 			}
 		}
+	}
+
+	private boolean allLinksTarget(List<Link> linksFromTheTransitionTarget, Node nodeToFinishFollowingAt) {
+		if (nodeToFinishFollowingAt == null) {
+			return false;
+		}
+		for (Link link : linksFromTheTransitionTarget) {
+			if (!link.to.equals(nodeToFinishFollowingAt.id)) {
+				return false;
+			}
+		}
+		return true;
 	}
 
 	private Node findNodeById(String id) {
@@ -385,8 +405,9 @@ public class Graph {
 		List<Link> result = new ArrayList<>();
 		for (Link link : links) {
 			if (link.from.equals(n.id)) {
-				if (!link.hasTransitionSet()
-						&& (includeThoseLeadingToEnd || !findNodeById(link.to).name.equals("END"))) {
+				if ((!link.hasTransitionSet()
+						&& (includeThoseLeadingToEnd || !findNodeById(link.to).name.equals("END")))
+						|| (link.hasTransitionSet() && link.getTransitionName().equals("'*'"))) {
 					result.add(link);
 				}
 			}
@@ -399,7 +420,8 @@ public class Graph {
 		for (Link link : links) {
 			if (link.from.equals(n.id)) {
 				// Only include links to 'END' if there are properties on it
-				if (includeThoseLeadingToEnd || !(findNodeById(link.to).name.equals("END") && link.properties == null)) {
+				if (includeThoseLeadingToEnd
+						|| !(findNodeById(link.to).name.equals("END") && link.properties == null)) {
 					result.add(link);
 				}
 			}

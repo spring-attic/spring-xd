@@ -21,7 +21,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.BaseJsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.node.TextNode;
 
 /**
  * Converts a Tuple to JSON representation
@@ -83,7 +82,7 @@ public class TupleToJsonStringConverter implements Converter<Tuple, String> {
 				return mapper.getNodeFactory().pojoNode(value);
 			}
 			else {
-				return new TextNode(value.toString());
+				return mapper.valueToTree(value);
 			}
 		}
 		return null;

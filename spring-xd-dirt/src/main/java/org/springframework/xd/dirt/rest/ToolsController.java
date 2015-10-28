@@ -22,6 +22,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -33,13 +34,12 @@ import org.springframework.xd.dirt.stream.DocumentParseResult;
 import org.springframework.xd.dirt.stream.XDStreamParser;
 import org.springframework.xd.rest.domain.DocumentParseResultResource;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 /**
  * A controller for integrating with frontend tools.
  *
  * @author Eric Bottard
  * @author Andy Clement
+ * @author Alex Boyko
  */
 @RestController
 @RequestMapping("/tools")
@@ -66,8 +66,8 @@ public class ToolsController {
 	/**
 	 * Parse a single job specification into a graph structure.
 	 */
-	@RequestMapping(value = "/parseJobToGraph", method = RequestMethod.GET)
-	public Map<String, Object> parseJobToGraph(@RequestParam("specification") String specification) {
+	@RequestMapping(value = "/parseJobToGraph", method = RequestMethod.POST)
+	public Map<String, Object> parseJobToGraph(@RequestBody String specification) {
 		Map<String, Object> response = new HashMap<>();
 		JobParser jobParser = new JobParser();
 		try {
@@ -83,16 +83,10 @@ public class ToolsController {
 	/**
 	 * Convert a graph format into DSL text format.
 	 */
-	@RequestMapping(value = "/convertJobGraphToText", method = RequestMethod.GET)
-	public Map<String, Object> convertJobGrabToText(@RequestParam("graph") String graphAsString) {
+	@RequestMapping(value = "/convertJobGraphToText", method = RequestMethod.POST)
+	public Map<String, Object> convertJobGrabToText(@RequestBody Graph graph) {
 		Map<String, Object> response = new HashMap<>();
-		if (graphAsString.trim().length() == 0) {
-			response.put("text", "");
-			return response;
-		}
-		ObjectMapper mapper = new ObjectMapper();
 		try {
-			Graph graph = mapper.readValue(graphAsString, Graph.class);
 			String dslText = graph.toDSLText();
 			response.put("text", dslText);
 		}

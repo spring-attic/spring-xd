@@ -90,7 +90,7 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 		final String childJobExecutionsSubQuery = getQuery(
 				"exists (select * from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = '"
 						+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID
-						+ "' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID and long_val=?)");
+						+ "' and E.JOB_EXECUTION_ID=a.JOB_EXECUTION_ID and string_val=?)");
 		childJobExecutionsPagingQueryProvider = getPagingQueryProvider(childJobExecutionsSubQuery);
 
 		super.afterPropertiesSet();
@@ -144,7 +144,7 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 	public List<JobExecution> getChildJobExecutions(long jobExecutionId) {
 		try {
 			return getJdbcTemplate().query(childJobExecutionsPagingQueryProvider.generateFirstPageQuery(100000),
-					new JobExecutionRowMapper(), jobExecutionId);
+					new JobExecutionRowMapper(), String.valueOf(jobExecutionId));
 		}
 		catch (Exception e) {
 			throw new IllegalStateException(e);
@@ -158,8 +158,8 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 	 */
 	public boolean isComposedJobExecution(long jobExecutionId) {
 		String query = "select count(*) from BATCH_JOB_EXECUTION_PARAMS a where key_name = '"
-				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID + "' and long_val = ?";
-		int count = getJdbcTemplate().queryForObject(query, Integer.class, jobExecutionId);
+				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID + "' and string_val = ?";
+		int count = getJdbcTemplate().queryForObject(query, Integer.class, String.valueOf(jobExecutionId));
 		return count > 0 ? true : false;
 	}
 

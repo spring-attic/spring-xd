@@ -18,6 +18,8 @@ package org.springframework.xd.header.enricher;
 import static junit.framework.TestCase.assertTrue;
 import static org.junit.Assert.assertEquals;
 
+import java.util.Collections;
+import java.util.Map;
 import java.util.Properties;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -30,9 +32,11 @@ import org.springframework.core.io.FileSystemResource;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.MessagingException;
 import org.springframework.messaging.SubscribableChannel;
 import org.springframework.messaging.support.GenericMessage;
+import org.springframework.messaging.support.MessageBuilder;
 
 /**
  * @author David Turanski
@@ -44,10 +48,11 @@ public class HeaderEnricherModuleTests {
 
 	private SubscribableChannel output;
 
-	private ConfigurableApplicationContext initializeModuleContext(String headerValues) {
+	private ConfigurableApplicationContext initializeModuleContext(String headerValues, Boolean overwrite) {
 		GenericGroovyApplicationContext applicationContext = new GenericGroovyApplicationContext();
 		Properties properties = new Properties();
 		properties.setProperty("headers", headerValues);
+		properties.put("overwrite", overwrite);
 		PropertiesPropertySource propertiesPropertySource = new PropertiesPropertySource("options", properties);
 		applicationContext.getEnvironment().getPropertySources().addFirst(propertiesPropertySource);
 		applicationContext.load(
@@ -61,7 +66,7 @@ public class HeaderEnricherModuleTests {
 	@Test
 	public void testLiteralValues() {
 		String headerValues = "{\"foo\":\"'this is a foo'\", \"bar\":\"'this is a bar'\"}";
-		ConfigurableApplicationContext applicationContext = initializeModuleContext(headerValues);
+		initializeModuleContext(headerValues, false);
 		Message<String> message = new GenericMessage<String>("hello");
 
 		final AtomicBoolean received = new AtomicBoolean();
@@ -83,7 +88,7 @@ public class HeaderEnricherModuleTests {
 	@Test
 	public void testSimpleExpressions() {
 		String headerValues = "{\"foo\":\"(payload+', world!').toUpperCase()\",\"bar\":\"payload.substring(1)\"}";
-		ConfigurableApplicationContext applicationContext = initializeModuleContext(headerValues);
+		initializeModuleContext(headerValues, false);
 		Message<String> message = new GenericMessage<String>("hello");
 
 		final AtomicBoolean received = new AtomicBoolean();
@@ -100,5 +105,27 @@ public class HeaderEnricherModuleTests {
 
 		input.send(message);
 		assertTrue(received.get());
+	}
+
+	@Test
+	public void testHeaderOverwrite() {
+		String headerValues = "{\"foo\":\"(payload+', world!').toUpperCase()\"}";
+		initializeModuleContext(headerValues, true);
+		Map<String, Object> messageHeaders = Collections.singletonMap("foo", (Object) "oldValue");
+		Message<String> message = MessageBuilder.createMessage("hello", new MessageHeaders(messageHeaders));
+
+		final AtomicBoolean received = new AtomicBoolean();
+		output.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				assertEquals("HELLO, WORLD!", message.getHeaders().get("foo"));
+				received.set(true);
+			}
+		});
+
+		input.send(message);
+		assertTrue(received.get());
+
 	}
 }

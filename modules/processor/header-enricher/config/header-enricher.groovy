@@ -18,6 +18,7 @@ beans {
 	xmlns([si: 'http://www.springframework.org/schema/integration'])
 
 	def headers = environment.getProperty('headers')
+	def overwrite = environment.getProperty('overwrite')
 	def parser = new JsonSlurper()
 	def result = parser.parseText(headers)
 
@@ -26,7 +27,7 @@ beans {
 	
 	si.'header-enricher'('input-channel':'input','output-channel':'output') {
 		result.each {k,v->
-			si.'header'(name:k,expression:v)
+			si.'header'(name:k,expression:v,overwrite:overwrite)
 		}
 	}
 }

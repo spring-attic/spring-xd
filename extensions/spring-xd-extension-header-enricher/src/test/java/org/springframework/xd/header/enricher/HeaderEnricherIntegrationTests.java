@@ -18,11 +18,16 @@ package org.springframework.xd.header.enricher;
 import static org.junit.Assert.assertEquals;
 import static org.springframework.xd.dirt.test.process.SingleNodeProcessingChainSupport.chain;
 
+import java.util.Collections;
+import java.util.Map;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.xd.dirt.server.singlenode.SingleNodeApplication;
 import org.springframework.xd.dirt.test.process.SingleNodeProcessingChain;
 import org.springframework.xd.test.RandomConfigurationSupport;
@@ -75,6 +80,25 @@ public class HeaderEnricherIntegrationTests {
 
 		chain.destroy();
 
+	}
+
+	@Test
+	public void testOverwriteHeaders() {
+		String streamName = "testOverwrite";
+
+		String headers = "{\"bar\":\"payload.substring(1)\"}";
+
+		String processingChainUnderTest = String.format("%s --headers=%s --overwrite=true", moduleName, headers);
+
+		chain = chain(application, streamName, processingChainUnderTest);
+		Map<String, Object> messageHeaders = Collections.singletonMap("bar", (Object) "oldValue");
+		Message<String> message = MessageBuilder.createMessage("hello", new MessageHeaders(messageHeaders));
+
+		chain.send(message);
+		Message<?> transformed = chain.receive(RECEIVE_TIMEOUT);
+		assertEquals("ello", transformed.getHeaders().get("bar"));
+
+		chain.destroy();
 	}
 
 	@Test

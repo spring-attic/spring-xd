@@ -16,15 +16,13 @@
 
 package org.springframework.xd.dirt.stream;
 
-import org.springframework.xd.dirt.DirtException;
-
 /**
  * Exception which is raised when a resource definition with the same name already exists.
  *
  * @author Luke Taylor
  */
 @SuppressWarnings("serial")
-public class DefinitionAlreadyExistsException extends DirtException {
+public class DefinitionAlreadyExistsException extends StreamException {
 
 	private final String offendingName;
 

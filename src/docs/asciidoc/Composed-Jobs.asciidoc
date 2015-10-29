@@ -1,0 +1,123 @@
+[[composed-jobs]]
+== Composed Jobs
+
+Spring XD provides a DSL for creating a batch job as a directed graph of other jobs.  
+This type of job is referred to as a composed job.  Much like the DSL for creating
+stream definitions, the DSL for composed jobs uses Unix style conventions such as the
+ampersand `&` and double pipe `||` symbols.  
+
+=== DSL Components
+
+The DSL for the composed jobs is used when creating a job definition via the
+`job create` command.  Note that jobs referenced by the DSL must be defined and deployed 
+prior to launching the composed job. For example:
+----
+xd:> job create batch_simple_def --definition "batch_simple_module" --deploy
+xd:> job create batch_basic_def --definition "batch_basic_module" --deploy
+xd:> job create testjob --definition "batch_simple_def || batch_basic_def" --deploy
+xd:> job launch testjob
+----
+
+==== Conditional Execution
+
+Conditional execution is expressed using a double pipe symbol `||`.  This allows  each
+job in the sequence to be launched only if the previous job successfully completed.
+For Example:
+----
+job create testjob --definition "batch_simple_def || batch_basic_def"
+----
+When the composed job `testjob` is launched, it will launch the job
+`batch_simple_def` and if it completes successfully, then the job `batch_basic_def` will
+be launched.  If the `batch_simple_def` jobs fails, then the job `batch_basic_def` will 
+not launch.
+
+==== Transitions
+
+The DSL supports fine grained control over the transitions taken during the execution of 
+the directed graph.  Transitions are specified by providing a condition for equality
+based on the exit value of the previous job.  A job transition is represented by the 
+pipe symbol `|`.  Note, this is loosely derived from pattern matching syntax used in F#.
+For example:
+----
+job create testjob --definition "aaa | FAILED=bbb | SUCCESS=ccc || ddd"
+----
+In the example above aaa would launch and if it had an exit status of `FAILED`, then the bbb
+job would launch. If the exit status of aaa was `SUCCESS` then ccc would launch.  All other
+statuses returned by aaa would launch ddd. 
+
+Another type of transition that can be specified uses '\*' to represent wildcard
+matching.  This means that any exit status that is not specifically enumerated by a 
+transition for the current job, the job
+associated with the '*' will be launched. ie.
+----
+job create testjob --definition "aaa | FAILED=bbb | SUCCESS=ccc || ddd | BAD=eee | '*' = fff"
+----
+In the example above, if an exit status of ddd is `BAD` then the eee job will launch but 
+all other exit status’s would launch the fff job.
+
+===== Keywords
+
+The DSL for composed jobs provides two keywords for transitions where the target of the
+transition is not another job.
+
+* $END - will either terminate the job composition or if used in a split, will
+terminate the flow within the specific split.
+* $FAIL - will set the status for the composed job to fail and terminate the job
+composition.
+
+For example
+
+----
+job create testjob --definition "aaa | SUCCESS=ccc | '*' = $END"
+----
+
+Will launch the ccc job if the exit status of aaa is `SUCCESS` but otherwise will end 
+the entire testjob execution successfully.  
+
+----
+job create testjob --definition "aaa | SUCCESS=ccc | '*' = $FAIL"
+----
+
+Will launch the ccc job if the exit status of aaa is `SUCCESS` but otherwise will fail
+the entire testjob execution.  
+
+
+==== Split
+
+Splits allow for multiple jobs within a composed job to be run in parallel.
+It is denoted by  using angle brackets `<>` to group jobs and flows that are to be run
+in parallel.  These jobs and flows are separated by the ampersand `&` character.
+For example:
+----
+job create testjob --definition "<aaa & bbb & ccc>"
+----
+The example above will launch jobs aaa, bbb and ccc in parallel.  With the job 
+composition DSL a user may also execute multiple split groups in succession.  For example:
+----
+job create testjob --definition "<aaa & bbb & ccc> || <ddd & eee & fff>"
+----
+In the example above jobs aaa, bbb and ccc will be launched in parallel,
+ once they all complete then jobs ddd, eee and fff will be launched in parallel.  
+ Once they complete the composed job will end.
+
+===== Parenthesis
+
+Supports the ability to launch conditional jobs within a split, for example:
+----
+job create testjob --definition "<(aaa || bbb || ccc) & ddd & eee> || fff"
+----
+In this example the jobs aaa, bbb, and ccc will be launched in succession at the same 
+time that jobs ddd and eee are launched in parallel.  Once all of the jobs are complete 
+within the angle brackets job fff will be launched.
+
+=== Composed Job Parameters
+
+Composed jobs currently supports the timeout parameter which establishes the amount
+of time in milliseconds a job can execute within the job composition before the XD throws an
+`UnexpectedJobExecutionException`.  The default is `-1` which  means no timeout.
+An example using the timeout is as follows:
+----
+job create testjob --definition "aaa || bbb --timeout=5000"
+----
+The timeout parameter affects all the jobs within the job composition.  All parameters
+for aaa and bbb must have been previously specified in their own job definitions.

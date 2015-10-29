@@ -76,3 +76,6 @@ include::Hadoop-Kerberos.asciidoc[]
 
 [appendix]
 include::Module-Project-Migration.asciidoc[]
+
+[appendix]
+include::Composed-Jobs.asciidoc[]

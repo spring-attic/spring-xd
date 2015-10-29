@@ -87,8 +87,8 @@ within the angle brackets job fff will be launched.
 === Orchestrated Job Parameters
 
 Orchestrated jobs currently supports the timeout parameter which establishes the amount 
-of time a job can execute within the job orchestration before the XD throws an 
-`UnexpectedJobExecutionException`.  The default is -1 which  means no timeout.  
+of time in milliseconds a job can execute within the job orchestration before the XD throws an
+`UnexpectedJobExecutionException`.  The default is `-1` which  means no timeout.
 An example using the timeout is as follows:
 ----
 job create testjob --definition "aaa || bbb --timeout=5000"

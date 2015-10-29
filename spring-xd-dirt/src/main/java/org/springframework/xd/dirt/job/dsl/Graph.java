@@ -198,7 +198,7 @@ public class Graph {
 				unvisitedNodes.remove(endOfSplit);
 				if (!endOfSplit.isSync()) {
 					// If not a sync node, include it in the output text
-					graphText.append(" || "); 
+					graphText.append(" || ");
 					printNode(graphText, endOfSplit, unvisitedNodes);
 					List<Link> transitionalLinks = findLinksFrom(endOfSplit, false);
 					// null final param here probably not correct
@@ -222,31 +222,7 @@ public class Graph {
 		}
 	}
 
-	private String toString(Link link) {
-		StringBuilder s = new StringBuilder();
-		s.append("Link from " + findNodeById(link.from).name + "(" + link.from + ") to " + findNodeById(link.to).name
-				+ "("
-				+ link.to + ")");
-		return s.toString();
-	}
-
-	// Used for debugging
-	@SuppressWarnings("unused")
-	private String toString(List<Link> links) {
-		StringBuilder s = new StringBuilder();
-		s.append("[");
-		for (int i = 0; i < links.size(); i++) {
-			if (i > 0) {
-				s.append("::");
-			}
-			s.append(toString(links.get(i)));
-		}
-		s.append("]");
-		return s.toString();
-	}
-
 	private Node findEndOfSplit(List<Link> toFollow) {
-		//DEBUG: System.out.println("Finding end of split, incoming links " + toString(toFollow));
 		if (toFollow.size() == 0) {
 			return null;
 		}

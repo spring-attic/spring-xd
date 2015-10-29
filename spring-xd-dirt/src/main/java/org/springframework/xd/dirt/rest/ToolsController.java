@@ -39,6 +39,7 @@ import org.springframework.xd.rest.domain.DocumentParseResultResource;
  *
  * @author Eric Bottard
  * @author Andy Clement
+ * @author Alex Boyko
  */
 @RestController
 @RequestMapping("/tools")
@@ -84,7 +85,7 @@ public class ToolsController {
 	 */
 	@RequestMapping(value = "/convertJobGraphToText", method = RequestMethod.POST)
 	public Map<String, Object> convertJobGrabToText(@RequestBody Graph graph) {
-		Map<String, Object> response = new HashMap<String, Object>();
+		Map<String, Object> response = new HashMap<>();
 		try {
 			String dslText = graph.toDSLText();
 			response.put("text", dslText);

@@ -136,24 +136,59 @@ image::images/spring-xd-admin-ui-jobs-deployment-details.png[Job Deployment Deta
 
 ==== List job executions
 
-This page lists the batch job executions and provides option to *restart* specific job executions, provided the batch job is restartable and stopped/failed.
+This page lists the Batch Job Executions and provides the option to *restart* or *stop* a specific job execution, provided the operation is available.
+Furthermore, you have the option to view the Job execution details.
 
 .List Job Executions
 image::images/spring-xd-admin-ui-executions.png[List Job Executions, width=500]
 
-Furthermore, you have the option to view the Job execution details.
+The list of Job Executions also shows the state of the underlying Job Definition. The following states can be shown.
+
+[cols=".^1,.^4"]
+|===
+
+|image:images/spring-xd-admin-ui-jobs-job-execution-status-undeployed.png[Create Definition, 133, 36, title="Undeployed Job Definition"]
+|The underlying Job Definition was undeployed.
+
+|image:images/spring-xd-admin-ui-jobs-job-execution-status-deleted.png[Create Definition, 133, 36, title="Deleted Job Definition"]
+|The underlying Job Definition was deleted.
+
+|image:images/spring-xd-admin-ui-jobs-job-execution-status-composed.png[View Details, 133, 36, title="Composed Job Definition"]
+|This is a composed Job Definition.
+
+|===
+
+As an example, we have created the following composed job using the Spring XD shell:
+
+[source,bash]
+----
+spring> job create composed1 --definition "myjob" --deploy
+spring> job create composed2 --definition "myjob" --deploy
+spring> job create composedDemoJob --definition "composed1 || composed2" --deploy
+spring> job launch composedDemoJob
+----
+
+Once executed, you should see the _composedDemoJob_ on the Job Execution page:
+
+.Job Executions with Composed Job Execution
+image::images/spring-xd-admin-ui-jobs-job-executions-composed.png[Composed Job Execution, width=500]
+
+By clicking on the magnifying glass you will be able to see the composed job's details,
+including the associated child Job Executions for the jobs _composed1_ and _composed2_.
 
 ===== Job execution details
 
-.Job Execution Details
-image::images/spring-xd-admin-ui-jobs-job-execution-details.png[Job Execution Details, width=500]
+.Job Execution Details of Composed Job
+image::images/spring-xd-admin-ui-jobs-job-execution-details-composed.png[Composed Job Execution Details, width=500]
 
-The same screen also contains a list of the executed steps:
+The list of Job Executions on the Job execution details page will only be visible for
+composed jobs. In the case of a non-composed Job, you would see the following:
 
 .Job Execution Details - Steps
 image::images/spring-xd-admin-ui-jobs-job-execution-details-steps.png[Job Execution Details - Steps, width=500]
 
-From there you can drill deeper into the _Step Execution Details_.
+The Job Execution Details screen also contains a list of the executed steps. You can
+further drill into the _Step Execution Details_ by clicking onto the magnifying glass.
 
 ===== Step execution details
 

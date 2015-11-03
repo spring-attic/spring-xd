@@ -78,8 +78,11 @@ public class JobsController extends
 		if (distributedJobLocator.getJobNames().contains(name)) {
 			throw new BatchJobAlreadyExistsException(name);
 		}
-		if(ComposedJobUtil.isComposedJobDefinition(definition)){
-			moduleDefinitionService.compose(ComposedJobUtil.getComposedJobModuleName(name), ModuleType.job,definition, false);
+		if(ComposedJobUtil.isComposedJobDefinition(definition)) {
+			moduleDefinitionService.compose(ComposedJobUtil.getComposedJobModuleName(name), ModuleType.job, definition, false);
+		}
+		else {
+			ComposedJobUtil.validateNotSingleJobInstance(definition, distributedJobLocator.getJobNames());
 		}
 		super.save(name, definition, deploy);
 	}

@@ -75,7 +75,15 @@ for arg in "${args[@]}" ; do
     x=$((x+1))
 done
 APP_HOME_LIB=$APP_HOME/lib
-CLASSPATH=$APP_HOME/modules/processor/scripts:$APP_HOME/config
+CLASSPATH=$APP_HOME/modules/processor/scripts
+
+# If XD_CONFIG_LOCATION is not defined or is not a file resource then use APP_HOME/config for CP
+if [ x"$XD_CONFIG_LOCATION" = x ] || [[ "$XD_CONFIG_LOCATION" != file:* ]] ; then
+    CLASSPATH=$CLASSPATH:$APP_HOME/config
+else
+    CLASSPATH=$CLASSPATH:${XD_CONFIG_LOCATION#file:}
+fi
+
 if [ -d "$APP_HOME_LIB" ]; then
     for i in "$APP_HOME_LIB"/*.jar; do
         CLASSPATH="$CLASSPATH":"$i"

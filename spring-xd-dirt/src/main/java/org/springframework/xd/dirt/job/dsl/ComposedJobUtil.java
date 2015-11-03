@@ -18,6 +18,7 @@
 
 package org.springframework.xd.dirt.job.dsl;
 
+import java.util.Collection;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -28,25 +29,67 @@ public class ComposedJobUtil {
 
 	public static final String MODULE_SUFFIX = "_COMPOSED";
 
-	private static String orchestrationPatternString = "(\\|\\|" +//search for || in the definition
-			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))" + //make sure its not in quotes
-			"|(\\&" + //or find a & in the definition
-			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))";// make sure its not in quotes
-
 	private static String parameterPatternString = "(--" +//search for -- in the definition
 			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))"; //make sure its not in quotes
 
-	private static Pattern orchestrationPattern = Pattern.compile(orchestrationPatternString);
-
 	private static Pattern parameterPattern = Pattern.compile(parameterPatternString);
-	
+
+	/**
+	 * Returns the composed module name for the job
+	 * @param jobName - base name for the job
+	 * @return the fully qualified name for composed job module
+	 */
 	public static String getComposedJobModuleName(String jobName){
 		return jobName + MODULE_SUFFIX;
 	}
-	
+
+	/**
+	 * Is this definition a composed job definition
+	 * @param definition the definition the user specified
+	 * @return true if a valid composed job definition else false.
+	 */
 	public static boolean isComposedJobDefinition(String definition){
-		Matcher matcher = orchestrationPattern.matcher(definition);
-		return matcher.find();
+		boolean result = false;
+		try {
+			JobParser parser = new JobParser();
+			JobSpecification jobSpecification = parser.parse(definition);
+			if (jobSpecification.getJobReferences().size() > 1) {
+				result = true;
+			}
+			//Check for single instanceof job with a transition
+			if (jobSpecification.getJobReferences().size() == 1){
+				JobReference reference = jobSpecification.getJobReferences().get(0);
+				if( reference.transitions.size() > 0){
+					result = true;
+				}
+			}
+		} catch (Exception e) {
+			result = false; //failed to parse, could be a stream.
+		}
+		return result;
+	}
+
+	/**
+	 * Throws exception if user tries to create a single job instance with no transitions.
+	 * @param definition the definition to be validated
+	 * @param jobInstances collection of available job instances
+	 */
+	public static void validateNotSingleJobInstance(String definition, Collection<String> jobInstances) {
+		JobSpecification jobSpecification = null;
+		try {
+			JobParser parser = new JobParser();
+			jobSpecification = parser.parse(definition);
+		} catch (Exception e) {
+			return; //failed to parse.
+		}
+		if (jobSpecification.getJobReferences().size() == 1) {
+			String jobName = jobSpecification.getJobReferences().get(0).getName();
+			if (jobInstances.contains(jobName)) {
+				throw new IllegalStateException(String.format(
+						"Job Instance specified  %s must use transitions.  Or just " +
+								"launch the job instance directly", jobName));
+			}
+		}
 	}
 
 	public static String getPropertyDefinition() {

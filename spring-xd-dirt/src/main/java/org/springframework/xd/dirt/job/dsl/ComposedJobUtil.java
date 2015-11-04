@@ -29,8 +29,15 @@ public class ComposedJobUtil {
 
 	public static final String MODULE_SUFFIX = "_COMPOSED";
 
+	private static String orchestrationPatternString = "(\\|\\|" +//search for || in the definition
+						"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))" + //make sure its not in quotes
+						"|(\\&" + //or find a & in the definition
+						"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))";// make sure its not in quotes
+
 	private static String parameterPatternString = "(--" +//search for -- in the definition
 			"(?=([^\\\"']*[\\\"'][^\\\"']*[\\\"'])*[^\\\"']*$))"; //make sure its not in quotes
+
+	private static Pattern orchestrationPattern = Pattern.compile(orchestrationPatternString);
 
 	private static Pattern parameterPattern = Pattern.compile(parameterPatternString);
 
@@ -64,7 +71,10 @@ public class ComposedJobUtil {
 				}
 			}
 		} catch (JobSpecificationException e) {
-			result = false; //failed to parse, could be a stream.
+			//failed to parse, could still be a composed job.  Look for basic components
+			// such as || or & if found return true.
+			Matcher matcher = orchestrationPattern.matcher(definition);
+			result = matcher.find();
 		}
 		return result;
 	}

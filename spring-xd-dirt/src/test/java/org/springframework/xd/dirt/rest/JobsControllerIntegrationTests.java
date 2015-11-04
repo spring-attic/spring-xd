@@ -122,7 +122,7 @@ public class JobsControllerIntegrationTests extends AbstractControllerIntegratio
 	public void testComposedJobCreationBadDSL() throws Exception {
 		mockMvc.perform(
 				post("/jobs/definitions").param("name", "job1").param("definition", "A || B >").accept(
-						MediaType.APPLICATION_JSON)).andExpect(status().is4xxClientError());
+						MediaType.APPLICATION_JSON)).andExpect(status().isInternalServerError());
 	}
 	
 	@Test

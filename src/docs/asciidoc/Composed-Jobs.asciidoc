@@ -121,3 +121,41 @@ job create testjob --definition "aaa || bbb --timeout=5000"
 ----
 The timeout parameter affects all the jobs within the job composition.  All parameters
 for aaa and bbb must have been previously specified in their own job definitions.
+
+=== Batch Configuration for Composed Jobs
+Here are some recommended changes to the servers.yml to support parallel processing
+for composed jobs.
+
+==== Update the isolationLevel to ISOLATION_READ_COMMITTED
+This can be done by uncommenting the following section.
+----
+#spring:
+#  batch:
+# Configure other Spring Batch repository values.  Most are typically not needed
+#    isolationLevel: ISOLATION_SERIALIZABLE
+----
+Then set the isolationLevel to `ISOLATION_READ_COMMITTED` as follows:
+----
+spring:
+  batch:
+# Configure other Spring Batch repository values.  Most are typically not needed
+    isolationLevel: ISOLATION_READ_COMMITTED
+----
+
+==== Updating the default hsqldb url
+If you are using hsqldb for development purposes it is recommended that you update the
+url from the current default by adding `;sql.enforce_strict_size=true;hsqldb.tx=mvcc` to
+the end of the connection string.  This can be done by uncommenting the following section:
+----
+#spring:
+#  datasource:
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#
+----
+Then update the url to `jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob};sql.enforce_strict_size=true;hsqldb.tx=mvcc`
+as follows:
+----
+spring:
+  datasource:
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob};sql.enforce_strict_size=true;hsqldb.tx=mvcc
+----

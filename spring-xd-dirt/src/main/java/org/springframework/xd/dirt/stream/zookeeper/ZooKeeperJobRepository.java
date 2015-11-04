@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,6 +48,7 @@ import org.springframework.xd.dirt.zookeeper.ZooKeeperUtils;
  *
  * @author Mark Fisher
  * @author David Turanski
+ * @author Gunnar Hillert
  */
 // todo: the JobRepository abstraction can be removed once we are fully zk-enabled since we do not need to
 // support multiple impls at that point
@@ -182,8 +183,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 		}
 
 		try {
-			client.delete().deletingChildrenIfNeeded()
-					.forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
+			client.delete().deletingChildrenIfNeeded().forPath(Paths.build(Paths.JOB_DEPLOYMENTS, id));
 		}
 		catch (Exception e) {
 			//NoNodeException - nothing to delete
@@ -227,7 +227,7 @@ public class ZooKeeperJobRepository implements JobRepository, InitializingBean {
 
 		List<Job> results = new ArrayList<Job>();
 		for (Job job : all) {
-			if (job.getDefinition().getName().compareTo(to) > 1) {
+			if (job.getDefinition().getName().compareTo(to) > 0) {
 				break;
 			}
 			if (job.getDefinition().getName().compareTo(from) < 0) {

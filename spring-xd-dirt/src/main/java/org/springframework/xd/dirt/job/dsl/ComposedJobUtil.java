@@ -59,11 +59,11 @@ public class ComposedJobUtil {
 			//Check for single instanceof job with a transition
 			if (jobSpecification.getJobReferences().size() == 1){
 				JobReference reference = jobSpecification.getJobReferences().get(0);
-				if( reference.transitions.size() > 0){
+				if( reference.transitions != null && reference.transitions.size() > 0){
 					result = true;
 				}
 			}
-		} catch (Exception e) {
+		} catch (JobSpecificationException e) {
 			result = false; //failed to parse, could be a stream.
 		}
 		return result;
@@ -79,7 +79,7 @@ public class ComposedJobUtil {
 		try {
 			JobParser parser = new JobParser();
 			jobSpecification = parser.parse(definition);
-		} catch (Exception e) {
+		} catch (JobSpecificationException e) {
 			return; //failed to parse.
 		}
 		if (jobSpecification.getJobReferences().size() == 1) {

@@ -23,7 +23,7 @@
 
 			<property name="driverClassName" value="org.hsqldb.jdbc.JDBCDriver" />
 			<property name="url"
-				value="jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}" />
+				value="jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob};sql.enforce_strict_size=true;hsqldb.tx=mvcc" />
 			<property name="username" value="sa" />
 			<property name="password" value="" />
 		</bean>

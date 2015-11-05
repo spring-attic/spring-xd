@@ -68,7 +68,7 @@ public class RuntimeBatchConfigurer implements BatchConfigurer {
 
 	private boolean validateTransactionState = true;
 
-	public static final String DEFAULT_ISOLATION_LEVEL = "ISOLATION_SERIALIZABLE";
+	public static final String DEFAULT_ISOLATION_LEVEL = "ISOLATION_READ_COMMITTED";
 
 	@Autowired(required = true)
 	public void setDataSource(DataSource dataSource) {

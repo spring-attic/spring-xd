@@ -207,7 +207,7 @@ xd:
 #spring:
 #  batch:
 # Configure other Spring Batch repository values.  Most are typically not needed
-#    isolationLevel: ISOLATION_SERIALIZABLE
+#    isolationLevel: ISOLATION_READ_COMMITTED
 #    clobType:
 #    dbType:
 #    maxVarcharLength: 2500

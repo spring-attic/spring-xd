@@ -28,7 +28,7 @@ spring:
    sslProperties:
 # HSQL database configuration
   datasource:
-    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob};sql.enforce_strict_size=true;hsqldb.tx=mvcc
     username: sa
     password:
     driverClassName: org.hsqldb.jdbc.JDBCDriver

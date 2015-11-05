@@ -98,7 +98,7 @@
 #spring:
 #  batch:
 # Configure other Spring Batch repository values.  Most are typically not needed
-#    isolationLevel: ISOLATION_SERIALIZABLE
+#    isolationLevel: ISOLATION_READ_COMMITTED
 #    clobType:
 #    dbType:
 #    maxVarcharLength: 2500
@@ -129,7 +129,7 @@ xd:
 #Change database username and password
 #spring:
 #  datasource:
-#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob}
+#    url: jdbc:hsqldb:hsql://${hsql.server.host:localhost}:${hsql.server.port:9101}/${hsql.server.dbname:xdjob};sql.enforce_strict_size=true;hsqldb.tx=mvcc
 #    username: sa
 #    password:
 #    driverClassName: org.hsqldb.jdbc.JDBCDriver

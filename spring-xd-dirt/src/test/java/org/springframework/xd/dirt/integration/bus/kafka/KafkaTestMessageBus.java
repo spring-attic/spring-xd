@@ -43,14 +43,14 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 
 
 	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, Codec codec,
-			KafkaMessageBus.Mode mode) {
+			KafkaMessageBus.Mode mode, String... headers) {
 
 		try {
 			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
 			zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
 			KafkaMessageBus messageBus = new KafkaMessageBus(zookeeperConnect,
 					kafkaTestSupport.getBrokerAddress(),
-					kafkaTestSupport.getZkConnectString(), codec);
+					kafkaTestSupport.getZkConnectString(), codec, headers);
 			messageBus.setDefaultBatchingEnabled(false);
 			messageBus.setMode(mode);
 			messageBus.afterPropertiesSet();

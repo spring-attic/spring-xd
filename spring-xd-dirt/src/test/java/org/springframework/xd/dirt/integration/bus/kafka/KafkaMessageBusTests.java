@@ -19,27 +19,22 @@ package org.springframework.xd.dirt.integration.bus.kafka;
 import static org.hamcrest.CoreMatchers.instanceOf;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsEqual.equalTo;
-import static org.junit.Assert.assertArrayEquals;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThat;
+import static org.junit.Assert.*;
 
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-import java.util.Properties;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 import kafka.api.OffsetRequest;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.hamcrest.CoreMatchers;
+import org.hamcrest.collection.IsMapContaining;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
+import org.springframework.amqp.utils.test.TestUtils;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
@@ -52,10 +47,7 @@ import org.springframework.integration.kafka.listener.MessageListener;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
-import org.springframework.xd.dirt.integration.bus.Binding;
-import org.springframework.xd.dirt.integration.bus.BusProperties;
-import org.springframework.xd.dirt.integration.bus.MessageBus;
-import org.springframework.xd.dirt.integration.bus.PartitionCapableBusTests;
+import org.springframework.xd.dirt.integration.bus.*;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
@@ -367,6 +359,33 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		assertThat(producerConfig.getLong(ProducerConfig.LINGER_MS_CONFIG), equalTo(7L));
 		messageBus.unbindProducers("foo" + uniqueBindingId);
 	}
+
+	@Test
+	public void testMoreHeaders() throws Exception {
+		KafkaTestMessageBus bus =
+				new KafkaTestMessageBus(kafkaTestSupport, getCodec(), KafkaMessageBus.Mode.embeddedHeaders,
+						"propagatedHeader");
+		Collection<String> headers = Arrays.asList(TestUtils.getPropertyValue(bus.getCoreMessageBus(), "headersToMap",
+				String[].class));
+		assertTrue(headers.contains("propagatedHeader"));
+		assertEquals(XdHeaders.STANDARD_HEADERS.length + 1, headers.size());
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		long uniqueBindingId = System.currentTimeMillis();
+		Properties emptyProperties = new Properties();
+		bus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, emptyProperties);
+		bus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, emptyProperties);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.
+				withPayload("payload").setHeader("propagatedHeader","propagatedValue").build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertThat(inbound.getHeaders(), IsMapContaining.hasKey("propagatedHeader"));
+		assertThat((String)inbound.getHeaders().get("propagatedHeader"), equalTo("propagatedValue"));
+		bus.cleanup();
+	}
+
 
 	@Test
 	@Ignore("Kafka message bus does not support direct binding")

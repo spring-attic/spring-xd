@@ -59,7 +59,7 @@
 
 #    redis:
 #      headers:
-            # comman-delimited list of additional (string-valued) header names to transport
+            # comma-delimited list of additional (string-valued) header names to transport
 #      default:
             # default bus properties, if not specified at the module level
 #        backOffInitialInterval:    1000
@@ -71,6 +71,8 @@
 #      brokers:                                 localhost:9092
 #      zkAddress:                               localhost:2181
 #      mode:                                    embeddedHeaders
+#      headers:
+            # comma-delimited list of additional (string-valued) header names to transport
 #      socketBufferSize:                        2097152
 #      offsetStoreTopic:                        SpringXdOffsets
 #      offsetStoreSegmentSize:                  25000000

@@ -142,7 +142,7 @@ xd:
         txSize:                    1
     redis:
       headers:
-            # comman-delimited list of additional (string-valued) header names to transport
+            # comma-delimited list of additional (string-valued) header names to transport
       default:
             # default bus properties, if not specified at the module level
         backOffInitialInterval:    1000
@@ -165,6 +165,7 @@ xd:
       offsetUpdateTimeWindow:                  10000
       offsetUpdateCount:                       0
       offsetUpdateShutdownTimeout:             2000
+      headers: # comman-delimited list of additional (string-valued) header names to transport
       default:
         batchSize:                 16384
         batchTimeout:              0

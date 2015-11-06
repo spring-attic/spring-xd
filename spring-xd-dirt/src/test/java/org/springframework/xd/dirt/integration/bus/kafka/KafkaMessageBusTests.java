@@ -395,6 +395,8 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		Message<?> inbound = moduleInputChannel.receive(2000);
 		assertThat(inbound.getHeaders(), IsMapContaining.hasKey("propagatedHeader"));
 		assertThat((String)inbound.getHeaders().get("propagatedHeader"), equalTo("propagatedValue"));
+		bus.unbindProducers("foo" + uniqueBindingId + ".0");
+		bus.unbindConsumers("foo" + uniqueBindingId + ".0");
 		bus.cleanup();
 	}
 

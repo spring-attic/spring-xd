@@ -154,6 +154,8 @@ xd:
       brokers:                                 localhost:9092
       zkAddress:                               localhost:2181
       mode:                                    embeddedHeaders
+      headers:
+            # comma-delimited list of additional (string-valued) header names to transport
       socketBufferSize:                        2097152
       offsetStoreTopic:                        SpringXdOffsets
       offsetStoreSegmentSize:                  25000000
@@ -165,7 +167,6 @@ xd:
       offsetUpdateTimeWindow:                  10000
       offsetUpdateCount:                       0
       offsetUpdateShutdownTimeout:             2000
-      headers: # comman-delimited list of additional (string-valued) header names to transport
       default:
         batchSize:                 16384
         batchTimeout:              0

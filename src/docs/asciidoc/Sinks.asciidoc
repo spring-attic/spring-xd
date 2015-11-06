@@ -1012,6 +1012,8 @@ This will insert the time messages into a 'payload' column in a table named 'myd
 
 You can query the database with your favorite SQL tool using the following database URL: `jdbc:hsqldb:hsql://localhost:9101/xdjob` with `sa` as the user name and a blank password. You can also use the HSQL provided SQL Tool (download from link:http://hsqldb.org/[HSQLDB]) to run a quick query from the command line:
 
+NOTE: If you access any database other than HSQLDB or Postgres in a stream module then the JDBC driver jar for that database needs to be present in the `$XD_HOME/lib` directory.
+
 [source,bash]
 ----
 $ java -cp ~/Downloads/hsqldb-2.3.0/hsqldb/lib/sqltool.jar org.hsqldb.cmdline.SqlTool --inlineRc url=jdbc:hsqldb:hsql://localhost:9101/xdjob,user=sa,password= --sql "select payload from mydata;"

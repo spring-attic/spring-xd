@@ -16,7 +16,7 @@
 		<constructor-arg value="${xd.messagebus.kafka.brokers}"/>
 		<constructor-arg value="${xd.messagebus.kafka.zkAddress}"/>
 		<constructor-arg ref="codec"/>
-		<constructor-arg value="#{new String[0]}"/>
+		<constructor-arg value="${xd.messagebus.kafka.headers:}" />
 
 		<property name="mode" value="${xd.messagebus.kafka.mode}"/>
 

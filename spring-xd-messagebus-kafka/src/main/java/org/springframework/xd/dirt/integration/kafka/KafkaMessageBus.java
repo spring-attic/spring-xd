@@ -212,16 +212,17 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.addAll(KAFKA_CONSUMER_PROPERTIES)
 			.build();
 
+	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
+			.add(BusProperties.MIN_PARTITION_COUNT)
+			.build();
+
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = new SetBuilder()
 			.addAll(PRODUCER_STANDARD_PROPERTIES)
 			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
 			.addAll(PRODUCER_COMPRESSION_PROPERTIES)
+			.addAll(KAFKA_PRODUCER_PROPERTIES)
 			.build();
 
-
-	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
-			.add(BusProperties.MIN_PARTITION_COUNT)
-			.build();
 
 	/**
 	 * Partitioning + kafka producer properties.
@@ -482,7 +483,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
 		KafkaPropertiesAccessor producerPropertiesAccessor = new KafkaPropertiesAccessor(properties);
-		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
+		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX) || name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateProducerProperties(name, properties, SUPPORTED_NAMED_PRODUCER_PROPERTIES);
 		}
 		else {

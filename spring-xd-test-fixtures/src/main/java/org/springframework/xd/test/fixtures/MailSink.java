@@ -16,11 +16,10 @@
 
 package org.springframework.xd.test.fixtures;
 
-import javax.mail.internet.MimeMessage;
-
+import com.icegreen.greenmail.util.ServerSetup;
 import org.springframework.xd.test.fixtures.util.AvailableSocketPorts;
 
-import com.icegreen.greenmail.util.ServerSetup;
+import javax.mail.internet.MimeMessage;
 
 
 /**
@@ -72,16 +71,9 @@ public class MailSink extends DisposableMailSupport<MailSink> {
 
 	public MimeMessage waitForEmail() {
 		ensureStarted();
-		try {
 			if (!greenMail.waitForIncomingEmail(1)) {
 				throw new IllegalStateException("No email received");
 			}
 			return greenMail.getReceivedMessages()[0];
-		}
-		catch (InterruptedException e) {
-			throw new IllegalStateException("Interrupted while waiting for an email");
-		}
 	}
-
-
 }

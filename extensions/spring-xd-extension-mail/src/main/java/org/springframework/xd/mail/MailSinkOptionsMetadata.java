@@ -20,15 +20,19 @@ import javax.validation.constraints.NotNull;
 
 import org.springframework.xd.module.options.spi.Mixin;
 import org.springframework.xd.module.options.spi.ModuleOption;
-
+import org.springframework.xd.module.options.spi.ProfileNamesProvider;
 
 /**
  * Captures options for the {@code mail} sink module.
  * 
  * @author Eric Bottard
+ * @author Franck Marchand
  */
 @Mixin(MailServerMixin.class)
-public class MailSinkOptionsMetadata {
+public class MailSinkOptionsMetadata implements ProfileNamesProvider {
+
+	public static final String WITH_ATTACHMENT = "with-attachment";
+	public static final String WITHOUT_ATTACHMENT = "without-attachment";
 
 	private String bcc = "null";
 
@@ -43,6 +47,61 @@ public class MailSinkOptionsMetadata {
 	private String subject = "null";
 
 	private String to = "null";
+
+	private boolean auth = false;
+
+	private boolean starttls = false;
+
+	private boolean ssl = false;
+
+	private String attachmentExpression;
+
+	private String attachmentFilename;
+
+	public String getAttachmentExpression() {
+		return attachmentExpression;
+	}
+
+	@ModuleOption("file uri to attach to the mail")
+	public void setAttachmentExpression(String attachmentExpression) {
+		this.attachmentExpression = attachmentExpression;
+	}
+
+	public String getAttachmentFilename() {
+		return attachmentFilename;
+	}
+
+	@ModuleOption("name of the attachment that will appear in the mail")
+	public void setAttachmentFilename(String attachmentFilename) {
+		this.attachmentFilename = attachmentFilename;
+	}
+
+	public boolean isAuth() {
+		return auth;
+	}
+
+	@ModuleOption("enable authentication for mail sending connection")
+	public void setAuth(boolean auth) {
+		this.auth = auth;
+	}
+
+	public boolean isSsl() {
+		return ssl;
+	}
+
+	@ModuleOption("enable ssl for mail sending connection")
+	public void setSsl(boolean ssl) {
+		this.ssl = ssl;
+	}
+
+	public boolean isStarttls() {
+		return starttls;
+	}
+
+	@ModuleOption("enable ttl for mail sending connection")
+	public void setStarttls(boolean starttls) {
+		this.starttls = starttls;
+	}
 
 	// @NotNull as a String, but the contents can be the String
 	// "null", which is a SpEL expression in its own right.
@@ -70,7 +129,6 @@ public class MailSinkOptionsMetadata {
 	public String getReplyTo() {
 		return replyTo;
 	}
-
 
 	@NotNull
 	public String getSubject() {
@@ -115,6 +173,11 @@ public class MailSinkOptionsMetadata {
 	@ModuleOption("the primary recipient(s) of the email (SpEL)")
 	public void setTo(String to) {
 		this.to = to;
+	}
+
+	@Override
+	public String[] profilesToActivate() {
+		return new String[] { (attachmentExpression != null && attachmentFilename != null) ? WITH_ATTACHMENT : WITHOUT_ATTACHMENT };
 	}
 
 

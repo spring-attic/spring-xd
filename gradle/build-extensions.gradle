@@ -6,7 +6,11 @@ project('spring-xd-extension-mail') {
     description = 'Spring XD Mail'
     dependencies {
         compile "org.springframework.integration:spring-integration-mail"
+        compile "com.sun.mail:javax.mail"
         compile project(":spring-xd-module-spi")
+        compile project(":spring-xd-dirt")
+        testCompile project(":spring-xd-test")
+        testCompile "com.icegreen:greenmail:$greenmailVersion"
     }
 }
 

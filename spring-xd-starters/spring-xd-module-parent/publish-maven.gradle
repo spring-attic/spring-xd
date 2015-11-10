@@ -28,7 +28,7 @@ def getAllDependentProjects(project) {
 
 // load versions
 def versions = new Properties()
-def propertiesFile = new File('dependencies.properties')
+def propertiesFile = new File("${project.rootDir}/dependencies.properties")
 propertiesFile.withInputStream {
 	versions.load(it)
 }

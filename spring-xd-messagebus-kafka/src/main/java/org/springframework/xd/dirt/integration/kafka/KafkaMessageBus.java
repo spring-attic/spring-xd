@@ -16,26 +16,17 @@
 
 package org.springframework.xd.dirt.integration.kafka;
 
-import java.io.UnsupportedEncodingException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Set;
-import java.util.UUID;
-import java.util.concurrent.atomic.AtomicInteger;
-
+import kafka.admin.AdminUtils;
+import kafka.admin.AdminUtils$;
+import kafka.api.OffsetRequest;
+import kafka.serializer.Decoder;
+import kafka.serializer.DefaultDecoder;
+import kafka.utils.ZkUtils;
 import org.I0Itec.zkclient.ZkClient;
 import org.I0Itec.zkclient.exception.ZkMarshallingError;
 import org.I0Itec.zkclient.serialize.ZkSerializer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
-
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.FixedSubscriberChannel;
@@ -76,17 +67,26 @@ import org.springframework.util.StringUtils;
 import org.springframework.xd.dirt.integration.bus.AbstractBusPropertiesAccessor;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
+import org.springframework.xd.dirt.integration.bus.BusUtils;
 import org.springframework.xd.dirt.integration.bus.EmbeddedHeadersMessageConverter;
 import org.springframework.xd.dirt.integration.bus.MessageBusSupport;
 import org.springframework.xd.dirt.integration.bus.MessageValues;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
-
-import kafka.admin.AdminUtils;
-import kafka.api.OffsetRequest;
-import kafka.serializer.Decoder;
-import kafka.serializer.DefaultDecoder;
-import kafka.utils.ZkUtils;
 import scala.collection.Seq;
+
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Iterator;
+import java.util.LinkedList;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A message bus that uses Kafka as the underlying middleware. The general implementation mapping between XD concepts
@@ -119,7 +119,7 @@ import scala.collection.Seq;
  * @author David Turanski
  * @author Gary Russell
  */
-public class KafkaMessageBus extends MessageBusSupport {
+public class KafkaMessageBus extends MessageBusSupport implements DisposableBean {
 
 	public static final ByteArraySerializer BYTE_ARRAY_SERIALIZER = new ByteArraySerializer();
 
@@ -204,12 +204,24 @@ public class KafkaMessageBus extends MessageBusSupport {
 			.add(BusProperties.CONCURRENCY)
 			.build();
 
+	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(SUPPORTED_CONSUMER_PROPERTIES)
+			.addAll(KAFKA_CONSUMER_PROPERTIES)
+			.add(BusProperties.DURABLE)
+			.build();
+
 	/**
 	 * Basic + concurrency.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(CONSUMER_STANDARD_PROPERTIES)
 			.addAll(KAFKA_CONSUMER_PROPERTIES)
+			.add(BusProperties.CONCURRENCY)
+			.build();
+
+	private static final Set<Object> SUPPORTED_NAMED_PUBSUB_CONSUMER_PROPERTIES = new SetBuilder()
+			.addAll(SUPPORTED_NAMED_CONSUMER_PROPERTIES)
+			.add(BusProperties.DURABLE)
 			.build();
 
 	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
@@ -270,6 +282,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	private boolean defaultAutoCommitOffsetEnabled = DEFAULT_AUTO_COMMIT_OFFSET_ENABLED;
 
+	private boolean defaultDurableSubscription = false;
+
 	private int socketBufferSize = 2097152;
 
 	private int offsetStoreSegmentSize = 250 * 1024 * 1024;
@@ -291,6 +305,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	private int offsetUpdateShutdownTimeout = 2000;
 
 	private Mode mode = Mode.embeddedHeaders;
+
+	private ZkClient zkClient;
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
 			Codec codec, String... headersToMap) {
@@ -373,6 +389,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 	public void afterPropertiesSet() throws Exception {
 		// we instantiate the connection factory here due to https://jira.spring.io/browse/XD-2647
 		ZookeeperConfiguration configuration = new ZookeeperConfiguration(this.zookeeperConnect);
+		zkClient = new ZkClient(zkAddress, 10000, 10000, utf8Serializer);
+		zkClient.waitUntilConnected(10000, TimeUnit.MILLISECONDS);
 		configuration.setBufferSize(socketBufferSize);
 		configuration.setMaxWait(defaultMaxWait);
 		DefaultConnectionFactory defaultConnectionFactory =
@@ -394,6 +412,22 @@ public class KafkaMessageBus extends MessageBusSupport {
 			retryOperations = retryTemplate;
 		}
 	}
+
+	@Override
+	public void destroy() throws Exception {
+		zkClient.close();
+	}
+
+	@Override
+	public boolean isCapable(Capability capability) {
+		switch (capability) {
+		case DURABLE_PUBSUB:
+			return true;
+		default:
+			return false;
+		}
+	}
+
 
 	/**
 	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'. '_' is used as escaped char in the form '_xx' where xx
@@ -464,71 +498,62 @@ public class KafkaMessageBus extends MessageBusSupport {
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
 		// Point-to-point consumers reset at the earliest time, which allows them to catch up with all messages
-		createKafkaConsumer(name, moduleInputChannel, properties, POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP,
-				OffsetRequest.EarliestTime());
+		createKafkaConsumer(name, moduleInputChannel, properties, false, OffsetRequest.EarliestTime());
 		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
 
 	@Override
 	public void bindPubSubConsumer(String name, MessageChannel inputChannel, Properties properties) {
-		// Usage of a different consumer group each time achieves pub-sub
-		// PubSub consumers reset at the latest time, which allows them to receive only messages sent after
-		// they've been bound
-		String group = UUID.randomUUID().toString();
-		createKafkaConsumer(name, inputChannel, properties, group, OffsetRequest.LatestTime());
+		createKafkaConsumer(name, inputChannel, properties, true, OffsetRequest.LatestTime());
 	}
 
 	@Override
 	public void bindProducer(final String name, MessageChannel moduleOutputChannel, Properties properties) {
 
 		Assert.isInstanceOf(SubscribableChannel.class, moduleOutputChannel);
-		KafkaPropertiesAccessor producerPropertiesAccessor = new KafkaPropertiesAccessor(properties);
+		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
 		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX) || name.startsWith(PUBSUB_NAMED_CHANNEL_TYPE_PREFIX)) {
 			validateProducerProperties(name, properties, SUPPORTED_NAMED_PRODUCER_PROPERTIES);
 		}
 		else {
 			validateProducerProperties(name, properties, SUPPORTED_PRODUCER_PROPERTIES);
 		}
-		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel,
-				producerPropertiesAccessor)) {
+
+		Collection<Partition> partitions;
+		if (!bindNewProducerDirectlyIfPossible(name, (SubscribableChannel) moduleOutputChannel, accessor)) {
 			if (logger.isInfoEnabled()) {
-				logger.info("Using kafka topic for outbound: " + name);
+				logger.info("Using Kafka topic for outbound: " + name);
 			}
 
 			final String topicName = escapeTopicName(name);
+			int defaultPartitionCount = accessor.getNumberOfKafkaPartitionsForProducer();
 
-			int numPartitions = producerPropertiesAccessor.getNumberOfKafkaPartitionsForProducer();
+			partitions = initializePartitions(name, topicName, defaultPartitionCount);
 
-			Collection<Partition> partitions = ensureTopicCreated(topicName, numPartitions, defaultReplicationFactor);
-
-			ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<>(
-					topicName, byte[].class, byte[].class, BYTE_ARRAY_SERIALIZER, BYTE_ARRAY_SERIALIZER);
-			producerMetadata.setCompressionType(ProducerMetadata.CompressionType.valueOf(
-					producerPropertiesAccessor.getCompressionCodec(this.defaultCompressionCodec)));
-			producerMetadata.setBatchBytes(producerPropertiesAccessor.getBatchSize(this.defaultBatchSize));
+			ProducerMetadata<byte[], byte[]> producerMetadata = new ProducerMetadata<>(topicName, byte[].class,
+					byte[].class, BYTE_ARRAY_SERIALIZER, BYTE_ARRAY_SERIALIZER);
+			producerMetadata.setCompressionType(ProducerMetadata.CompressionType
+					.valueOf(accessor.getCompressionCodec(this.defaultCompressionCodec)));
+			producerMetadata.setBatchBytes(accessor.getBatchSize(this.defaultBatchSize));
 			Properties additionalProps = new Properties();
 			additionalProps.put(ProducerConfig.ACKS_CONFIG,
-					String.valueOf(producerPropertiesAccessor.getRequiredAcks(this
-							.defaultRequiredAcks)));
+					String.valueOf(accessor.getRequiredAcks(this.defaultRequiredAcks)));
 			additionalProps.put(ProducerConfig.LINGER_MS_CONFIG,
-					String.valueOf(producerPropertiesAccessor.getBatchTimeout(this
-							.defaultBatchTimeout)));
-			ProducerFactoryBean<byte[], byte[]> producerFB =
-					new ProducerFactoryBean<>(producerMetadata, brokers, additionalProps);
+					String.valueOf(accessor.getBatchTimeout(this.defaultBatchTimeout)));
+			ProducerFactoryBean<byte[], byte[]> producerFB = new ProducerFactoryBean<>(producerMetadata, brokers,
+					additionalProps);
 
 			try {
 				final ProducerConfiguration<byte[], byte[]> producerConfiguration = new ProducerConfiguration<>(
 						producerMetadata, producerFB.getObject());
-
-				MessageHandler handler = new SendingHandler(topicName, producerPropertiesAccessor,
-						partitions.size(), producerConfiguration);
+				MessageHandler handler = new SendingHandler(topicName, accessor, partitions.size(),
+						producerConfiguration);
 				EventDrivenConsumer consumer = new EventDrivenConsumer((SubscribableChannel) moduleOutputChannel,
 						handler);
 				consumer.setBeanFactory(this.getBeanFactory());
 				consumer.setBeanName("outbound." + name);
 				consumer.afterPropertiesSet();
-				Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer,
-						producerPropertiesAccessor);
+				Binding producerBinding = Binding.forProducer(name, moduleOutputChannel, consumer, accessor);
 				addBinding(producerBinding);
 				producerBinding.start();
 			}
@@ -538,6 +563,23 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		}
 
+	}
+
+	private Collection<Partition> initializePartitions(String name, String topicName, int defaultPartitionCount) {
+		Collection<Partition> partitions;
+		try {
+			// existing topics for named channels or taps should never be repartitioned
+			if ((isNamedChannel(name) || isTap(name)) && topicExists(topicName)) {
+				partitions = getPartitions(topicName);
+			}
+			else {
+				partitions = ensureTopicCreated(topicName, defaultPartitionCount, defaultReplicationFactor, true);
+			}
+		}
+		catch (Exception exception) {
+			throw new RuntimeException("Cannot initialize message bus:", exception);
+		}
+		return partitions;
 	}
 
 	@Override
@@ -559,74 +601,93 @@ public class KafkaMessageBus extends MessageBusSupport {
 	 * Creates a Kafka topic if needed, or try to increase its partition count to the desired number.
 	 */
 	private Collection<Partition> ensureTopicCreated(final String topicName, final int numPartitions,
-			int replicationFactor) {
-
-		final int sessionTimeoutMs = 10000;
-		final int connectionTimeoutMs = 10000;
-		final ZkClient zkClient = new ZkClient(zkAddress, sessionTimeoutMs, connectionTimeoutMs, utf8Serializer);
-		try {
-			// The following is basically copy/paste from AdminUtils.createTopic() with
-			// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
+			int replicationFactor, final boolean createOrResize) {
+		// The following is basically copy/paste from AdminUtils.createTopic() with
+		// createOrUpdateTopicPartitionAssignmentPathInZK(..., update=true)
+		if (createOrResize) {
 			final Properties topicConfig = new Properties();
 			Seq<Object> brokerList = ZkUtils.getSortedBrokerList(zkClient);
-			final scala.collection.Map<Object, Seq<Object>> replicaAssignment = AdminUtils.assignReplicasToBrokers
-					(brokerList,
-							numPartitions, replicationFactor, -1, -1);
+			final scala.collection.Map<Object, Seq<Object>> replicaAssignment =
+					AdminUtils.assignReplicasToBrokers(brokerList, numPartitions, replicationFactor, -1, -1);
 			retryOperations.execute(new RetryCallback<Object, RuntimeException>() {
-
-				@Override
-				public Object doWithRetry(RetryContext context) throws RuntimeException {
+				@Override public Object doWithRetry(RetryContext context) throws RuntimeException {
 					AdminUtils.createOrUpdateTopicPartitionAssignmentPathInZK(zkClient, topicName, replicaAssignment,
 							topicConfig, true);
 					return null;
 				}
 			});
-			try {
-				Collection<Partition> partitions = retryOperations.execute(new RetryCallback<Collection<Partition>, Exception>() {
-
-					@Override
-					public Collection<Partition> doWithRetry(RetryContext context) throws Exception {
-						connectionFactory.refreshMetadata(Collections.singleton(topicName));
-						Collection<Partition> partitions = connectionFactory.getPartitions(topicName);
-						if (partitions.size() < numPartitions) {
-							throw new IllegalStateException("The number of expected partitions was: " + numPartitions
-									+ ", but " +
-									partitions.size() + " have been found instead");
-						}
-						connectionFactory.getLeaders(partitions);
-						return partitions;
-					}
-				});
-				return partitions;
-			}
-			catch (Exception e) {
-				logger.error("Cannot initialize MessageBus", e);
-				throw new RuntimeException("Cannot initialize message bus:", e);
-			}
-
 		}
-		finally {
-			zkClient.close();
+		return getPartitions(topicName, numPartitions);
+	}
+
+	/**
+	 * Fetches partition data, throwing an exception if the expected number is not met after a number of
+	 * subsequent retries
+	 * @param topicName topic
+	 * @param expectedNumber expected number of partitions. If less or equal to 0, check is suppressed.
+	 * @return the partitions
+	 */
+	private Collection<Partition> getPartitions(final String topicName, final int expectedNumber) {
+		try {
+			Collection<Partition> partitions =
+					retryOperations.execute(new RetryCallback<Collection<Partition>, Exception>() {
+						@Override public Collection<Partition> doWithRetry(RetryContext context) throws Exception {
+							connectionFactory.refreshMetadata(Collections.singleton(topicName));
+							Collection<Partition> partitions = connectionFactory.getPartitions(topicName);
+							if (expectedNumber > 0 && partitions.size() < expectedNumber) {
+								throw new IllegalStateException(
+										"The number of expected partitions was: " + expectedNumber + ", but "
+												+ partitions.size() + " have been found instead");
+							}
+							connectionFactory.getLeaders(partitions);
+							return partitions;
+						}
+					});
+			return partitions;
+		}
+		catch (Exception e) {
+			logger.error("Cannot initialize MessageBus", e);
+			throw new RuntimeException("Cannot initialize message bus:", e);
 		}
 	}
 
-	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,
-			String group, long referencePoint) {
+	private Collection<Partition> getPartitions(final String topicName) {
+		return getPartitions(topicName, 0);
+	}
 
-		if (name.startsWith(P2P_NAMED_CHANNEL_TYPE_PREFIX)) {
-			validateConsumerProperties(name, properties, SUPPORTED_NAMED_CONSUMER_PROPERTIES);
+	private void createKafkaConsumer(String name, final MessageChannel moduleInputChannel, Properties properties,
+			boolean pubSub, long referencePoint) {
+
+		// we remove the group qualifier
+		String unqualifiedName = pubSub ? BusUtils.removeGroupFromPubSub(name) : name;
+
+		if (pubSub) {
+			if (isNamedChannel(unqualifiedName)) {
+				validateConsumerProperties(name, properties, SUPPORTED_NAMED_PUBSUB_CONSUMER_PROPERTIES);
+			}
+			else {
+				validateConsumerProperties(name, properties, SUPPORTED_PUBSUB_CONSUMER_PROPERTIES);
+			}
 		}
 		else {
-			validateConsumerProperties(name, properties, SUPPORTED_CONSUMER_PROPERTIES);
+			if (isNamedChannel(unqualifiedName)) {
+				validateConsumerProperties(name, properties, SUPPORTED_NAMED_CONSUMER_PROPERTIES);
+			}
+			else {
+				validateConsumerProperties(name, properties, SUPPORTED_CONSUMER_PROPERTIES);
+			}
 		}
 		KafkaPropertiesAccessor accessor = new KafkaPropertiesAccessor(properties);
 
 		int maxConcurrency = accessor.getConcurrency(defaultConcurrency);
 
-		String topic = escapeTopicName(name);
 
-		int numPartitions = accessor.getNumberOfKafkaPartitionsForConsumer();
-		Collection<Partition> allPartitions = ensureTopicCreated(topic, numPartitions, defaultReplicationFactor);
+
+		String listenedTopicName = escapeTopicName(unqualifiedName);
+
+		int partitionCountFromConfiguration = accessor.getNumberOfKafkaPartitionsForConsumer();
+		Collection<Partition> partitions = initializePartitions(
+				unqualifiedName, listenedTopicName, partitionCountFromConfiguration);
 
 		Decoder<byte[]> valueDecoder = new DefaultDecoder(null);
 		Decoder<byte[]> keyDecoder = new DefaultDecoder(null);
@@ -636,11 +697,11 @@ public class KafkaMessageBus extends MessageBusSupport {
 		int moduleCount = accessor.getCount();
 
 		if (moduleCount == 1) {
-			listenedPartitions = allPartitions;
+			listenedPartitions = partitions;
 		}
 		else {
 			listenedPartitions = new ArrayList<Partition>();
-			for (Partition partition : allPartitions) {
+			for (Partition partition : partitions) {
 				// divide partitions across modules
 				if (accessor.getPartitionIndex() != -1) {
 					if ((partition.getId() % moduleCount) == accessor.getPartitionIndex()) {
@@ -668,9 +729,14 @@ public class KafkaMessageBus extends MessageBusSupport {
 		final FixedSubscriberChannel bridge = new FixedSubscriberChannel(rh);
 		bridge.setBeanName("bridge." + name);
 
+		String group = pubSub ? BusUtils.getGroupFromPubSub(name) : POINT_TO_POINT_SEMANTICS_CONSUMER_GROUP;
+
+		boolean resetOffsets = pubSub && !accessor.isDurable(defaultDurableSubscription);
+
 		final KafkaMessageListenerContainer messageListenerContainer =
-				createMessageListenerContainer(accessor, group, maxConcurrency, listenedPartitions,
-						referencePoint);
+				createMessageListenerContainer(accessor,
+						group, maxConcurrency, listenedPartitions,
+						referencePoint, resetOffsets);
 
 		final KafkaMessageDrivenChannelAdapter kafkaMessageDrivenChannelAdapter =
 				new KafkaMessageDrivenChannelAdapter(messageListenerContainer);
@@ -678,7 +744,8 @@ public class KafkaMessageBus extends MessageBusSupport {
 		kafkaMessageDrivenChannelAdapter.setKeyDecoder(keyDecoder);
 		kafkaMessageDrivenChannelAdapter.setPayloadDecoder(valueDecoder);
 		kafkaMessageDrivenChannelAdapter.setOutputChannel(bridge);
-		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(accessor.getAutoCommitOffsetEnabled(this.defaultAutoCommitOffsetEnabled));
+		kafkaMessageDrivenChannelAdapter.setAutoCommitOffset(
+				accessor.getAutoCommitOffsetEnabled(this.defaultAutoCommitOffsetEnabled));
 		kafkaMessageDrivenChannelAdapter.afterPropertiesSet();
 		kafkaMessageDrivenChannelAdapter.start();
 
@@ -692,20 +759,30 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 	}
 
+	private boolean topicExists(String tappedTopicName) {
+		return AdminUtils$.MODULE$.topicExists(zkClient, tappedTopicName);
+	}
+
+	private boolean isTap(String name) {
+		return name.startsWith(TAP_TYPE_PREFIX);
+	}
+
 	public KafkaMessageListenerContainer createMessageListenerContainer(Properties properties, String group,
-			int maxConcurrency, String topic, long referencePoint) {
+			int maxConcurrency, String topic, long referencePoint, boolean resetOffsets) {
 		return createMessageListenerContainer(new KafkaPropertiesAccessor(properties), group, maxConcurrency, topic,
-				null, referencePoint);
+				null, referencePoint, resetOffsets);
 	}
 
 	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
-			String group, int maxConcurrency, Collection<Partition> listenedPartitions, long referencePoint) {
-		return createMessageListenerContainer(accessor, group, maxConcurrency, null, listenedPartitions, referencePoint);
+			String group, int maxConcurrency, Collection<Partition> listenedPartitions, long referencePoint,
+			boolean resetOffsets) {
+		return createMessageListenerContainer(accessor, group, maxConcurrency, null, listenedPartitions,
+				referencePoint, resetOffsets);
 	}
 
 	private KafkaMessageListenerContainer createMessageListenerContainer(KafkaPropertiesAccessor accessor,
 			String group, int maxConcurrency, String topic, Collection<Partition> listenedPartitions,
-			long referencePoint) {
+			long referencePoint, boolean resetOffsets) {
 		Assert.isTrue(StringUtils.hasText(topic) ^ !CollectionUtils.isEmpty(listenedPartitions),
 				"Exactly one of topic or a list of listened partitions must be provided");
 		KafkaMessageListenerContainer messageListenerContainer;
@@ -722,6 +799,9 @@ public class KafkaMessageBus extends MessageBusSupport {
 		// if we have less target partitions than target concurrency, adjust accordingly
 		messageListenerContainer.setConcurrency(Math.min(maxConcurrency, listenedPartitions.size()));
 		OffsetManager offsetManager = createOffsetManager(group, referencePoint);
+		if (resetOffsets) {
+			offsetManager.resetOffsets(listenedPartitions);
+		}
 		messageListenerContainer.setOffsetManager(offsetManager);
 		int queueSize = accessor.getProperty(QUEUE_SIZE, defaultQueueSize);
 		Assert.isTrue(queueSize > 0 && Integer.bitCount(queueSize) == 1, "must be a power of 2");
@@ -892,7 +972,7 @@ public class KafkaMessageBus extends MessageBusSupport {
 
 		private final PartitioningMetadata partitioningMetadata;
 
-		private final AtomicInteger roundRobinCount = new AtomicInteger();
+		private final AtomicInteger roundRobinCount = new AtomicInteger(-1);
 
 		private final String topicName;
 

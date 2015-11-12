@@ -95,6 +95,7 @@
 #        maxWait:                   100
 #        fetchSize:                 1048576
 #        minPartitionCount:         1
+#        durableSubscription:       false
 
 #Disable batch database initialization
 #spring:

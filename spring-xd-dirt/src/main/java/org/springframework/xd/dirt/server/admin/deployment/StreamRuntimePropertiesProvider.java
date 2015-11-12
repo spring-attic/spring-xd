@@ -16,17 +16,16 @@
 
 package org.springframework.xd.dirt.server.admin.deployment;
 
-import java.util.List;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
 import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.module.ModuleDeploymentProperties;
 import org.springframework.xd.module.ModuleDescriptor;
 import org.springframework.xd.module.RuntimeModuleDeploymentProperties;
+
+import java.util.List;
 
 
 /**
@@ -72,12 +71,15 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		int moduleSequence = properties.getSequence();
 		int moduleIndex = moduleDescriptor.getIndex();
 
-		// Not first
+		// not first or input channel is named
+		if (moduleIndex > 0 || isNamedChannelInput(moduleDescriptor)) {
+			properties.put("consumer." + BusProperties.SEQUENCE, String.valueOf(moduleSequence));
+			properties.put("consumer." + BusProperties.COUNT, String.valueOf(properties.getCount()));
+
+		}
 		if (moduleIndex > 0) {
 			ModuleDescriptor previous = streamModules.get(moduleIndex - 1);
 			ModuleDeploymentProperties previousProperties = deploymentPropertiesProvider.propertiesForDescriptor(previous);
-			properties.put("consumer." + BusProperties.SEQUENCE, String.valueOf(moduleSequence));
-			properties.put("consumer." + BusProperties.COUNT, String.valueOf(properties.getCount()));
 			if (hasPartitionKeyProperty(previousProperties)) {
 				properties.put("consumer." + BusProperties.PARTITION_INDEX, String.valueOf(moduleSequence - 1));
 			}
@@ -116,7 +118,8 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		}
 		else if (moduleIndex + 1 < streamModules.size()) {
 			// check for direct binding if the module is neither last nor partitioned
-			ModuleDeploymentProperties nextProperties = deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+			ModuleDeploymentProperties nextProperties
+					= deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
 			/*
 			 *  A direct binding is allowed if all of the following are true:
 			 *  1. the user did not explicitly disallow direct binding
@@ -145,6 +148,13 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		return properties;
 	}
 
+	private boolean isNamedChannelInput(ModuleDescriptor moduleDescriptor) {
+		return moduleDescriptor.getSourceChannelName() != null
+				&& (moduleDescriptor.getSourceChannelName().startsWith("tap:")
+				|| moduleDescriptor.getSourceChannelName().startsWith("topic:")
+				|| moduleDescriptor.getSourceChannelName().startsWith("queue:"));
+	}
+
 	/**
 	 * Return {@code true} if the provided properties include a property
 	 * used to extract a partition key.
@@ -153,7 +163,8 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 	 * @return true if the properties contain a partition key property
 	 */
 	private boolean hasPartitionKeyProperty(ModuleDeploymentProperties properties) {
-		return (properties.containsKey("producer.partitionKeyExpression") || properties.containsKey("producer.partitionKeyExtractorClass"));
+		return (properties.containsKey("producer.partitionKeyExpression")
+				|| properties.containsKey("producer.partitionKeyExtractorClass"));
 	}
 
 	/**

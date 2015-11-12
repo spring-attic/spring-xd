@@ -39,8 +39,7 @@ import org.springframework.messaging.support.GenericMessage;
  *
  * @author Gary Russell
  */
-public abstract class BrokerBusTests extends
-AbstractMessageBusTests {
+public abstract class BrokerBusTests extends AbstractMessageBusTests {
 
 	@Test
 	public void testDirectBinding() throws Exception {

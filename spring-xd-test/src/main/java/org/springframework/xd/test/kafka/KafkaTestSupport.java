@@ -65,7 +65,8 @@ public class KafkaTestSupport extends AbstractExternalResourceTestSupport<String
 	private Properties brokerConfig = TestUtils.createBrokerConfig(0, TestUtils.choosePort(), false);
 
 	static {
-		embedded = "true".equals(System.getProperty(XD_KAFKA_TEST_EMBEDDED));
+		embedded = "true".equals(System.getProperty(XD_KAFKA_TEST_EMBEDDED))
+				|| "true".equals(System.getenv(XD_KAFKA_TEST_EMBEDDED));
 		log.info(String.format("Testing with %s Kafka broker", embedded ? "embedded" : "external"));
 	}
 

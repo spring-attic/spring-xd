@@ -62,6 +62,14 @@ public class BusUtils {
 		}
 	}
 
+	public static String getGroupFromPubSub(String name) {
+		if (PUBSUB_NAMED_CHANNEL_PATTERN.matcher(name).find()) {
+			return name.substring(0,name.indexOf("."));
+		}
+		else {
+			return name;
+		}
+	}
 	/**
 	 * Determine whether the provided channel name represents a pub/sub channel (i.e. topic or tap).
 	 * @param channelName name of the channel to check

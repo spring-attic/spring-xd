@@ -21,16 +21,15 @@ import java.lang.management.OperatingSystemMXBean;
 import java.net.SocketException;
 import java.util.Properties;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import com.sun.management.UnixOperatingSystemMXBean;
 import org.hsqldb.persist.HsqlProperties;
 import org.hsqldb.server.ServerConfiguration;
 import org.hsqldb.server.ServerConstants;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.InitializingBean;
-
-import com.sun.management.UnixOperatingSystemMXBean;
 
 
 /**

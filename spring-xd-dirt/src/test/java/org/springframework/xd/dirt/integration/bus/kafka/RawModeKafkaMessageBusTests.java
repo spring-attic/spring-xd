@@ -18,6 +18,8 @@ package org.springframework.xd.dirt.integration.bus.kafka;
 
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
@@ -25,10 +27,12 @@ import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 
+import org.hamcrest.CoreMatchers;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -272,6 +276,7 @@ public class RawModeKafkaMessageBusTests extends KafkaMessageBusTests {
 
 	}
 
+	@Override
 	@Test
 	public void testSendAndReceivePubSub() throws Exception {
 		MessageBus messageBus = getMessageBus();
@@ -333,4 +338,69 @@ public class RawModeKafkaMessageBusTests extends KafkaMessageBusTests {
 		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
+	@Override
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSendAndReceivePubSubWithMultipleConsumers() throws Exception {
+		MessageBus messageBus = getMessageBus();
+		DirectChannel quuxUpstreamModuleOutputChannel = new DirectChannel();
+		// Test pub/sub by emulating how StreamPlugin handles taps
+		DirectChannel tapChannel = new DirectChannel();
+		QueueChannel basDownstreamModuleInputChannel = new QueueChannel();
+		QueueChannel fooTapDownstreamInputChannel = new QueueChannel();
+		QueueChannel barTapDowstreamInput1Channel = new QueueChannel();
+		QueueChannel barTapDowstreamInput2Channel = new QueueChannel();
+		String originalTopic = "quux.0";
+		messageBus.bindProducer(originalTopic, quuxUpstreamModuleOutputChannel, null);
+		messageBus.bindConsumer(originalTopic, basDownstreamModuleInputChannel, null);
+		quuxUpstreamModuleOutputChannel.addInterceptor(new WireTap(tapChannel));
+		Properties quuxTapProducerProperties = new Properties();
+		// set the partition count to two, so that the tap has two partitions as well
+		// this will be necessary to robin messages across the competing consumers
+		quuxTapProducerProperties.setProperty(BusProperties.MIN_PARTITION_COUNT, "2");
+		messageBus.bindPubSubProducer("tap:quux.http", tapChannel, quuxTapProducerProperties);
+		// A new module is using the tap as an input channel
+		String fooTapName = messageBus.isCapable(MessageBus.Capability.DURABLE_PUBSUB) ? "foo.tap:quux.http" : "tap:quux.http";
+		messageBus.bindPubSubConsumer(fooTapName, fooTapDownstreamInputChannel, null);
+		// Another new module is using tap as an input channel
+		String barTapName = messageBus.isCapable(MessageBus.Capability.DURABLE_PUBSUB) ? "bar.tap:quux.http" : "tap:quux.http";
+		Properties barTap1Properties = new Properties();
+		barTap1Properties.setProperty(BusProperties.COUNT, "2");
+		barTap1Properties.setProperty(BusProperties.SEQUENCE, "1");
+		messageBus.bindPubSubConsumer(barTapName, barTapDowstreamInput1Channel, barTap1Properties);
+		Properties barTap2Properties = new Properties();
+		barTap2Properties.setProperty(BusProperties.COUNT, "2");
+		barTap2Properties.setProperty(BusProperties.SEQUENCE, "2");
+		messageBus.bindPubSubConsumer(barTapName, barTapDowstreamInput2Channel, barTap2Properties);
+		Message<?> message1 = MessageBuilder.withPayload("foo1".getBytes()).build();
+		Message<?> message2 = MessageBuilder.withPayload("foo2".getBytes()).build();
+
+		quuxUpstreamModuleOutputChannel.send(message1);
+		quuxUpstreamModuleOutputChannel.send(message2);
+		Message<byte[]> inbound = (Message<byte[]>) basDownstreamModuleInputChannel.receive(5000);
+		assertNotNull(inbound);
+		assertEquals("foo1", new String(inbound.getPayload()));
+		inbound = (Message<byte[]>) basDownstreamModuleInputChannel.receive(5000);
+		assertNotNull(inbound);
+		assertEquals("foo2", new String(inbound.getPayload()));
+		List<Message<?>> tappedFoo = new ArrayList<>();
+		tappedFoo.add(fooTapDownstreamInputChannel.receive(5000));
+		tappedFoo.add(fooTapDownstreamInputChannel.receive(5000));
+		Message<byte[]> tappedBar1 = (Message<byte[]>) barTapDowstreamInput1Channel.receive(5000);
+		Message<byte[]> tappedBar2 = (Message<byte[]>) barTapDowstreamInput2Channel.receive(5000);
+		assertThat(tappedFoo,
+				CoreMatchers.<Message<?>>hasItems(hasProperty("payload", equalTo("foo1".getBytes())),
+						hasProperty("payload", equalTo("foo2".getBytes()))));
+		assertEquals("foo1", new String(tappedBar1.getPayload()));
+		assertEquals("foo2", new String(tappedBar2.getPayload()));
+
+		// when other tap stream is deleted
+		messageBus.unbindConsumers(fooTapName);
+		// Clean up as StreamPlugin would
+		messageBus.unbindConsumers(originalTopic);
+		messageBus.unbindProducers(originalTopic);
+		messageBus.unbindProducers("tap:quux.http");
+		messageBus.unbindConsumers(barTapName);
+		assertTrue(getBindings(messageBus).isEmpty());
+	}
 }

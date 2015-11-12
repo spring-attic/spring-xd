@@ -80,6 +80,8 @@ public abstract class MessageBusSupport
 
 	protected static final String P2P_NAMED_CHANNEL_TYPE_PREFIX = "queue:";
 
+	protected static final String TAP_TYPE_PREFIX = "tap:";
+
 	protected static final String PUBSUB_NAMED_CHANNEL_TYPE_PREFIX = "topic:";
 
 	protected static final String JOB_CHANNEL_TYPE_PREFIX = "job:";

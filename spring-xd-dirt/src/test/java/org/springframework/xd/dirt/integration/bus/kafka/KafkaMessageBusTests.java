@@ -16,16 +16,20 @@
 
 package org.springframework.xd.dirt.integration.bus.kafka;
 
+import static org.hamcrest.CoreMatchers.everyItem;
 import static org.hamcrest.CoreMatchers.instanceOf;
+import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
 import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
+import static org.hamcrest.collection.IsMapContaining.hasEntry;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
@@ -37,6 +41,8 @@ import java.util.concurrent.TimeUnit;
 
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.hamcrest.CoreMatchers;
+import org.hamcrest.beans.HasPropertyWithValue;
 import org.hamcrest.collection.IsMapContaining;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -45,6 +51,7 @@ import org.junit.Test;
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
+import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.endpoint.AbstractEndpoint;
 import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
@@ -52,9 +59,11 @@ import org.springframework.integration.kafka.listener.AcknowledgingMessageListen
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.MessageListener;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
+import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -64,7 +73,6 @@ import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
 import kafka.api.OffsetRequest;
-
 
 /**
  * Integration tests for the {@link KafkaMessageBus}.
@@ -109,7 +117,7 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		// Rewind offset, as tests will have typically already sent the messages we're trying to consume
 
 		KafkaMessageListenerContainer messageListenerContainer = busWrapper.getCoreMessageBus().createMessageListenerContainer(
-				new Properties(), UUID.randomUUID().toString(), 1, topic, OffsetRequest.EarliestTime());
+				new Properties(), UUID.randomUUID().toString(), 1, topic, OffsetRequest.EarliestTime(), false);
 
 		final BlockingQueue<KafkaMessage> messages = new ArrayBlockingQueue<KafkaMessage>(10);
 
@@ -435,6 +443,85 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		bus.unbindProducers("foo" + uniqueBindingId + ".0");
 		bus.unbindConsumers("foo" + uniqueBindingId + ".0");
 		bus.cleanup();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testSendAndReceivePubSubWithMultipleConsumers() throws Exception {
+		MessageBus messageBus = getMessageBus();
+		DirectChannel graultUpstreamModuleOutputChannel = new DirectChannel();
+		// Test pub/sub by emulating how StreamPlugin handles taps
+		DirectChannel tapChannel = new DirectChannel();
+		QueueChannel graultDownstreamModuleInputChannel = new QueueChannel();
+		QueueChannel fooTapDownstreamInputChannel = new QueueChannel();
+		QueueChannel barTapDowstreamInput1Channel = new QueueChannel();
+		QueueChannel barTapDowstreamInput2Channel = new QueueChannel();
+		String originalTopic = "grault.0";
+		messageBus.bindProducer(originalTopic, graultUpstreamModuleOutputChannel, null);
+		messageBus.bindConsumer(originalTopic, graultDownstreamModuleInputChannel, null);
+		graultUpstreamModuleOutputChannel.addInterceptor(new WireTap(tapChannel));
+		Properties graultTapProducerProperties = new Properties();
+		// set the partition count to two, so that the tap has two partitions as well
+		// this will be necessary to robin messages across the competing consumers
+		graultTapProducerProperties.setProperty(BusProperties.MIN_PARTITION_COUNT, "2");
+		messageBus.bindPubSubProducer("tap:grault.http", tapChannel, graultTapProducerProperties);
+		// A new module is using the tap as an input channel
+		String fooTapName = messageBus.isCapable(MessageBus.Capability.DURABLE_PUBSUB) ? "foo.tap:grault.http" : "tap:grault.http";
+		messageBus.bindPubSubConsumer(fooTapName, fooTapDownstreamInputChannel, null);
+		// Another new module is using tap as an input channel
+		String barTapName = messageBus.isCapable(MessageBus.Capability.DURABLE_PUBSUB) ? "bar.tap:grault.http" : "tap:grault.http";
+		Properties barTap1Properties = new Properties();
+		barTap1Properties.setProperty(BusProperties.COUNT, "2");
+		barTap1Properties.setProperty(BusProperties.SEQUENCE, "1");
+		messageBus.bindPubSubConsumer(barTapName, barTapDowstreamInput1Channel, barTap1Properties);
+		Properties barTap2Properties = new Properties();
+		barTap2Properties.setProperty(BusProperties.COUNT, "2");
+		barTap2Properties.setProperty(BusProperties.SEQUENCE, "2");
+		messageBus.bindPubSubConsumer(barTapName, barTapDowstreamInput2Channel, barTap2Properties);
+		Message<?> message1 = MessageBuilder.withPayload("foo1").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar")
+				.build();
+		Message<?> message2 = MessageBuilder.withPayload("foo2").setHeader(MessageHeaders.CONTENT_TYPE, "foo/bar")
+				.build();
+
+		graultUpstreamModuleOutputChannel.send(message1);
+		graultUpstreamModuleOutputChannel.send(message2);
+		Message<?> graultDownstreamInbound = graultDownstreamModuleInputChannel.receive(5000);
+		assertNotNull(graultDownstreamInbound);
+		assertEquals("foo1", graultDownstreamInbound.getPayload());
+		assertNull(graultDownstreamInbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
+		assertEquals("foo/bar", graultDownstreamInbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		graultDownstreamInbound = graultDownstreamModuleInputChannel.receive(5000);
+		assertNotNull(graultDownstreamInbound);
+		assertEquals("foo2", graultDownstreamInbound.getPayload());
+		assertNull(graultDownstreamInbound.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
+		assertEquals("foo/bar", graultDownstreamInbound.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		List<Message<?>> tappedFoo = new ArrayList<>();
+		tappedFoo.add(fooTapDownstreamInputChannel.receive(5000));
+		tappedFoo.add(fooTapDownstreamInputChannel.receive(5000));
+		Message<?> tappedBar1 = barTapDowstreamInput1Channel.receive(5000);
+		Message<?> tappedBar2 = barTapDowstreamInput2Channel.receive(5000);
+		assertThat(tappedFoo,
+				CoreMatchers.<Message<?>>hasItems(hasProperty("payload", equalTo("foo1")),
+						hasProperty("payload", equalTo("foo2"))));
+		assertThat(tappedFoo,
+				everyItem(HasPropertyWithValue.<Message<?>>hasProperty("headers",
+						hasEntry(XdHeaders.XD_ORIGINAL_CONTENT_TYPE, null))));
+		assertThat(tappedFoo,
+				everyItem(HasPropertyWithValue.<Message<?>>hasProperty("headers",
+						hasEntry(MessageHeaders.CONTENT_TYPE, "foo/bar"))));
+		assertEquals("foo1", tappedBar1.getPayload());
+		assertNull(tappedBar1.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
+		assertEquals("foo/bar", tappedBar1.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+		assertEquals("foo2", tappedBar2.getPayload());
+		assertNull(tappedBar2.getHeaders().get(XdHeaders.XD_ORIGINAL_CONTENT_TYPE));
+		assertEquals("foo/bar", tappedBar2.getHeaders().get(MessageHeaders.CONTENT_TYPE));
+
+		messageBus.unbindConsumers(fooTapName);
+		messageBus.unbindConsumers(originalTopic);
+		messageBus.unbindProducers(originalTopic);
+		messageBus.unbindProducers("tap:grault.http");
+		messageBus.unbindConsumers(barTapName);
+		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
 

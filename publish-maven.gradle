@@ -4,7 +4,7 @@ apply plugin: 'maven-publish'
 task install(dependsOn: 'publishToMavenLocal') {}
 
 // exclude hadoop install sub projects
-def hadoopInstalls = ['cdh5', 'hadoop27', 'hdp23', 'phd21', 'phd30']
+def hadoopInstalls = ['cdh5', 'hadoop27', 'hdp22', 'phd21', 'phd30']
 if (hadoopInstalls.contains(project.name)) {
 	project.tasks.findByPath("artifactoryPublish")?.enabled = false
 }

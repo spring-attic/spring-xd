@@ -328,7 +328,7 @@ Spring XD supports the following Hadoop distributions:
 * phd21 - Pivotal HD 2.1 and 2.0
 * phd30 - Pivotal HD 3.0
 * cdh5 - Cloudera CDH 5.3.0
-* hdp23 - Hortonworks Data Platform 2.3
+* hdp22 - Hortonworks Data Platform 2.2
 
 To specify the distribution libraries to use for Hadoop client connections, use the option + 
 `--hadoopDistro` for the `xd-container` and `xd-shell` commands: 

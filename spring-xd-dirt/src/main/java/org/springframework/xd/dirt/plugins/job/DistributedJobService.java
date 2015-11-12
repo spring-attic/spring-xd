@@ -107,6 +107,10 @@ public class DistributedJobService extends SimpleJobService {
 		return this.xdJdbcSearchableJobExecutionDao.getTopLevelJobExecutions(start, count);
 	}
 
+	public int countTopLevelJobExecutions() {
+		return this.xdJdbcSearchableJobExecutionDao.countTopLevelJobExecutions();
+	}
+
 	/**
 	 * Get a list of all {@link JobExecution}s that are direct children to the
 	 * provided {@link JobExecution} ID.

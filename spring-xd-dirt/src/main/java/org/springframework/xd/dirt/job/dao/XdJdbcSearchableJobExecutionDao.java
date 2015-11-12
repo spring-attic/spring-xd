@@ -136,6 +136,13 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 		}
 	}
 
+	public int countTopLevelJobExecutions() {
+		return getJdbcTemplate().queryForObject(getQuery("SELECT COUNT(1) from %PREFIX%JOB_EXECUTION bje where " +
+				"not exists (select 1 from %PREFIX%JOB_EXECUTION_PARAMS bje_params where key_name = '"
+				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID
+				+ "' and bje.JOB_EXECUTION_ID=bje_params.JOB_EXECUTION_ID)"), Integer.class);
+	}
+
 	/**
 	 *
 	 * @param jobExecutionId
@@ -157,8 +164,8 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 	 * @return
 	 */
 	public boolean isComposedJobExecution(long jobExecutionId) {
-		String query = "select count(*) from BATCH_JOB_EXECUTION_PARAMS a where key_name = '"
-				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID + "' and string_val = ?";
+		String query = getQuery("select count(*) from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = '"
+				+ JobLaunchingTasklet.XD_PARENT_JOB_EXECUTION_ID + "' and string_val = ?");
 		int count = getJdbcTemplate().queryForObject(query, Integer.class, String.valueOf(jobExecutionId));
 		return count > 0 ? true : false;
 	}

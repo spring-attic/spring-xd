@@ -38,7 +38,7 @@ import org.springframework.util.Assert;
 public class JobLaunchingJobRepositoryFactoryBean extends JobRepositoryFactoryBean {
 
 	private PlatformTransactionManager transactionManager;
-	private static final String DEFAULT_ISOLATION_LEVEL = "ISOLATION_SERIALIZABLE";
+	private static final String DEFAULT_ISOLATION_LEVEL = "ISOLATION_READ_COMMITTED";
 	private String isolationLevelForCreate = DEFAULT_ISOLATION_LEVEL;
 	private boolean validateTransactionState = true;
 	private ProxyFactory proxyFactory;

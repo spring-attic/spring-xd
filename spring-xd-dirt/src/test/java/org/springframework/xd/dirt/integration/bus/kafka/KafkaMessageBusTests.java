@@ -24,6 +24,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -318,6 +319,49 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		assertThat(partitions, hasSize(5));
 		messageBus.unbindProducers("foo" + uniqueBindingId + ".0");
 		messageBus.unbindConsumers("foo" + uniqueBindingId + ".0");
+	}
+
+	@Test
+	public void testNamedChannelPartitionCount() throws Exception {
+
+		byte[] ratherBigPayload = new byte[2048];
+		Arrays.fill(ratherBigPayload, (byte) 65);
+		KafkaTestMessageBus messageBus = (KafkaTestMessageBus) getMessageBus();
+
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		Properties producerProperties = new Properties();
+		producerProperties.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		Properties consumerProperties = new Properties();
+		consumerProperties.put(BusProperties.MIN_PARTITION_COUNT, "5");
+		long uniqueBindingId = System.currentTimeMillis();
+		messageBus.bindProducer("queue:foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+		messageBus.bindConsumer("queue:foo" + uniqueBindingId + ".0", moduleInputChannel, consumerProperties);
+		producerProperties.put(BusProperties.PARTITION_KEY_EXPRESSION, "payload");
+		try {
+			messageBus.bindProducer("topic:foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+			fail("exception expected");
+		}
+		catch (Exception e) {
+			assertThat(e, instanceOf(IllegalArgumentException.class));
+		}
+		producerProperties.remove(BusProperties.PARTITION_KEY_EXPRESSION);
+		messageBus.bindProducer("topic:foo" + uniqueBindingId + ".0", moduleOutputChannel, producerProperties);
+		Message<?> message = org.springframework.integration.support.MessageBuilder.withPayload(ratherBigPayload).build();
+		// Let the consumer actually bind to the producer before sending a msg
+		busBindUnbindLatency();
+		moduleOutputChannel.send(message);
+		Message<?> inbound = moduleInputChannel.receive(2000);
+		assertNotNull(inbound);
+		assertArrayEquals(ratherBigPayload, (byte[]) inbound.getPayload());
+		Collection<Partition> partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions(
+				"queue_3Afoo" + uniqueBindingId + ".0");
+		assertThat(partitions, hasSize(5));
+		partitions = messageBus.getCoreMessageBus().getConnectionFactory().getPartitions(
+				"topic_3Afoo" + uniqueBindingId + ".0");
+		messageBus.unbindProducers("queue:foo" + uniqueBindingId + ".0");
+		messageBus.unbindConsumers("queue:foo" + uniqueBindingId + ".0");
+		messageBus.unbindProducers("topic:foo" + uniqueBindingId + ".0");
 	}
 
 	@Test

@@ -769,6 +769,7 @@ public abstract class MessageBusSupport
 	protected void validateProducerProperties(String name, Properties properties, Set<Object> supported) {
 		if (properties != null) {
 			validateProperties(name, properties, supported, "producer");
+			validatePartitioning(name, properties);
 		}
 	}
 
@@ -788,6 +789,27 @@ public abstract class MessageBusSupport
 					+ (errors == 1 ? "y: " : "ies: ")
 					+ builder.substring(0, builder.length() - 1)
 					+ " for " + name + ".");
+		}
+	}
+
+	private void validatePartitioning(String name, Properties properties) {
+		if (!isCapable(Capability.NATIVE_PARTITIONING)
+				&& (StringUtils.hasText(properties.getProperty(BusProperties.PARTITION_KEY_EXPRESSION))
+				|| StringUtils.hasText(properties.getProperty(BusProperties.PARTITION_KEY_EXTRACTOR_CLASS)))) {
+			String nextModuleCount = properties.getProperty(BusProperties.NEXT_MODULE_COUNT);
+			Assert.hasText(nextModuleCount,
+					String.format(getClass().getSimpleName() + " requires partitioned data to be sent to a module "
+							+ "having 'count' > 1 for '%s'", name));
+			try {
+				Assert.isTrue(Integer.parseInt(nextModuleCount) > 1,
+						String.format(getClass().getSimpleName() + " requires that module '%s' sends partitioned data to a"
+								+ " module having 'count' > 1", name));
+			}
+			catch (NumberFormatException e) {
+				throw new IllegalArgumentException(String.format("Property '%s' for " +
+								"module '%s' does not contain a valid integer, current value is '%s'",
+						BusProperties.NEXT_MODULE_COUNT, name, nextModuleCount));
+			}
 		}
 	}
 

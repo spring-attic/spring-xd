@@ -422,12 +422,12 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 	public boolean isCapable(Capability capability) {
 		switch (capability) {
 		case DURABLE_PUBSUB:
+		case NATIVE_PARTITIONING:
 			return true;
 		default:
 			return false;
 		}
 	}
-
 
 	/**
 	 * Allowed chars are ASCII alphanumerics, '.', '_' and '-'. '_' is used as escaped char in the form '_xx' where xx

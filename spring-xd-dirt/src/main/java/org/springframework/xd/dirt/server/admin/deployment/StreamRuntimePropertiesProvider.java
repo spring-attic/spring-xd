@@ -21,7 +21,6 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import org.springframework.util.Assert;
 import org.springframework.xd.dirt.core.Stream;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.module.ModuleDeploymentProperties;
@@ -104,13 +103,7 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 
 		// Partitioning
 		if (hasPartitionKeyProperty(properties)) {
-			// validate next module count if the stream is partitioned
-			try {
-				ModuleDeploymentProperties nextProperties =
-						deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
-				validateCountPropertyForPartitioning(nextProperties.get(ModuleDeploymentProperties.COUNT_KEY), moduleDescriptor);
-			}
-			catch (IndexOutOfBoundsException e) {
+			if (moduleIndex == streamModules.size() && !isNamedChannelOutput(moduleDescriptor)) {
 				logger.warn("Module '{}' is a sink module which contains a property " +
 								"of '{}' used for data partitioning; this feature is only " +
 								"supported for modules that produce data", moduleDescriptor,
@@ -119,8 +112,8 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		}
 		else if (moduleIndex + 1 < streamModules.size()) {
 			// check for direct binding if the module is neither last nor partitioned
-			ModuleDeploymentProperties nextProperties
-					= deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
+			ModuleDeploymentProperties nextProperties =
+					deploymentPropertiesProvider.propertiesForDescriptor(streamModules.get(moduleIndex + 1));
 			/*
 			 *  A direct binding is allowed if all of the following are true:
 			 *  1. the user did not explicitly disallow direct binding
@@ -157,6 +150,13 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 					|| sourceChannelName.startsWith("queue:"));
 	}
 
+	private boolean isNamedChannelOutput(ModuleDescriptor moduleDescriptor) {
+		String sinkChannelName = moduleDescriptor.getSinkChannelName();
+		return sinkChannelName != null
+				&& (sinkChannelName.startsWith("topic:")
+				|| sinkChannelName.startsWith("queue:"));
+	}
+
 	/**
 	 * Return {@code true} if the provided properties include a property
 	 * used to extract a partition key.
@@ -168,32 +168,4 @@ public class StreamRuntimePropertiesProvider extends RuntimeModuleDeploymentProp
 		return (properties.containsKey("producer.partitionKeyExpression")
 				|| properties.containsKey("producer.partitionKeyExtractorClass"));
 	}
-
-	/**
-	 * Validate the value of {@code count} for the purposes of partitioning.
-	 * The value of the string must consist of an integer > 1.
-	 *
-	 * @param count       value to validate
-	 * @param descriptor  module descriptor this {@code count} property
-	 *                    is associated with
-	 *
-	 * @throws IllegalArgumentException if the value of the string
-	 *         does not consist of an integer > 1
-	 */
-	private void validateCountPropertyForPartitioning(String count, ModuleDescriptor descriptor) {
-		Assert.hasText(count, String.format("'count' property is required " +
-				"in properties for module '%s' in order to support partitioning", descriptor));
-
-		try {
-			Assert.isTrue(Integer.parseInt(count) > 1,
-					String.format("'count' property for module '%s' must contain an " +
-							"integer > 1, current value is '%s'", descriptor, count));
-		}
-		catch (NumberFormatException e) {
-			throw new IllegalArgumentException(String.format("'count' property for " +
-					"module %s does not contain a valid integer, current value is '%s'",
-					descriptor, count));
-		}
-	}
-
 }

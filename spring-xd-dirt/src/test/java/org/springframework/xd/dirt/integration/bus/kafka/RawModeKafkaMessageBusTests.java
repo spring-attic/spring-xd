@@ -19,6 +19,7 @@ package org.springframework.xd.dirt.integration.bus.kafka;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.beans.HasPropertyWithValue.hasProperty;
+import static org.hamcrest.collection.IsCollectionWithSize.hasSize;
 import static org.hamcrest.core.IsEqual.equalTo;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -42,6 +43,7 @@ import org.springframework.integration.channel.DirectChannel;
 import org.springframework.integration.channel.QueueChannel;
 import org.springframework.integration.channel.interceptor.WireTap;
 import org.springframework.integration.endpoint.AbstractEndpoint;
+import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHeaders;
@@ -51,6 +53,8 @@ import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
 import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
+
+import kafka.admin.AdminUtils$;
 
 /**
  * @author Marius Bogoevici
@@ -182,6 +186,48 @@ public class RawModeKafkaMessageBusTests extends KafkaMessageBusTests {
 
 		bus.unbindConsumers("part.0");
 		bus.unbindProducers("part.0");
+	}
+
+	@Test
+	@Override
+	@SuppressWarnings("unchecked")
+	public void testPartitioningWithSingleReceiver() throws Exception {
+		MessageBus bus = getMessageBus();
+		String topicName = "foo" + System.currentTimeMillis() + ".0";
+		try {
+			byte partitionCount = 4;
+			Properties properties = new Properties();
+			properties.put("partitionKeyExpression", "payload[0]");
+			properties.put("partitionSelectorExpression", "hashCode()");
+			properties.put(BusProperties.MIN_PARTITION_COUNT, Integer.toString(partitionCount));
+			DirectChannel moduleOutputChannel = new DirectChannel();
+			QueueChannel moduleInputChannel = new QueueChannel();
+			bus.bindProducer(topicName, moduleOutputChannel, properties);
+			bus.bindConsumer(topicName, moduleInputChannel, null);
+			int totalSent = 0;
+			for (byte i = 0; i < partitionCount; i++) {
+				for (byte j = 0; j < partitionCount + 1; j++ ) {
+					// the distribution is uneven across partitions, so that we can verify that the bus doesn't round robin
+					moduleOutputChannel.send(new GenericMessage<>(new byte[] { (byte) (i * partitionCount + j) }));
+					totalSent ++;
+				}
+			}
+			List<Message<byte[]>> receivedMessages = new ArrayList<>();
+			for (int i = 0; i < totalSent; i++) {
+				assertTrue(receivedMessages.add((Message<byte[]>) moduleInputChannel.receive(2000)));
+			}
+
+			assertThat(receivedMessages, hasSize(totalSent));
+			for (Message<byte[]> receivedMessage : receivedMessages) {
+				int expectedPartition = receivedMessage.getPayload()[0] % partitionCount;
+				assertThat(expectedPartition, equalTo(receivedMessage.getHeaders().get(KafkaHeaders.PARTITION_ID)));
+			}
+		}
+		finally {
+			bus.unbindConsumers(topicName);
+			bus.unbindProducers(topicName);
+			AdminUtils$.MODULE$.deleteTopic(kafkaTestSupport.getZkClient(),topicName);
+		}
 	}
 
 	@Test

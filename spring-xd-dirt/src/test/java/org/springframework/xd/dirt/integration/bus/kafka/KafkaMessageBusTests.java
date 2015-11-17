@@ -58,12 +58,14 @@ import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
 import org.springframework.integration.kafka.listener.MessageListener;
+import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
 import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.test.util.TestUtils;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageHandler;
 import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.GenericMessage;
 import org.springframework.xd.dirt.integration.bus.Binding;
 import org.springframework.xd.dirt.integration.bus.BusProperties;
 import org.springframework.xd.dirt.integration.bus.MessageBus;
@@ -72,6 +74,7 @@ import org.springframework.xd.dirt.integration.bus.XdHeaders;
 import org.springframework.xd.dirt.integration.kafka.KafkaMessageBus;
 import org.springframework.xd.test.kafka.KafkaTestSupport;
 
+import kafka.admin.AdminUtils$;
 import kafka.api.OffsetRequest;
 
 /**
@@ -138,6 +141,48 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 			}
 		};
 
+	}
+
+	@Test
+	@Override
+	@SuppressWarnings("unchecked")
+	public void testPartitioningWithSingleReceiver() throws Exception {
+		MessageBus bus = getMessageBus();
+		String topicName = "foo" + System.currentTimeMillis() + ".0";
+		try {
+			int partitionCount = 4;
+			Properties properties = new Properties();
+			properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+			properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+			properties.put(BusProperties.MIN_PARTITION_COUNT, Integer.toString(partitionCount));
+			DirectChannel moduleOutputChannel = new DirectChannel();
+			QueueChannel moduleInputChannel = new QueueChannel();
+			bus.bindProducer(topicName, moduleOutputChannel, properties);
+			bus.bindConsumer(topicName, moduleInputChannel, null);
+			int totalSent = 0;
+			for (int i = 0; i < partitionCount; i++) {
+				for (int j = 0; j < partitionCount + 1; j++ ) {
+					// the distribution is uneven across partitions, so that we can verify that the bus doesn't round robin
+					moduleOutputChannel.send(new GenericMessage<Object>(i*partitionCount + j));
+					totalSent++;
+				}
+			}
+			List<Message<Integer>> receivedMessages = new ArrayList<>();
+			for (int i = 0; i < totalSent; i++) {
+				assertTrue(receivedMessages.add((Message<Integer>) moduleInputChannel.receive(2000)));
+			}
+
+			assertThat(receivedMessages, hasSize(totalSent));
+			for (Message<Integer> receivedMessage : receivedMessages) {
+				int expectedPartition = receivedMessage.getPayload() % partitionCount;
+				assertThat(expectedPartition, equalTo(receivedMessage.getHeaders().get(KafkaHeaders.PARTITION_ID)));
+			}
+		}
+		finally {
+			bus.unbindConsumers(topicName);
+			bus.unbindProducers(topicName);
+			AdminUtils$.MODULE$.deleteTopic(kafkaTestSupport.getZkClient(),topicName);
+		}
 	}
 
 	@Test

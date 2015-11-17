@@ -151,8 +151,14 @@ public interface MessageBus {
 		 * When a bus supports durable subscriptions to a pub/sub channel, the stream
 		 * name will be included in the consumer name.
 		 */
-		DURABLE_PUBSUB
+		DURABLE_PUBSUB,
 
+		/**
+		 * When a bus supports partitioning natively, then a partitioning strategy can
+		 * be provided for any kind of producer, regardless on the count of downstream
+		 * consumers
+		 */
+		NATIVE_PARTITIONING
 	}
 
 }

@@ -22,7 +22,7 @@ import org.springframework.xd.dirt.integration.bus.PartitionSelectorStrategy;
 
 
 /**
- * 
+ *
  * @author Marius Bogoevici
  */
 public class RawKafkaPartitionTestSupport implements PartitionKeyExtractorStrategy, PartitionSelectorStrategy {

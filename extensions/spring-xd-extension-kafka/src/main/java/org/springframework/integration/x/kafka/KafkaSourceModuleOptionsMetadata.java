@@ -44,7 +44,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String initialOffsets = "";
 
-	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.kafkaNative;
+	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.kafka;
 
 	private int streams = 1;
 

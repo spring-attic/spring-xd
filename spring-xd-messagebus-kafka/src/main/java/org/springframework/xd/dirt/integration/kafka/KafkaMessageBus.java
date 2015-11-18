@@ -307,7 +307,7 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	private Mode mode = Mode.embeddedHeaders;
 
-	private OffsetManagement offsetManagement = OffsetManagement.kafkaNative;
+	private OffsetManagement offsetManagement = OffsetManagement.kafkaTopic;
 
 	private ZkClient zkClient;
 

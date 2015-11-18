@@ -26,6 +26,11 @@ For Example:
 ----
 job create testjob --definition "batch_simple_def || batch_basic_def"
 ----
+
+[[composed-jobs-conditional-execution]]
+.Simple conditional execution
+image::images/composed_jobs_conditional_execution.png[width=500]
+
 When the composed job `testjob` is launched, it will launch the job
 `batch_simple_def` and if it completes successfully, then the job `batch_basic_def` will
 be launched.  If the `batch_simple_def` jobs fails, then the job `batch_basic_def` will 
@@ -41,6 +46,11 @@ For example:
 ----
 job create testjob --definition "aaa | FAILED=bbb | SUCCESS=ccc || ddd"
 ----
+
+[[composed-jobs-transition-example1]]
+.Simple transition example
+image::images/composed_jobs_transitions_one.png[width=500]
+
 In the example above aaa would launch and if it had an exit status of `FAILED`, then the bbb
 job would launch. If the exit status of aaa was `SUCCESS` then ccc would launch.  All other
 statuses returned by aaa would launch ddd. 
@@ -52,6 +62,11 @@ associated with the '*' will be launched. ie.
 ----
 job create testjob --definition "aaa | FAILED=bbb | SUCCESS=ccc || ddd | BAD=eee | '*' = fff"
 ----
+
+[[composed-jobs-transition-example2]]
+.Global transition example
+image::images/composed_jobs_transitions_two.png[width=500]
+
 In the example above, if an exit status of ddd is `BAD` then the eee job will launch but 
 all other exit status’s would launch the fff job.
 
@@ -71,12 +86,20 @@ For example
 job create testjob --definition "aaa | SUCCESS=ccc | '*' = $END"
 ----
 
+[[composed-jobs-keyword-example1]]
+.Example usage of END keyword
+image::images/composed_jobs_keyword_one.png[width=500]
+
 Will launch the ccc job if the exit status of aaa is `SUCCESS` but otherwise will end 
 the entire testjob execution successfully.  
 
 ----
 job create testjob --definition "aaa | SUCCESS=ccc | '*' = $FAIL"
 ----
+
+[[composed-jobs-keyword-example2]]
+.Example usage of FAIL keyword
+image::images/composed_jobs_keyword_two.png[width=500]
 
 Will launch the ccc job if the exit status of aaa is `SUCCESS` but otherwise will fail
 the entire testjob execution.  
@@ -91,11 +114,21 @@ For example:
 ----
 job create testjob --definition "<aaa & bbb & ccc>"
 ----
+
+[[composed-jobs-split-example1]]
+.Simple split example
+image::images/composed_jobs_split_one.png[width=500]
+
 The example above will launch jobs aaa, bbb and ccc in parallel.  With the job 
 composition DSL a user may also execute multiple split groups in succession.  For example:
 ----
 job create testjob --definition "<aaa & bbb & ccc> || <ddd & eee & fff>"
 ----
+
+[[composed-jobs-split-example2]]
+.Composition of splits
+image::images/composed_jobs_split_two.png[width=500]
+
 In the example above jobs aaa, bbb and ccc will be launched in parallel,
  once they all complete then jobs ddd, eee and fff will be launched in parallel.  
  Once they complete the composed job will end.
@@ -106,6 +139,11 @@ Supports the ability to launch conditional jobs within a split, for example:
 ----
 job create testjob --definition "<(aaa || bbb || ccc) & ddd & eee> || fff"
 ----
+
+[[composed-jobs-split-example3]]
+.Split with paranthesis
+image::images/composed_jobs_split_three.png[width=500]
+
 In this example the jobs aaa, bbb, and ccc will be launched in succession at the same 
 time that jobs ddd and eee are launched in parallel.  Once all of the jobs are complete 
 within the angle brackets job fff will be launched.
@@ -119,5 +157,10 @@ An example using the timeout is as follows:
 ----
 job create testjob --definition "aaa || bbb --timeout=5000"
 ----
+
+[[composed-jobs-parameter]]
+.Composed jobs with parameters
+image::images/composed_jobs_parameters.png[width=500]
+
 The timeout parameter affects all the jobs within the job composition.  All parameters
 for aaa and bbb must have been previously specified in their own job definitions.

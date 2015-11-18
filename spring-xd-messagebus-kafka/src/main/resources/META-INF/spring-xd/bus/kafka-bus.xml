@@ -19,6 +19,7 @@
 		<constructor-arg value="${xd.messagebus.kafka.headers:}" />
 
 		<property name="mode" value="${xd.messagebus.kafka.mode}"/>
+		<property name="offsetManagement" value="${xd.messagebus.kafka.offsetManagement}"/>
 
 		<!-- Producer properties -->
 		<property name="defaultBatchSize" value="${xd.messagebus.kafka.default.batchSize}"/>

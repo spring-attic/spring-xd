@@ -44,7 +44,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 
 	private String initialOffsets = "";
 
-	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.kafka_native;
+	private OffsetStorageStrategy offsetStorage = OffsetStorageStrategy.kafkaNative;
 
 	private int streams = 1;
 
@@ -176,7 +176,7 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 		inmemory,
 		redis,
 		kafka,
-		kafka_native
+		kafkaNative
 	}
 
 	@AssertTrue(message = "the options topic and topics are mutually exclusive")

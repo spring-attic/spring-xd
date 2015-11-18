@@ -127,7 +127,7 @@
 		</bean>
 	</beans>
 
-	<beans profile="kafka_native-offset-manager">
+	<beans profile="kafkaNative-offset-manager">
 		<bean id="offsetManager" class="org.springframework.integration.kafka.listener.KafkaNativeOffsetManager">
 			<constructor-arg index="0" ref="connectionFactory"/>
  			<constructor-arg index="1" ref="kafkaSourceZookeeperConnect"/>

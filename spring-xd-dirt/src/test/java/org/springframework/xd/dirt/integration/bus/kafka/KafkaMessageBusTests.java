@@ -57,6 +57,8 @@ import org.springframework.integration.kafka.core.KafkaMessage;
 import org.springframework.integration.kafka.core.Partition;
 import org.springframework.integration.kafka.listener.AcknowledgingMessageListener;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.integration.kafka.listener.KafkaNativeOffsetManager;
+import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
 import org.springframework.integration.kafka.listener.MessageListener;
 import org.springframework.integration.kafka.support.KafkaHeaders;
 import org.springframework.integration.kafka.support.ProducerConfiguration;
@@ -569,6 +571,65 @@ public class KafkaMessageBusTests extends PartitionCapableBusTests {
 		assertTrue(getBindings(messageBus).isEmpty());
 	}
 
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testNativeOffsetManagementEnabled() {
+		KafkaTestMessageBus bus =
+				new KafkaTestMessageBus(kafkaTestSupport, getCodec(),
+						KafkaMessageBus.OffsetManagement.kafkaNative);
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		long uniqueBindingId = System.currentTimeMillis();
+		bus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, null);
+		bus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		Collection<Binding> bindings = (Collection<Binding>) getBindings(bus);
+		assertThat(bindings.size(),equalTo(2));
+		for (Binding binding : bindings) {
+			if ("consumer".equals(binding.getType())) {
+				AbstractEndpoint endpoint = binding.getEndpoint();
+				DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(endpoint);
+				Object messageListenerContainer = endpointAccessor.getPropertyValue("messageListenerContainer");
+				DirectFieldAccessor containerAccessor = new DirectFieldAccessor(messageListenerContainer);
+				Object wrapperOffsetManager = containerAccessor.getPropertyValue("offsetManager");
+				DirectFieldAccessor offsetManagerAccessor = new DirectFieldAccessor(wrapperOffsetManager);
+				Object delegateOffsetManager = offsetManagerAccessor.getPropertyValue("delegate");
+				assertThat(delegateOffsetManager, instanceOf(KafkaNativeOffsetManager.class));
+			}
+		}
+		bus.unbindProducers("foo" + uniqueBindingId + ".0");
+		bus.unbindConsumers("foo" + uniqueBindingId + ".0");
+		bus.cleanup();
+	}
+
+	@Test
+	@SuppressWarnings("unchecked")
+	public void testTopicOffsetManagementEnabled() {
+		KafkaTestMessageBus bus =
+				new KafkaTestMessageBus(kafkaTestSupport, getCodec(),
+						KafkaMessageBus.OffsetManagement.kafkaTopic);
+		DirectChannel moduleOutputChannel = new DirectChannel();
+		QueueChannel moduleInputChannel = new QueueChannel();
+		long uniqueBindingId = System.currentTimeMillis();
+		bus.bindProducer("foo" + uniqueBindingId + ".0", moduleOutputChannel, null);
+		bus.bindConsumer("foo" + uniqueBindingId + ".0", moduleInputChannel, null);
+		Collection<Binding> bindings = (Collection<Binding>) getBindings(bus);
+		assertThat(bindings.size(),equalTo(2));
+		for (Binding binding : bindings) {
+			if ("consumer".equals(binding.getType())) {
+				AbstractEndpoint endpoint = binding.getEndpoint();
+				DirectFieldAccessor endpointAccessor = new DirectFieldAccessor(endpoint);
+				Object messageListenerContainer = endpointAccessor.getPropertyValue("messageListenerContainer");
+				DirectFieldAccessor containerAccessor = new DirectFieldAccessor(messageListenerContainer);
+				Object wrapperOffsetManager = containerAccessor.getPropertyValue("offsetManager");
+				DirectFieldAccessor offsetManagerAccessor = new DirectFieldAccessor(wrapperOffsetManager);
+				Object delegateOffsetManager = offsetManagerAccessor.getPropertyValue("delegate");
+				assertThat(delegateOffsetManager, instanceOf(KafkaTopicOffsetManager.class));
+			}
+		}
+		bus.unbindProducers("foo" + uniqueBindingId + ".0");
+		bus.unbindConsumers("foo" + uniqueBindingId + ".0");
+		bus.cleanup();
+	}
 
 	@Test
 	@Ignore("Kafka message bus does not support direct binding")

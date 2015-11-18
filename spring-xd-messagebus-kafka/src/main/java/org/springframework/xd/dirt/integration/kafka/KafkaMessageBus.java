@@ -498,6 +498,10 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 		this.mode = mode;
 	}
 
+	public void setOffsetManagement(OffsetManagement offsetManagement) {
+		this.offsetManagement = offsetManagement;
+	}
+
 	@Override
 	public void bindConsumer(String name, final MessageChannel moduleInputChannel, Properties properties) {
 		// Point-to-point consumers reset at the earliest time, which allows them to catch up with all messages
@@ -817,6 +821,14 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 		try {
 			OffsetManager delegateOffsetManager;
 			if (OffsetManagement.kafkaNative.equals(offsetManagement)) {
+				KafkaNativeOffsetManager kafkaOffsetManager = new KafkaNativeOffsetManager(connectionFactory,
+						zookeeperConnect, Collections.<Partition, Long>emptyMap());
+				kafkaOffsetManager.setConsumerId(group);
+				kafkaOffsetManager.setReferenceTimestamp(referencePoint);
+				kafkaOffsetManager.afterPropertiesSet();
+				delegateOffsetManager = kafkaOffsetManager;
+			}
+			else {
 				KafkaTopicOffsetManager kafkaOffsetManager = new KafkaTopicOffsetManager(zookeeperConnect,
 						offsetStoreTopic, Collections.<Partition, Long>emptyMap());
 				kafkaOffsetManager.setConsumerId(group);
@@ -827,14 +839,6 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 				kafkaOffsetManager.setMaxSize(offsetStoreMaxFetchSize);
 				kafkaOffsetManager.setBatchBytes(offsetStoreBatchBytes);
 				kafkaOffsetManager.setMaxQueueBufferingTime(offsetStoreBatchTime);
-				kafkaOffsetManager.afterPropertiesSet();
-				delegateOffsetManager = kafkaOffsetManager;
-			}
-			else {
-				KafkaNativeOffsetManager kafkaOffsetManager = new KafkaNativeOffsetManager(connectionFactory,
-						zookeeperConnect, Collections.<Partition, Long>emptyMap());
-				kafkaOffsetManager.setConsumerId(group);
-				kafkaOffsetManager.setReferenceTimestamp(referencePoint);
 				kafkaOffsetManager.afterPropertiesSet();
 				delegateOffsetManager = kafkaOffsetManager;
 			}

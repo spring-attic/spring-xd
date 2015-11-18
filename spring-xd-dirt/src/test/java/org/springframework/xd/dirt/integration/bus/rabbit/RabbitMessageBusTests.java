@@ -219,7 +219,7 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("partitionKeyExtractorClass", "foo");
 		properties.put("partitionSelectorExpression", "0");
 		properties.put("partitionSelectorClass", "foo");
-		properties.put(BusProperties.NEXT_MODULE_COUNT, "1");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "2");
 
 		bus.bindProducer("props.0", new DirectChannel(), properties);
 		assertEquals(1, bindings.size());

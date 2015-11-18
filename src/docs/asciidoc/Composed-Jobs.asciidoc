@@ -164,3 +164,11 @@ image::images/composed_jobs_parameters.png[width=500]
 
 The timeout parameter affects all the jobs within the job composition.  All parameters
 for aaa and bbb must have been previously specified in their own job definitions.
+
+=== Considerations
+
+While Spring XD comes with HSQLDB as the default database for the job repository's
+datastore, users may see concurrency issues using it on jobs that heavily use the split
+paradigm.  Using a production supported database (Postgres, etc) is recommended for this
+type of functionality.
+

@@ -64,6 +64,29 @@ public class KafkaTestMessageBus extends AbstractTestMessageBus<KafkaMessageBus>
 		}
 	}
 
+	public KafkaTestMessageBus(KafkaTestSupport kafkaTestSupport, Codec codec,
+			KafkaMessageBus.OffsetManagement offsetManagement) {
+
+		try {
+			ZookeeperConnect zookeeperConnect = new ZookeeperConnect();
+			zookeeperConnect.setZkConnect(kafkaTestSupport.getZkConnectString());
+			KafkaMessageBus messageBus = new KafkaMessageBus(zookeeperConnect,
+					kafkaTestSupport.getBrokerAddress(),
+					kafkaTestSupport.getZkConnectString(), codec);
+			messageBus.setOffsetManagement(offsetManagement);
+			messageBus.setDefaultBatchingEnabled(false);
+			messageBus.setMode(KafkaMessageBus.Mode.embeddedHeaders);
+			messageBus.afterPropertiesSet();
+			GenericApplicationContext context = new GenericApplicationContext();
+			context.refresh();
+			messageBus.setApplicationContext(context);
+			this.setMessageBus(messageBus);
+		}
+		catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 	@Override
 	public void cleanup() {
 		// do nothing - the rule will take care of that

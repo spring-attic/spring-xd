@@ -458,7 +458,7 @@ $$kafkaOffsetTopicName$$:: $$name of the offset topic, if Kafka offset strategy 
 $$kafkaOffsetTopicRequiredAcks$$:: $$required acks for writing to the Kafka offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `1`)*
 $$kafkaOffsetTopicRetentionTime$$:: $$retention time for dead records (tombstones), if Kafka offset strategy is chosen$$ *($$int$$, default: `60000`)*
 $$kafkaOffsetTopicSegmentSize$$:: $$segment size of the offset topic, if Kafka offset strategy is chosen$$ *($$int$$, default: `262144000`)*
-$$offsetStorage$$:: $$strategy for persisting offset values$$ *($$OffsetStorageStrategy$$, default: `kafka`, possible values: `inmemory,redis,kafka`)*
+$$offsetStorage$$:: $$strategy for persisting offset values$$ *($$OffsetStorageStrategy$$, default: `kafkaNative`, possible values: `inmemory,redis,kafka,kafkaNative`)*
 $$offsetUpdateCount$$:: $$frequency, in number of messages, with which offsets are persisted, per concurrent processor, mutually exclusive with the time-based offset update option (use 0 to disable either)$$ *($$int$$, default: `0`)*
 $$offsetUpdateShutdownTimeout$$:: $$timeout for ensuring that all offsets have been written, on shutdown$$ *($$int$$, default: `2000`)*
 $$offsetUpdateTimeWindow$$:: $$frequency (in milliseconds) with which offsets are persisted mutually exclusive with the count-based offset update option (use 0 to disable either)$$ *($$int$$, default: `10000`)*

@@ -41,6 +41,7 @@ import org.springframework.integration.kafka.core.ZookeeperConfiguration;
 import org.springframework.integration.kafka.inbound.KafkaMessageDrivenChannelAdapter;
 import org.springframework.integration.kafka.listener.Acknowledgment;
 import org.springframework.integration.kafka.listener.KafkaMessageListenerContainer;
+import org.springframework.integration.kafka.listener.KafkaNativeOffsetManager;
 import org.springframework.integration.kafka.listener.KafkaTopicOffsetManager;
 import org.springframework.integration.kafka.listener.OffsetManager;
 import org.springframework.integration.kafka.support.KafkaHeaders;
@@ -306,6 +307,8 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	private Mode mode = Mode.embeddedHeaders;
 
+	private OffsetManagement offsetManagement = OffsetManagement.kafkaTopic;
+
 	private ZkClient zkClient;
 
 	public KafkaMessageBus(ZookeeperConnect zookeeperConnect, String brokers, String zkAddress,
@@ -493,6 +496,10 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	public void setMode(Mode mode) {
 		this.mode = mode;
+	}
+
+	public void setOffsetManagement(OffsetManagement offsetManagement) {
+		this.offsetManagement = offsetManagement;
 	}
 
 	@Override
@@ -812,21 +819,30 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	private OffsetManager createOffsetManager(String group, long referencePoint) {
 		try {
-			KafkaTopicOffsetManager kafkaOffsetManager =
-					new KafkaTopicOffsetManager(zookeeperConnect, offsetStoreTopic, Collections.<Partition,
-							Long> emptyMap());
-			kafkaOffsetManager.setConsumerId(group);
-			kafkaOffsetManager.setReferenceTimestamp(referencePoint);
-			kafkaOffsetManager.setSegmentSize(offsetStoreSegmentSize);
-			kafkaOffsetManager.setRetentionTime(offsetStoreRetentionTime);
-			kafkaOffsetManager.setRequiredAcks(offsetStoreRequiredAcks);
-			kafkaOffsetManager.setMaxSize(offsetStoreMaxFetchSize);
-			kafkaOffsetManager.setBatchBytes(offsetStoreBatchBytes);
-			kafkaOffsetManager.setMaxQueueBufferingTime(offsetStoreBatchTime);
-
-			kafkaOffsetManager.afterPropertiesSet();
-
-			WindowingOffsetManager windowingOffsetManager = new WindowingOffsetManager(kafkaOffsetManager);
+			OffsetManager delegateOffsetManager;
+			if (OffsetManagement.kafkaNative.equals(offsetManagement)) {
+				KafkaNativeOffsetManager kafkaOffsetManager = new KafkaNativeOffsetManager(connectionFactory,
+						zookeeperConnect, Collections.<Partition, Long>emptyMap());
+				kafkaOffsetManager.setConsumerId(group);
+				kafkaOffsetManager.setReferenceTimestamp(referencePoint);
+				kafkaOffsetManager.afterPropertiesSet();
+				delegateOffsetManager = kafkaOffsetManager;
+			}
+			else {
+				KafkaTopicOffsetManager kafkaOffsetManager = new KafkaTopicOffsetManager(zookeeperConnect,
+						offsetStoreTopic, Collections.<Partition, Long>emptyMap());
+				kafkaOffsetManager.setConsumerId(group);
+				kafkaOffsetManager.setReferenceTimestamp(referencePoint);
+				kafkaOffsetManager.setSegmentSize(offsetStoreSegmentSize);
+				kafkaOffsetManager.setRetentionTime(offsetStoreRetentionTime);
+				kafkaOffsetManager.setRequiredAcks(offsetStoreRequiredAcks);
+				kafkaOffsetManager.setMaxSize(offsetStoreMaxFetchSize);
+				kafkaOffsetManager.setBatchBytes(offsetStoreBatchBytes);
+				kafkaOffsetManager.setMaxQueueBufferingTime(offsetStoreBatchTime);
+				kafkaOffsetManager.afterPropertiesSet();
+				delegateOffsetManager = kafkaOffsetManager;
+			}
+			WindowingOffsetManager windowingOffsetManager = new WindowingOffsetManager(delegateOffsetManager);
 			windowingOffsetManager.setTimespan(offsetUpdateTimeWindow);
 			windowingOffsetManager.setCount(offsetUpdateCount);
 			windowingOffsetManager.setShutdownTimeout(offsetUpdateShutdownTimeout);
@@ -1036,6 +1052,11 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 	public enum Mode {
 		raw,
 		embeddedHeaders
+	}
+
+	public enum OffsetManagement {
+		kafkaTopic,
+		kafkaNative
 	}
 
 }

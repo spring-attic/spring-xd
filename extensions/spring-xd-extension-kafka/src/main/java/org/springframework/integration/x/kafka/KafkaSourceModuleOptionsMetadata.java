@@ -175,7 +175,8 @@ public class KafkaSourceModuleOptionsMetadata implements ProfileNamesProvider {
 	public enum OffsetStorageStrategy {
 		inmemory,
 		redis,
-		kafka
+		kafka,
+		kafkaNative
 	}
 
 	@AssertTrue(message = "the options topic and topics are mutually exclusive")

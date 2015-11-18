@@ -460,7 +460,7 @@ public class AbstractJobCommandsTests extends AbstractJobIntegrationTest {
 		Thread.sleep(5000);
 		String executionId = getJobExecutionId(jobName);
 		String executionStatus = getJobExecutionStatus(jobName);
-		long timeout = System.currentTimeMillis() + 10000;
+		long timeout = System.currentTimeMillis() + 20000;
 		while ((executionStatus.equals("STARTING") || executionStatus.equals("STARTED"))
 				&& System.currentTimeMillis() < timeout) {
 			executionStatus = getJobExecutionStatus(jobName);

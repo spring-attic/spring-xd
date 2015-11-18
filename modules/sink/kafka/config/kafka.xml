@@ -8,8 +8,8 @@
 
 	<int:channel id="input" />
 
-	<int-kafka:outbound-channel-adapter
-		kafka-producer-context-ref="kafkaProducerContext" topic="${topic}" auto-startup="false" channel="input">
+	<int-kafka:outbound-channel-adapter kafka-producer-context-ref="kafkaProducerContext" topic="${topic}"
+		auto-startup="false" channel="input" enable-header-routing="false">
 	</int-kafka:outbound-channel-adapter>
 
 	<bean id="producerProperties" class="org.springframework.beans.factory.config.PropertiesFactoryBean">

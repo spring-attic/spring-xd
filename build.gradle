@@ -116,6 +116,7 @@ allprojects {
 		mavenCentral()
 		maven { url 'http://repo.spring.io/milestone' }
 		maven { url 'http://repo.spring.io/libs-milestone' }
+		maven { url 'http://repo.spring.io/libs-staging-local' }
 		maven { url 'http://repo.spring.io/plugins-release' }
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
@@ -140,8 +141,8 @@ ext {
 	splunkVersion = '1.3.0'
 	springBatchAdminMgrVersion = '1.3.0.RELEASE'
 	springIntegrationSplunkVersion = '1.1.0.RELEASE'
-	springIntegrationKafkaVersion = '1.2.1.RELEASE'
-	kafkaVersion = '0.8.2.1'
+	springIntegrationKafkaVersion = '1.3.0.RELEASE'
+	kafkaVersion = '0.8.2.2'
 	springShellVersion = '1.1.0.RELEASE'
 	zookeeperVersion = '3.4.6'
 	sparkVersion = '1.3.1'

@@ -71,6 +71,7 @@
 #      brokers:                                 localhost:9092
 #      zkAddress:                               localhost:2181
 #      mode:                                    embeddedHeaders
+#      offsetManagement:                        kafkaNative
 #      headers:
             # comma-delimited list of additional header names to transport
 #      socketBufferSize:                        2097152

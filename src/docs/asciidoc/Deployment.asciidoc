@@ -152,6 +152,10 @@ module.[modulename].producer.partitionSelectorExpression:: A _SpEL_ expression, 
 
 In summary, a module is partitioned if its _count_ is > 1 and the previous module has a _partitionKeyExtractorClass_ or _partitionKeyExpression_ (class takes precedence). When a partition key is extracted, the partitioned module instance is determined by invoking the _partitionSelectorClass_, if present, or the _partitionSelectorExpression % partitionCount_ , where _partitionCount_ is _count_ in the case of Redis and RabbitMQ, and the underlying partition count of the topic in the case of Kafka (see the Message Bus section on xref:MessageBus#kafka-bus-partitions[Kafka partition configuration] for details). If neither a _partitionSelectorClass_ nor a _partitionSelectorExpression_ is present the result is _key.hashCode() % partitionCount_.
 
+For Redis and Rabbit, the use of _partitionKeyExpression_ and _partitionKeyExtractorClass_ is restricted to sending data modules that have _count_ > 1. Any other use (i.e. sending data to a module with _count_ = 1, or to a named channel) will result in a error at deployment time.
+
+In the case of Kafka, _partitionKeyExpression_ and _partitionKeyExtractorClass_ may be used for sending data to any modules, including the ones with _count_ = 1, as well as to named channels, since partitioning is based on the partition count of the target topic, and not the receiving module count.
+
 [[direct-binding]]
 ===== Direct Binding
 

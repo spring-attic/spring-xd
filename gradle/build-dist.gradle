@@ -12,6 +12,44 @@ def loadDirtJars = {
 	dirtJars
 }
 
+def customizePom = {
+	description project.description
+        name project.name
+	url linkHomepage
+	organization {
+		name 'Spring by Pivotal'
+		url 'https://spring.io'
+	}
+	licenses {
+		license {
+			name 'The Apache Software License, Version 2.0'
+			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+			distribution 'repo'
+		}
+	}
+
+	scm {
+		url linkScmUrl
+		connection linkScmConnection
+		developerConnection linkScmDevConnection
+	}
+
+	developers {
+		xdDevelopers.each { dev ->
+			developer {
+				id dev.id
+				name dev.name
+				if (dev.email) {
+					email dev.email
+				}
+			}
+		}
+	}
+}
+
+// This is needed to generate elements that are also defined methods in MavenPublication
+customizePom.resolveStrategy = Closure.DELEGATE_FIRST
+
 task copyRedisInstall(type: Copy, dependsOn: ":redis:bundleRedis") {
 	from "$rootDir/redis/build"
 	into "$buildDir/dist/spring-xd/redis"
@@ -364,6 +402,12 @@ artifactory {
 
 publishing {
 	publications {
+		mavenCustom(MavenPublication) {
+			pom.withXml {
+
+				asNode().version + customizePom
+			}
+		}
 		archives(MavenPublication) {
 			artifact distZip
 			artifact distYarnZip

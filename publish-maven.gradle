@@ -13,6 +13,7 @@ def nonPublishedProjects = hadoopInstalls + 'documentation-toolchain'
 
 def customizePom = {
 	description project.description
+        name project.name
 	url linkHomepage
 	organization {
 		name 'Spring by Pivotal'

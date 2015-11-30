@@ -8,7 +8,7 @@
 		http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
 		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<context:mbean-export />
+	<context:mbean-export default-domain="xd.${xd.stream.name:${xd.job.name:}}" />
 
 	<int-jmx:mbean-export object-naming-strategy="moduleObjectNamingStrategy" />
 

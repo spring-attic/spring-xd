@@ -16,6 +16,7 @@
 
 package org.springframework.xd.dirt.stream;
 
+import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertThat;
@@ -61,13 +62,14 @@ import org.springframework.xd.dirt.plugins.ModuleConfigurationException;
  *
  * @author David Turanski
  * @author Gunnar Hillert
+ * @author Gary Russell
  */
 public class FileSourceModuleTests extends StreamTestSupport {
 
 	private static String tmpDirName = System.getProperty("java.io.tmpdir");
 
-	private static String sourceDirName =
-			tmpDirName + (tmpDirName.endsWith(File.separator) ? "" : File.separator) + "filesourcetests";
+	private static String sourceDirName = tmpDirName + (tmpDirName.endsWith(File.separator) ? "" : File.separator)
+			+ "filesourcetests";
 
 	private static File sourceDir = new File(sourceDirName);
 
@@ -320,8 +322,9 @@ public class FileSourceModuleTests extends StreamTestSupport {
 					"file --mode=failme --dir=" + sourceDirName + " --fixedDelay=0 | sink");
 		}
 		catch (ModuleConfigurationException e) {
-			String expectation = "Failed to convert property value of type 'java.lang.String' to required type 'org.springframework.xd.dirt.modules.metadata.FileReadingMode' for property 'mode'";
-			assertTrue("Expected the exception to contain: " + expectation, e.getMessage().contains(expectation));
+			String expectation = "Failed to convert property value of type [java.lang.String] to required type "
+					+ "[org.springframework.xd.dirt.modules.metadata.FileReadingMode] for property 'mode'";
+			assertThat(e.getMessage(), containsString(expectation));
 			return;
 		}
 

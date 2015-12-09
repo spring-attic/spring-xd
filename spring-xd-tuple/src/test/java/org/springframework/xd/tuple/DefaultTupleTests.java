@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2013-2015 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,9 @@ package org.springframework.xd.tuple;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.hamcrest.Matchers.nullValue;
 import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.springframework.xd.tuple.TupleBuilder.tuple;
@@ -220,8 +218,8 @@ public class DefaultTupleTests {
 
 	@Test
 	public void testPutAllApi() {
-		Tuple tuple = TupleBuilder.tuple().put("red", "rot").put("brown", "braun").put("blue", "blau").put("yellow", "gelb")
-				.put("beige", "beige").build();
+		Tuple tuple = TupleBuilder.tuple().put("red", "rot").put("brown", "braun").put("blue", "blau").put("yellow",
+				"gelb").put("beige", "beige").build();
 		assertThat(tuple.size(), equalTo(5));
 		Tuple tuplePlusOne = TupleBuilder.tuple().putAll(tuple).put("up", 1).build();
 		assertThat(tuplePlusOne.size(), equalTo(6));
@@ -303,14 +301,15 @@ public class DefaultTupleTests {
 	public void testGetStringThatFails() {
 		Tuple tuple = TupleBuilder.tuple().of("up", "down", "charm", 2, "top", 2.0f, "black", Color.black);
 		thrown.expect(ConverterNotFoundException.class);
-		thrown.expectMessage("No converter found capable of converting from type java.awt.Color to type java.lang.String");
+		thrown.expectMessage("No converter found capable of converting from type [java.awt.Color] to type "
+				+ "[java.lang.String]");
 		assertThat(tuple.getString("black"), equalTo("omg"));
 	}
 
 	@Test
 	public void testSelection() {
-		Tuple tuple = tuple().put("red", "rot").put("brown", "braun").put("blue", "blau").put("yellow", "gelb")
-				.put("beige", "beige").build();
+		Tuple tuple = tuple().put("red", "rot").put("brown", "braun").put("blue", "blau").put("yellow", "gelb").put(
+				"beige", "beige").build();
 		Tuple selectedTuple = tuple.select("?[key.startsWith('b')]");
 		assertThat(selectedTuple.size(), equalTo(3));
 

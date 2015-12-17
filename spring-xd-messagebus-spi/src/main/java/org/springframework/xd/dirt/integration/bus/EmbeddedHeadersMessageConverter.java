@@ -24,11 +24,8 @@ import java.util.Map;
 import javax.xml.bind.DatatypeConverter;
 
 import org.springframework.integration.IntegrationMessageHeaderAccessor;
-import org.springframework.integration.support.MessageBuilder;
 import org.springframework.integration.support.json.Jackson2JsonObjectMapper;
 import org.springframework.messaging.Message;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageHeaderAccessor;
 
 /**
  * Encodes requested headers into payload with format
@@ -66,9 +63,9 @@ public class EmbeddedHeadersMessageConverter {
 					: original.get(header);
 			if (value != null) {
 				String json = this.objectMapper.toJson(value);
-				headerValues[n++] = json.getBytes("UTF-8");
+				headerValues[n] = json.getBytes("UTF-8");
 				headerCount++;
-				headersLength += header.length() + json.length();
+				headersLength += header.length() + headerValues[n++].length;
 			}
 			else {
 				headerValues[n++] = null;

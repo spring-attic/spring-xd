@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -246,8 +246,6 @@ public class JobExecutionInfoResource extends ResourceSupport {
 	/**
 	 * Set if this is a composed Job. If not specified, the underlying property
 	 * will default to {@code false}.
-	 *
-	 * @return True if this is a composed job.
 	 */
 	public void setComposedJob(boolean composedJob) {
 		this.composedJob = composedJob;

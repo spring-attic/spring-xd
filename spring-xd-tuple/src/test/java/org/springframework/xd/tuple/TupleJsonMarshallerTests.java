@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2013 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
  * the License. You may obtain a copy of the License at
@@ -16,16 +16,9 @@ package org.springframework.xd.tuple;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringWriter;
 import java.util.List;
-import java.util.Map;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import org.junit.Test;
 
 import org.springframework.core.io.ClassPathResource;
@@ -33,15 +26,11 @@ import org.springframework.core.io.Resource;
 
 /**
  * @author David Turanski
- * 
+ * @author Gary Russell
+ *
  */
 public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.springframework.xd.tuple.AbstractTupleMarshallerTests#getMarshaller()
-	 */
 	@Override
 	protected TupleJsonMarshaller getMarshaller() {
 		return new TupleJsonMarshaller();
@@ -74,10 +63,11 @@ public class TupleJsonMarshallerTests extends AbstractTupleMarshallerTests {
 		Tuple tuple = marshaller.toTuple(json);
 
 		//Validate contents
+		@SuppressWarnings("unchecked")
 		List<Tuple> body = (List<Tuple>) tuple.getValue("body");
 		Tuple t2 = body.get(0).getTuple("har");
 		Tuple t3 = t2.getTuple("log");
-		List<?> pages = (List<?>)t3.getValue("pages");
+		List<?> pages = (List<?>) t3.getValue("pages");
 		assertEquals(2, pages.size());
 
 		//Convert back to json.

@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2015 the original author or authors.
+ * Copyright 2011-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,6 +59,7 @@ import org.springframework.xd.module.ModuleType;
  * <p>Also adds pagination to {@code find*()} methods of {@code ModuleRegistry} after the fact.</p>
  *
  * @author Eric Bottard
+ * @author Gary Russell
  */
 public class ModuleDefinitionService {
 
@@ -69,7 +70,7 @@ public class ModuleDefinitionService {
 	private final ModuleDependencyRepository dependencyRepository;
 
 	private final PagingUtility<ModuleDefinition> pagingUtility = new PagingUtility<ModuleDefinition>();
-	
+
 	private final JobParser composedJobParser;
 
 	@Autowired
@@ -127,9 +128,8 @@ public class ModuleDefinitionService {
 			target.closeEntry();
 			writeXML(target, xml);
 			writeParameters(target, ComposedJobUtil.getPropertyDefinition());
-			target.close();
 			return outStream.toByteArray();
-		} 
+		}
 		catch (IOException ioe) {
 			throw new IllegalStateException(ioe.getMessage(), ioe);
 		}
@@ -171,7 +171,7 @@ public class ModuleDefinitionService {
 		Assert.isTrue(this.registry.registerNew(moduleDefinition), moduleDefinition + " could not be saved");
 		return moduleDefinition;
 	}
-	
+
 	public ModuleDefinition upload(String name, ModuleType type, byte[] bytes, boolean force) {
 		assertModuleUpdatability(name, type, force);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,6 @@ import java.util.Date;
 import java.util.Map;
 import java.util.Properties;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,6 +50,9 @@ import org.springframework.xd.dirt.stream.JobDefinitionRepository;
 import org.springframework.xd.dirt.stream.NoSuchDefinitionException;
 import org.springframework.xd.dirt.stream.NotDeployedException;
 import org.springframework.xd.store.DomainRepository;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * A {@link Tasklet} implementation that uses the Spring XD {@link MessageBus} to launch
@@ -93,7 +94,7 @@ public class JobLaunchingTasklet implements Tasklet {
 
 	public JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
-			DomainRepository instanceRepository, String jobName,
+			DomainRepository<JobDefinition, String>  instanceRepository, String jobName,
 			Long timeout) {
 		this(messageBus, jobDefinitionRepository, instanceRepository, jobName,
 				timeout,
@@ -113,7 +114,7 @@ public class JobLaunchingTasklet implements Tasklet {
 	 */
 	protected JobLaunchingTasklet(MessageBus messageBus,
 			JobDefinitionRepository jobDefinitionRepository,
-			DomainRepository instanceRepository, String jobName,
+			DomainRepository<JobDefinition, String>  instanceRepository, String jobName,
 			Long timeout,
 			MessageChannel launchingChannel, PollableChannel listeningChannel) {
 		Assert.notNull(messageBus, "A message bus is required");

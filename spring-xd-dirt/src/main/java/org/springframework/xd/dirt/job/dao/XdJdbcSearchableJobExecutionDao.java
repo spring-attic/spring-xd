@@ -1,5 +1,5 @@
 /*
- * Copyright 2006-2015 the original author or authors.
+ * Copyright 2006-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,8 +145,8 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 
 	/**
 	 *
-	 * @param jobExecutionId
-	 * @return
+	 * @param jobExecutionId the execution id.
+	 * @return the list of {@link JobExecution}s.
 	 */
 	public List<JobExecution> getChildJobExecutions(long jobExecutionId) {
 		try {
@@ -160,8 +160,8 @@ public class XdJdbcSearchableJobExecutionDao extends JdbcSearchableJobExecutionD
 
 	/**
 	 *
-	 * @param jobExecutionId
-	 * @return
+	 * @param jobExecutionId the execution id.
+	 * @return the list of {@link JobExecution}s.
 	 */
 	public boolean isComposedJobExecution(long jobExecutionId) {
 		String query = getQuery("select count(*) from %PREFIX%JOB_EXECUTION_PARAMS a where key_name = '"

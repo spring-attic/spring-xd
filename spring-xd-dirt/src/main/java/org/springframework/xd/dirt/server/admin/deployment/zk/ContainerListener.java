@@ -138,7 +138,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	}
 
 	/**
-	 * Schedules execution of {@link DepartedContainerDeployer} on a regular basis.
+	 * Schedules execution of
+	 * {@link org.springframework.xd.dirt.server.admin.deployment.zk.DepartedContainerDeployer}
+	 * on a regular basis.
 	 * This ensures that departed containers are properly handled in case a container
 	 * departs without raising an event.
 	 */
@@ -194,7 +196,9 @@ public class ContainerListener implements PathChildrenCacheListener {
 	 * the time it arrived.
 	 */
 	private class ContainerArrival {
+
 		final Container container;
+
 		final long timestamp;
 
 		private ContainerArrival(Container container, long timestamp) {
@@ -307,7 +311,7 @@ public class ContainerListener implements PathChildrenCacheListener {
 				}
 
 				for (String containerName : containerDeployments) {
-					Container container = new Container(containerName, Collections.<String, String>emptyMap());
+					Container container = new Container(containerName, Collections.<String, String> emptyMap());
 					departedContainerModuleRedeployer.deployModules(container);
 				}
 			}

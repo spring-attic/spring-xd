@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.xd.dirt.stream;
 
 /**
  * Root of the hierarchy of exceptions for Module processing in DIRT.
  *
  * @author Mark Pollack
+ * @author Gary Russell
  */
 public class StreamException extends RuntimeException {
 
-    public StreamException(String message) {
-        super(message);
-    }
+	private static final long serialVersionUID = 1L;
 
-    public StreamException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public StreamException(String message) {
+		super(message);
+	}
+
+	public StreamException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
 }

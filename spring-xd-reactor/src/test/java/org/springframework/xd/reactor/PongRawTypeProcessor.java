@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,11 +22,13 @@ import reactor.rx.Stream;
 /**
  * @author Marius Bogoevici
  */
-public class PongRawTypeProcessor extends AbstractRawTypeProcessor implements AdditionalInterface<Integer,Integer> {
+public class PongRawTypeProcessor extends AbstractRawTypeProcessor implements AdditionalInterface<Integer, Integer> {
 
+	@SuppressWarnings({ "rawtypes", "unchecked" })
 	@Override
 	public Stream process(Stream inputStream) {
 		return inputStream.map(new Function<Object, Object>() {
+
 			@Override
 			public Object apply(Object message) {
 				return message.toString() + "-objectpong";

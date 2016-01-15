@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -450,6 +450,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		RabbitPropertiesAccessor accessor = new RabbitPropertiesAccessor(properties);
 		String queueName = applyPrefix(accessor.getPrefix(this.defaultPrefix), name);
+		String baseQueueName = queueName;
 		int partitionIndex = accessor.getPartitionIndex();
 		if (partitionIndex >= 0) {
 			queueName += "-" + partitionIndex;
@@ -457,7 +458,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		Map<String, Object> args = queueArgs(accessor, queueName);
 		Queue queue = new Queue(queueName, true, false, false, args);
 		declareQueueIfNotPresent(queue);
-		autoBindDLQ(name, accessor);
+		autoBindDLQ(baseQueueName, queueName, accessor);
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, false);
 		bindExistingProducerDirectlyIfPossible(name, moduleInputChannel);
 	}
@@ -496,7 +497,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		}
 		doRegisterConsumer(name, moduleInputChannel, queue, accessor, true);
 		if (durable) {
-			autoBindDLQ(name, accessor);
+			autoBindDLQ(queueName, queueName, accessor);
 		}
 	}
 
@@ -628,7 +629,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 					(queueName)));
 			// if the stream is partitioned, create one queue for each target partition
 			for (int i = 0; i < properties.getNextModuleCount(); i++) {
-				this.rabbitAdmin.declareQueue(new Queue(queueName + "-" + i));
+				declareQueueIfNotPresent(new Queue(queueName + "-" + i));
 			}
 		}
 		configureOutboundHandler(queue, properties);
@@ -779,24 +780,24 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	/**
 	 * If so requested, declare the DLX/DLQ and bind it. The DLQ is bound to the DLX with a routing key of the original
 	 * queue name because we use default exchange routing by queue name for the original message.
-	 * @param name The name.
+	 * @param queueName The base queue name.
+	 * @param routingKey the routing key.
 	 * @param properties The properties accessor.
 	 */
-	private void autoBindDLQ(final String name, RabbitPropertiesAccessor properties) {
+	private void autoBindDLQ(final String queueName, String routingKey, RabbitPropertiesAccessor properties) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("autoBindDLQ=" + properties.getAutoBindDLQ(this.defaultAutoBindDLQ)
-					+ " for: " + name);
+					+ " for: " + queueName);
 		}
 		if (properties.getAutoBindDLQ(this.defaultAutoBindDLQ)) {
 			String prefix = properties.getPrefix(this.defaultPrefix);
-			String queueName = applyPrefix(prefix, name);
 			String dlqName = constructDLQName(queueName);
 			Queue dlq = new Queue(dlqName);
 			declareQueueIfNotPresent(dlq);
 			final String dlxName = deadLetterExchangeName(prefix);
 			final DirectExchange dlx = new DirectExchange(dlxName);
 			declareExchangeIfNotPresent(dlx);
-			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(queueName));
+			this.rabbitAdmin.declareBinding(BindingBuilder.bind(dlq).to(dlx).with(routingKey));
 		}
 	}
 

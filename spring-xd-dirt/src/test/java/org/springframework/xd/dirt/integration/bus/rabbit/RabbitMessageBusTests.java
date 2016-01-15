@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -510,6 +510,88 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		bus.unbindConsumer("dlqtest", moduleInputChannel);
 		admin.deleteQueue("xdbustest.dlqtest.dlq");
 		admin.deleteQueue("xdbustest.dlqtest");
+		admin.deleteExchange("xdbustest.DLX");
+	}
+
+	@Test
+	public void testAutoBindDLQPartioned() throws Exception {
+		RabbitAdmin admin = new RabbitAdmin(this.rabbitAvailableRule.getResource());
+
+		MessageBus bus = getMessageBus();
+		Properties properties = new Properties();
+		properties.put("prefix", "xdbustest.");
+		properties.put("autoBindDLQ", "true");
+		properties.put("maxAttempts", "1"); // disable retry
+		properties.put("requeue", "false");
+		properties.put("partitionIndex", "0");
+		DirectChannel input0 = new DirectChannel();
+		input0.setBeanName("test.input0DLQ");
+		bus.bindConsumer("partDLQ.0", input0, properties);
+		properties.put("partitionIndex", "1");
+		DirectChannel input1 = new DirectChannel();
+		input1.setBeanName("test.input1DLQ");
+		bus.bindConsumer("partDLQ.0", input1, properties);
+
+		properties.clear();
+		properties.put("prefix", "xdbustest.");
+		properties.put("partitionKeyExtractorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+		properties.put("partitionSelectorClass", "org.springframework.xd.dirt.integration.bus.PartitionTestSupport");
+		properties.put(BusProperties.NEXT_MODULE_COUNT, "2");
+		DirectChannel output = new DirectChannel();
+		output.setBeanName("test.output");
+		bus.bindProducer("partDLQ.0", output, properties);
+
+		final CountDownLatch latch0 = new CountDownLatch(1);
+		input0.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				if (latch0.getCount() <= 0) {
+					throw new RuntimeException("dlq");
+				}
+				latch0.countDown();
+			}
+
+		});
+
+		final CountDownLatch latch1 = new CountDownLatch(1);
+		input1.subscribe(new MessageHandler() {
+
+			@Override
+			public void handleMessage(Message<?> message) throws MessagingException {
+				if (latch1.getCount() <= 0) {
+					throw new RuntimeException("dlq");
+				}
+				latch1.countDown();
+			}
+
+		});
+
+		output.send(new GenericMessage<Integer>(1));
+		assertTrue(latch1.await(10, TimeUnit.SECONDS));
+
+		output.send(new GenericMessage<Integer>(0));
+		assertTrue(latch0.await(10, TimeUnit.SECONDS));
+
+		output.send(new GenericMessage<Integer>(1));
+
+		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
+		template.setReceiveTimeout(10000);
+
+		String streamDLQName = "xdbustest.partDLQ.0.dlq";
+
+		org.springframework.amqp.core.Message received = template.receive(streamDLQName);
+		assertNotNull(received);
+		assertEquals(1, received.getMessageProperties().getHeaders().get("partition"));
+
+		output.send(new GenericMessage<Integer>(0));
+		received = template.receive(streamDLQName);
+		assertNotNull(received);
+		assertEquals(0, received.getMessageProperties().getHeaders().get("partition"));
+
+		admin.deleteQueue(streamDLQName);
+		admin.deleteQueue("xdbustest.partDLQ.0-0");
+		admin.deleteQueue("xdbustest.partDLQ.0-1");
 		admin.deleteExchange("xdbustest.DLX");
 	}
 

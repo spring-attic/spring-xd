@@ -181,6 +181,8 @@ xd:
         fetchSize:                 1048576
         minPartitionCount:         1
         durableSubscription:       false
+        syncProducer:              false
+        syncProducerTimeout:       5000
   security:
     authorization:
       rules:

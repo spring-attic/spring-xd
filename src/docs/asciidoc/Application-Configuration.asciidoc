@@ -358,6 +358,8 @@ direct binding of modules. This feature will be available in a future release. I
         maxWait:                   100                        # <24>
         fetchSize:                 1048576                    # <25>
         minPartitionCount:         1                          # <26>
+        syncProducer:              false                      # <27>
+        syncProducerTimeout:       5000                       # <28>
 ----
 
 <1> A list of Kafka broker addresses, for sending messages
@@ -424,6 +426,10 @@ available)
 <25> The maximum amount of data that the consumers will try to fetch, per broker, in one polling cycle.
 
 <26> The minimum number of partitions that will be used by a bus topic.
+
+<27> When true, a synchronous producer is used
+
+<28> If <27> is true, set the timeout to wait for Kafka delivery (in ms). Is <= 0, wait forever.
 
 ==== Admin Server HTTP Port
 

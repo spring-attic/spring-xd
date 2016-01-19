@@ -144,9 +144,17 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	public static final String AUTO_COMMIT_OFFSET_ENABLED = "autoCommitOffsetEnabled";
 
+	public static final String SYNC_PRODUCER = "syncProducer";
+
+	public static final String SYNC_PRODUCER_TIMEOUT = "syncProducerTimeout";
+
 	private static final String DEFAULT_COMPRESSION_CODEC = "none";
 
 	private static final int DEFAULT_REQUIRED_ACKS = 1;
+
+	private static final boolean DEFAULT_SYNC_PRODUCER = false;
+
+	private static final int DEFAULT_SYNC_PRODUCER_TIMEOUT = 5000;
 
 	private static final boolean DEFAULT_AUTO_COMMIT_OFFSET_ENABLED = true;
 
@@ -229,6 +237,8 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 
 	private static final Set<Object> KAFKA_PRODUCER_PROPERTIES = new SetBuilder()
 			.add(BusProperties.MIN_PARTITION_COUNT)
+			.add(SYNC_PRODUCER)
+			.add(SYNC_PRODUCER_TIMEOUT)
 			.build();
 
 	private static final Set<Object> SUPPORTED_NAMED_PRODUCER_PROPERTIES = new SetBuilder()
@@ -268,6 +278,10 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 	private String defaultCompressionCodec = DEFAULT_COMPRESSION_CODEC;
 
 	private int defaultRequiredAcks = DEFAULT_REQUIRED_ACKS;
+
+	private boolean defaultSyncProducer = DEFAULT_SYNC_PRODUCER;
+
+	private int defaultSyncProducerTimeout = DEFAULT_SYNC_PRODUCER_TIMEOUT;
 
 	private int defaultQueueSize = 1024;
 
@@ -496,6 +510,14 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 		this.defaultMaxWait = defaultMaxWait;
 	}
 
+	public void setDefaultSyncProducer(boolean syncProducer) {
+		this.defaultSyncProducer = syncProducer;
+	}
+
+	public void setDefaultSyncProducerTimeout(int timeout) {
+		this.defaultSyncProducerTimeout = timeout;
+	}
+
 	public void setMode(Mode mode) {
 		this.mode = mode;
 	}
@@ -549,6 +571,8 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 			producerMetadata.setCompressionType(ProducerMetadata.CompressionType
 					.valueOf(accessor.getCompressionCodec(this.defaultCompressionCodec)));
 			producerMetadata.setBatchBytes(accessor.getBatchSize(this.defaultBatchSize));
+			producerMetadata.setSync(accessor.getSyncProducer(this.defaultSyncProducer));
+			producerMetadata.setSendTimeout(accessor.getSyncProducerTimeout(this.defaultSyncProducerTimeout));
 			Properties additionalProps = new Properties();
 			additionalProps.put(ProducerConfig.ACKS_CONFIG,
 					String.valueOf(accessor.getRequiredAcks(this.defaultRequiredAcks)));
@@ -945,6 +969,13 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 			return getProperty(MIN_PARTITION_COUNT, defaultPartitionCount);
 		}
 
+		public boolean getSyncProducer(boolean defaultSyncProducer) {
+			return getProperty(SYNC_PRODUCER, defaultSyncProducer);
+		}
+
+		public int getSyncProducerTimeout(int defaultSyncProducerTimeout) {
+			return getProperty(SYNC_PRODUCER_TIMEOUT, defaultSyncProducerTimeout);
+		}
 	}
 
 	private class ReceivingHandler extends AbstractReplyProducingMessageHandler {

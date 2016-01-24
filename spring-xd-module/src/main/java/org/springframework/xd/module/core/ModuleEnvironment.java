@@ -46,9 +46,9 @@ import org.springframework.core.env.PropertySource;
  * See https://jira.spring.io/browse/XD-1459.
  *
  * @author Eric Bottard
+ * @author David Turanski
  */
 public class ModuleEnvironment extends AbstractEnvironment {
-
 
 	private ConfigurableEnvironment parent;
 
@@ -58,6 +58,7 @@ public class ModuleEnvironment extends AbstractEnvironment {
 			merge(parent); // This will copy profiles (and property sources)
 		}
 		clearPropertySources(); // We don't want the property sources though
+
 		getPropertySources().addFirst(wrap(moduleOptionsPropertySource));
 	}
 
@@ -65,8 +66,15 @@ public class ModuleEnvironment extends AbstractEnvironment {
 	 * Wrap the module options property source so that it can be the only one living in the environment. This will
 	 * delegate to the parent environment ONLY IF the key is not a known module option name.
 	 */
-	private PropertySource<?> wrap(final EnumerablePropertySource<?> moduleOptionsPropertySource) {
-		return new PropertySource<Object>(moduleOptionsPropertySource.getName(), moduleOptionsPropertySource) {
+	private EnumerablePropertySource<?> wrap(final EnumerablePropertySource<?>
+			moduleOptionsPropertySource) {
+		return new EnumerablePropertySource<Object>(moduleOptionsPropertySource.getName
+				(),
+				moduleOptionsPropertySource) {
+
+			@Override public String[] getPropertyNames() {
+				return moduleOptionsPropertySource.getPropertyNames();
+			}
 
 			@Override
 			public Object getProperty(String name) {

@@ -49,6 +49,8 @@ import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.event.SourceFilteringListener;
 import org.springframework.web.filter.HttpPutFormContentFilter;
 import org.springframework.xd.batch.XdBatchDatabaseInitializer;
+import org.springframework.xd.dirt.container.decryptor.DecryptorContext;
+import org.springframework.xd.dirt.container.decryptor.PropertiesDecryptor;
 import org.springframework.xd.dirt.rest.RestConfiguration;
 import org.springframework.xd.dirt.server.MessageBusClassLoaderFactory;
 import org.springframework.xd.dirt.server.ParentConfiguration;
@@ -90,6 +92,8 @@ public class AdminServerApplication {
 		CommandLinePropertySourceOverridingListener<AdminOptions> commandLineListener = new CommandLinePropertySourceOverridingListener<AdminOptions>(
 				new AdminOptions());
 
+		DecryptorContext decryptorContext= new DecryptorContext();
+
 		MessageBusClassLoaderFactory classLoaderFactory = new MessageBusClassLoaderFactory();
 
 		try {
@@ -98,6 +102,7 @@ public class AdminServerApplication {
 					.profiles(XdProfiles.ADMIN_PROFILE)
 					.listeners(commandLineListener)
 					.listeners(classLoaderFactory)
+					.listeners(decryptorContext.propertiesDecryptor())
 					.initializers(new AdminPortAvailabilityInitializer())
 					.child(SharedServerContextConfiguration.class, AdminOptions.class)
 					.resourceLoader(classLoaderFactory.getResolver())
@@ -105,6 +110,7 @@ public class AdminServerApplication {
 					.listeners(commandLineListener)
 					.child(AdminServerApplication.class)
 					.listeners(commandLineListener)
+					.listeners(decryptorContext.propertiesDecryptor())
 					.initializers(new AdminIdInitializer())
 					.showBanner(false)
 					.run(args);

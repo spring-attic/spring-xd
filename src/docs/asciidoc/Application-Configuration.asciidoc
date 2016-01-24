@@ -902,3 +902,42 @@ password=
 ----
 
 A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properties`.
+
+=== Encrypted Properties
+
+If you wish encrypt passwords and other secret values stored in application configuration file, you must provide a Spring bean that implements
+http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/crypto/encrypt/TextEncryptor.html[TextEncryptor] and
+implement the `decrypt` method. The bean, annotated with @Component, or a @Configuration class providing the bean definition,
+must be present under the base package `spring.xd.ext.encryption`.
+
+This introduces a compile time dependency on spring-security which offers some standard implementations
+(see https://docs.spring.io/spring-security/site/docs/current/reference/htmlsingle/#crypto[Spring Security Crypto Module]). There is also a compatible
+https://github.com/dsyer/spring-security-rsa/blob/master/src/main/java/org/springframework/security/rsa/crypto/RsaSecretEncryptor.java[RSA implementation].
+
+Package the implementation of your choice in a jar file and install it in `xd/lib` along with any required dependencies (spring-security-core is already in the runtime classpath).
+
+Spring XD will use the TextEncryptor you provide to decrypt any properties that contain the prefix `{cipher}`. This conforms to the convention used by the
+http://cloud.spring.io/spring-cloud-config/spring-cloud-config.html#_encryption_and_decryption[Spring Cloud Config Server].
+
+For example:
+
+[source,yaml]
+----
+spring:
+  datasource:
+    username: dbuser
+    password: '{cipher}FKSAJDFGYOS8F7GLHAKERGFHLSAJ'
+----
+
+If a TextEncrypor bean is present, Spring XD will detect the encrypted password `FKSAJDFGYOS8F7GLHAKERGFHLSAJ` and decrypt it prior to creating any
+beans that reference this value.
+
+NOTE: Single quotes, as shown above, are required in yaml files. Do not include them in plain properties files.
+
+Also this will work with module options included in the stream definition, if you are so inclined:
+
+----
+xd:> stream create --name test --definition "jdbc --username=dbuser --password='{cipher}FKSAJDFGYOS8F7GLHAKERGFHLSAJ'..."
+----
+
+

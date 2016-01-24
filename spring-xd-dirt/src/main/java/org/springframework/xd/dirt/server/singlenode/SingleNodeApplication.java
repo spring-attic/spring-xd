@@ -19,6 +19,8 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.util.Assert;
 import org.springframework.xd.batch.hsqldb.server.HsqlServerApplication;
+import org.springframework.xd.dirt.container.decryptor.DecryptorContext;
+import org.springframework.xd.dirt.container.decryptor.PropertiesDecryptor;
 import org.springframework.xd.dirt.server.ApplicationUtils;
 import org.springframework.xd.dirt.server.MessageBusClassLoaderFactory;
 import org.springframework.xd.dirt.server.ParentConfiguration;
@@ -58,20 +60,25 @@ public class SingleNodeApplication {
 
 		MessageBusClassLoaderFactory classLoaderFactory = new MessageBusClassLoaderFactory();
 
+		DecryptorContext decryptorContext = new DecryptorContext();
+
 		SpringApplicationBuilder admin = new SpringApplicationBuilder(SingleNodeOptions.class,
 				ParentConfiguration.class)
 				.logStartupInfo(false)
 				.listeners(bootstrapContext.commandLineListener())
 				.listeners(classLoaderFactory)
+				.listeners(decryptorContext.propertiesDecryptor())
 				.profiles(XdProfiles.ADMIN_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.initializers(new HsqldbServerProfileActivator())
 				.child(SharedServerContextConfiguration.class, SingleNodeOptions.class)
 				.resourceLoader(classLoaderFactory.getResolver())
 				.logStartupInfo(false)
 				.listeners(bootstrapContext.commandLineListener())
+				.listeners(decryptorContext.propertiesDecryptor())
 				.child(SingleNodeOptions.class, AdminServerApplication.class)
 				.main(AdminServerApplication.class)
-				.listeners(bootstrapContext.commandLineListener());
+				.listeners(bootstrapContext.commandLineListener())
+				.listeners(decryptorContext.propertiesDecryptor());
 		admin.showBanner(false);
 		admin.run(args);
 
@@ -81,9 +88,11 @@ public class SingleNodeApplication {
 				.profiles(XdProfiles.CONTAINER_PROFILE, XdProfiles.SINGLENODE_PROFILE)
 				.listeners(ApplicationUtils.mergeApplicationListeners(bootstrapContext.commandLineListener(),
 						bootstrapContext.pluginContextInitializers()))
+				.listeners(decryptorContext.propertiesDecryptor())
 				.child(ContainerConfiguration.class)
 				.main(ContainerServerApplication.class)
 				.listeners(bootstrapContext.commandLineListener())
+				.listeners(decryptorContext.propertiesDecryptor())
 				.web(false);
 		container.showBanner(false);
 		container.run(args);

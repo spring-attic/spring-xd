@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.hamcrest.Matchers.startsWith;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertNotSame;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
@@ -31,6 +32,7 @@ import static org.mockito.Mockito.spy;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -175,9 +177,8 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		}
 		catch (IllegalArgumentException e) {
 			assertThat(e.getMessage(), allOf(
-					containsString("RabbitMessageBus does not support consumer properties: "),
+					containsString("RabbitMessageBus does not support consumer property: "),
 					containsString("partitionIndex"),
-					containsString("concurrency"),
 					containsString(" for dummy.")));
 		}
 		try {
@@ -408,12 +409,15 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		properties.put("durableSubscription", "true");
 		properties.put("maxAttempts", "1"); // disable retry
 		properties.put("requeue", "false");
+		properties.put("concurrency", "2");
 		DirectChannel moduleInputChannel = new DirectChannel();
 		moduleInputChannel.setBeanName("durableTest");
+		final List<Thread> threads = new ArrayList<>();
 		moduleInputChannel.subscribe(new MessageHandler() {
 
 			@Override
 			public void handleMessage(Message<?> message) throws MessagingException {
+				threads.add(Thread.currentThread());
 				throw new RuntimeException("foo");
 			}
 
@@ -423,16 +427,27 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		RabbitTemplate template = new RabbitTemplate(this.rabbitAvailableRule.getResource());
 		template.convertAndSend("xdbustest.topic.tap:stream:durabletest.0", "", "foo");
 
-		int n = 0;
-		while (n++ < 100) {
-			Object deadLetter = template.receiveAndConvert("xdbustest.teststream.tap:stream:durabletest.0.dlq");
-			if (deadLetter != null) {
-				assertEquals("foo", deadLetter);
-				break;
-			}
-			Thread.sleep(100);
-		}
-		assertTrue(n < 100);
+		template.setReceiveTimeout(10000);
+		Object deadLetter = template.receiveAndConvert("xdbustest.teststream.tap:stream:durabletest.0.dlq");
+		assertNotNull(deadLetter);
+		assertEquals("foo", deadLetter);
+
+		template.convertAndSend("xdbustest.topic.tap:stream:durabletest.0", "", "bar");
+
+		deadLetter = template.receiveAndConvert("xdbustest.teststream.tap:stream:durabletest.0.dlq");
+		assertNotNull(deadLetter);
+		assertEquals("bar", deadLetter);
+
+		template.setReceiveTimeout(10);
+		assertNull(template.receiveAndConvert("xdbustest.teststream.tap:stream:durabletest.0.dlq"));
+		assertEquals(2, threads.size());
+		assertNotSame(threads.get(0), threads.get(1));
+
+		@SuppressWarnings("unchecked")
+		List<Binding> bindings = TestUtils.getPropertyValue(bus, "messageBus.bindings", List.class);
+		assertEquals(1, bindings.size());
+		assertEquals(2,
+				TestUtils.getPropertyValue(bindings.get(0), "endpoint.messageListenerContainer.concurrentConsumers"));
 
 		bus.unbindConsumer("teststream.tap:stream:durabletest.0", moduleInputChannel);
 		assertNotNull(admin.getQueueProperties("xdbustest.teststream.tap:stream:durabletest.0.dlq"));
@@ -440,6 +455,8 @@ public class RabbitMessageBusTests extends PartitionCapableBusTests {
 		admin.deleteQueue("xdbustest.teststream.tap:stream:durabletest.0");
 		admin.deleteExchange("xdbustest.topic.tap:stream:durabletest.0");
 		admin.deleteExchange("xdbustest.DLX");
+
+		assertEquals(0, bindings.size());
 	}
 
 	@Test

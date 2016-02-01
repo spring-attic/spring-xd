@@ -45,7 +45,7 @@ You may also put multiple profile specific configuration in a single `servers.ym
 
 Spring XD saves the state of the batch job workflows in a relational database.  When running `xd-singlenode` an embedded HSQLDB database instance is started automatically. When running in distributed mode a standalone HSQLDB instance can be used. A startup script `hsqldb-server` is provided in the installation directory under the folder `hsqldb/bin`.  It is recommended to use HSQLDB only for development and learning.
 
-When deploying in a production environment, you will need to select another database.  Spring XD is primarily tested on HSQLDB, MySql and Postgres but Apache Derby and Oracle are supported as well. All batch workflow tables are automatically created, if they do not exist, when you use HSQLDB, MySQL, Postgres, Apache Derby or Oracle.  The JDBC driver jars for HSQLDB and Postgres are already on the XD classpath. If you use MySQL, Apache Derby or Oracle for your batch repository database, then you would need to copy the corresponding JDBC jar into the `lib` directory under `$XD_HOME` (`$XD_HOME/lib`) before starting Spring XD. 
+When deploying in a production environment, you will need to select another database.  Spring XD is primarily tested on HSQLDB, MySql and Postgres but Apache Derby and Oracle are supported as well. All batch workflow tables are automatically created, if they do not exist, when you use HSQLDB, MySQL, Postgres, Apache Derby or Oracle.  The JDBC driver jars for HSQLDB and Postgres are already on the XD classpath. If you use MySQL, Apache Derby or Oracle for your batch repository database, then you would need to copy the corresponding JDBC jar into the `lib` directory under `$XD_HOME` (`$XD_HOME/lib`) before starting Spring XD.
 
 NOTE: If you access any database other than HSQLDB or Postgres in a stream module then the JDBC driver jar for that database needs to be present in the `$XD_HOME/lib` directory.
 
@@ -137,6 +137,11 @@ spring:
   redis:
    port: 6379
    host: localhost
+   pool:
+     maxIdle: 8 # max idle connections in the pool
+     minIdle: 0 # min idle connections in the pool
+     maxActive: -1 # no limit to the number of active connections
+     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
 ----
 
 To override these settings set an OS environment variable such as `spring_redis_port` to the value you require.
@@ -149,6 +154,11 @@ spring:
   redis:
    port: 6379
    host: host1
+   pool:
+     maxIdle: 8 # max idle connections in the pool
+     minIdle: 0 # min idle connections in the pool
+     maxActive: -1 # no limit to the number of active connections
+     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
    sentinel:
      master: mymaster
      nodes: host2:26379,host3:26380,host4:26381

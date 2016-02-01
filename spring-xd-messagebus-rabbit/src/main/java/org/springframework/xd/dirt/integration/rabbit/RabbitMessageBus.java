@@ -131,6 +131,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private static final Set<Object> RABBIT_CONSUMER_PROPERTIES = new HashSet<Object>(Arrays.asList(new String[] {
 
+		BusProperties.CONCURRENCY,
 		BusProperties.MAX_CONCURRENCY,
 		RabbitPropertiesAccessor.ACK_MODE,
 		RabbitPropertiesAccessor.PREFETCH,
@@ -152,25 +153,26 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.addAll(RABBIT_CONSUMER_PROPERTIES)
 			.build();
 
+	/**
+	 * Basic + durable.
+	 */
 	private static final Set<Object> SUPPORTED_PUBSUB_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
 			.add(BusProperties.DURABLE)
 			.build();
 
 	/**
-	 * Basic + concurrency.
+	 * Basic.
 	 */
 	private static final Set<Object> SUPPORTED_NAMED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
-			.add(BusProperties.CONCURRENCY)
 			.build();
 
 	/**
-	 * Basic + concurrency + partitioning.
+	 * Basic + partitioning.
 	 */
 	private static final Set<Object> SUPPORTED_CONSUMER_PROPERTIES = new SetBuilder()
 			.addAll(SUPPORTED_BASIC_CONSUMER_PROPERTIES)
-			.add(BusProperties.CONCURRENCY)
 			.add(BusProperties.PARTITION_INDEX)
 			.build();
 
@@ -552,14 +554,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			listenerContainer.setChannelTransacted(properties.getTransacted(this.defaultChannelTransacted));
 			listenerContainer.setDefaultRequeueRejected(properties.getRequeueRejected(this
 					.defaultDefaultRequeueRejected));
-			if (!isPubSub) {
-				int concurrency = properties.getConcurrency(this.defaultConcurrency);
-				concurrency = concurrency > 0 ? concurrency : 1;
-				listenerContainer.setConcurrentConsumers(concurrency);
-				int maxConcurrency = properties.getMaxConcurrency(this.defaultMaxConcurrency);
-				if (maxConcurrency > concurrency) {
-					listenerContainer.setMaxConcurrentConsumers(maxConcurrency);
-				}
+			int concurrency = properties.getConcurrency(this.defaultConcurrency);
+			concurrency = concurrency > 0 ? concurrency : 1;
+			listenerContainer.setConcurrentConsumers(concurrency);
+			int maxConcurrency = properties.getMaxConcurrency(this.defaultMaxConcurrency);
+			if (maxConcurrency > concurrency) {
+				listenerContainer.setMaxConcurrentConsumers(maxConcurrency);
 			}
 			listenerContainer.setPrefetchCount(properties.getPrefetchCount(this.defaultPrefetchCount));
 			listenerContainer.setTxSize(properties.getTxSize(this.defaultTxSize));

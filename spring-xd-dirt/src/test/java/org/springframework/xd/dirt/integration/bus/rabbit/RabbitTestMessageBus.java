@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,14 @@
 
 package org.springframework.xd.dirt.integration.bus.rabbit;
 
+import static org.junit.Assert.assertEquals;
+
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.integration.codec.Codec;
 import org.springframework.integration.context.IntegrationContextUtils;
+import org.springframework.integration.test.util.TestUtils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.xd.dirt.integration.bus.AbstractTestMessageBus;
 import org.springframework.xd.dirt.integration.rabbit.RabbitMessageBus;
@@ -49,7 +52,9 @@ public class RabbitTestMessageBus extends AbstractTestMessageBus<RabbitMessageBu
 		context.getBeanFactory().registerSingleton(IntegrationContextUtils.TASK_SCHEDULER_BEAN_NAME, scheduler);
 		context.refresh();
 		messageBus.setApplicationContext(context);
+		messageBus.setLongStringLimit(8193);
 		this.setMessageBus(messageBus);
+		assertEquals(8193, TestUtils.getPropertyValue(messageBus, "inboundMessagePropertiesConverter.longStringLimit"));
 		this.rabbitAdmin = new RabbitAdmin(connectionFactory);
 	}
 

@@ -25,6 +25,9 @@
 #      compressionLevel:            1
             # bus-level property, applies only when 'compress=true' for a stream module
             # See java.util.zip.Deflater; 1=BEST_SPEED, 9=BEST_COMPRESSION, ...
+#      longStringLimit:             8192
+#            # Headers longer than this will not be converted to String and will be a
+#            # DataInputStream - such headers will NOT be properly converted back on output.
 #      default:
 #        ackMode:                   AUTO
             # Valid: AUTO (container acks), NONE (broker acks), MANUAL (consumer acks).

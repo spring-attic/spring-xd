@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2015 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,6 @@ import org.springframework.amqp.rabbit.retry.MessageRecoverer;
 import org.springframework.amqp.rabbit.retry.RejectAndDontRequeueRecoverer;
 import org.springframework.amqp.rabbit.retry.RepublishMessageRecoverer;
 import org.springframework.amqp.rabbit.support.DefaultMessagePropertiesConverter;
-import org.springframework.amqp.rabbit.support.MessagePropertiesConverter;
 import org.springframework.amqp.support.AmqpHeaders;
 import org.springframework.amqp.support.postprocessor.DelegatingDecompressingPostProcessor;
 import org.springframework.amqp.support.postprocessor.GZipPostProcessor;
@@ -107,6 +106,8 @@ import com.rabbitmq.client.Envelope;
  * @author David Turanski
  */
 public class RabbitMessageBus extends MessageBusSupport implements DisposableBean {
+
+	private static final int DEFAULT_LONG_STRING_LIMIT = 8192;
 
 	private static final AcknowledgeMode DEFAULT_ACKNOWLEDGE_MODE = AcknowledgeMode.AUTO;
 
@@ -231,17 +232,25 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			.add(RabbitPropertiesAccessor.REPLY_HEADER_PATTERNS)
 			.build();
 
-	private static final MessagePropertiesConverter inboundMessagePropertiesConverter =
-			new DefaultMessagePropertiesConverter() {
+	private volatile DefaultMessagePropertiesConverter inboundMessagePropertiesConverter =
+			new DeliveryModeRemovingMessagePropertiesConverter(DEFAULT_LONG_STRING_LIMIT);
 
-				@Override
-				public MessageProperties toMessageProperties(AMQP.BasicProperties source, Envelope envelope,
-						String charset) {
-					MessageProperties properties = super.toMessageProperties(source, envelope, charset);
-					properties.setDeliveryMode(null);
-					return properties;
-				}
-			};
+	private static final class DeliveryModeRemovingMessagePropertiesConverter extends
+			DefaultMessagePropertiesConverter {
+
+		public DeliveryModeRemovingMessagePropertiesConverter(int longStringLimit) {
+			super(longStringLimit);
+		}
+
+		@Override
+		public MessageProperties toMessageProperties(AMQP.BasicProperties source, Envelope envelope,
+				String charset) {
+			MessageProperties properties = super.toMessageProperties(source, envelope, charset);
+			properties.setDeliveryMode(null);
+			return properties;
+		}
+
+	};
 
 	private static final ExpressionParser EXPRESSION_PARSER = new SpelExpressionParser();
 
@@ -284,6 +293,8 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 	private volatile boolean defaultAutoBindDLQ = false;
 
 	private volatile boolean defaultRepublishToDLQ = false;
+
+	private volatile Integer longStringLimit;
 
 	private volatile String[] addresses;
 
@@ -424,6 +435,17 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
+	/**
+	 * Set the limit for the lengths of LongString headers. Headers greater than
+	 * this length are returned as a {@code DataInputStream} which requires user
+	 * code to read. Spring AMQP currently does not handle these when converting
+	 * back to {@code BasicProperties}.
+	 * @param longStringLimit the limit - defaults to 8192.
+	 */
+	public void setLongStringLimit(int longStringLimit) {
+		this.longStringLimit = longStringLimit;
+	}
+
 	@Override
 	protected void onInit() {
 		super.onInit();
@@ -434,6 +456,10 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 			this.connectionFactory = new LocalizedQueueConnectionFactory(this.connectionFactory, this.addresses,
 					this.adminAddresses, this.nodes, this.vhost, this.username, this.password, this.useSSL,
 					this.sslPropertiesLocation);
+		}
+		if (this.longStringLimit != null) {
+			this.inboundMessagePropertiesConverter = new DeliveryModeRemovingMessagePropertiesConverter(
+					this.longStringLimit);
 		}
 	}
 
@@ -550,7 +576,7 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 				listenerContainer.setAdviceChain(new Advice[] { retryInterceptor });
 			}
 			listenerContainer.setAfterReceivePostProcessors(this.decompressingPostProcessor);
-			listenerContainer.setMessagePropertiesConverter(RabbitMessageBus.inboundMessagePropertiesConverter);
+			listenerContainer.setMessagePropertiesConverter(this.inboundMessagePropertiesConverter);
 			listenerContainer.afterPropertiesSet();
 			AmqpInboundChannelAdapter adapter = new AmqpInboundChannelAdapter(listenerContainer);
 			adapter.setBeanFactory(this.getBeanFactory());

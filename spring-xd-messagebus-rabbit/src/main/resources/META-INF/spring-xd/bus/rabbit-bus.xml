@@ -51,6 +51,7 @@
 		<property name="vhost" value="${spring.rabbitmq.virtual_host:}" />
 		<property name="useSSL" value="${spring.rabbitmq.useSSL:false}" />
 		<property name="sslPropertiesLocation" value="${spring.rabbitmq.sslProperties:}" />
+		<property name="longStringLimit" value="${xd.messagebus.rabbit.longStringLimit}" />
 	</bean>
 
 </beans>

@@ -137,6 +137,11 @@ spring:
   redis:
    port: 6379
    host: localhost
+   pool:
+     maxIdle: 8 # max idle connections in the pool
+     minIdle: 0 # min idle connections in the pool
+     maxActive: -1 # no limit to the number of active connections
+     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
 ----
 
 To override these settings set an OS environment variable such as `spring_redis_port` to the value you require.
@@ -149,6 +154,11 @@ spring:
   redis:
    port: 6379
    host: host1
+   pool:
+     maxIdle: 8 # max idle connections in the pool
+     minIdle: 0 # min idle connections in the pool
+     maxActive: -1 # no limit to the number of active connections
+     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
    sentinel:
      master: mymaster
      nodes: host2:26379,host3:26380,host4:26381

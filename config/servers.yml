@@ -271,6 +271,11 @@ endpoints:
 #  redis:
 #   port: 6379
 #   host: 127.0.0.1
+#   pool:
+#     maxIdle: 8 # max idle connections in the pool
+#     minIdle: 0 # min idle connections in the pool
+#     maxActive: -1 # no limit to the number of active connections
+#     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
 #   sentinel:
 #     master: mymaster
 #     nodes: 127.0.0.1:26379,127.0.0.1:26380,127.0.0.1:26381

@@ -11,10 +11,11 @@ spring:
   redis:
    port: 6379
    host: localhost
-   pool.maxIdle: 8
-   pool.minIdle: 0
-   pool.maxActive: 8
-   pool.maxWait: -1
+   pool:
+     maxIdle: 8 # max idle connections in the pool
+     minIdle: 0 # min idle connections in the pool
+     maxActive: -1 # no limit to the number of active connections
+     maxWait: 30000 # time limit to get a connection - only applies if maxActive is finite
 
 # RabbitMQ properties
   rabbitmq:

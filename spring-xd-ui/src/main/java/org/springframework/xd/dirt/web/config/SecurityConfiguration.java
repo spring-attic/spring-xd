@@ -33,6 +33,7 @@ import org.springframework.security.config.annotation.web.configurers.Expression
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.access.channel.ChannelProcessingFilter;
 import org.springframework.security.web.authentication.LoginUrlAuthenticationEntryPoint;
+import org.springframework.security.web.authentication.logout.HttpStatusReturningLogoutSuccessHandler;
 import org.springframework.security.web.authentication.www.BasicAuthenticationEntryPoint;
 import org.springframework.security.web.util.matcher.AnyRequestMatcher;
 import org.springframework.security.web.util.matcher.MediaTypeRequestMatcher;
@@ -115,7 +116,8 @@ public class SecurityConfiguration extends WebSecurityConfigurerAdapter {
 				.formLogin().loginPage(loginPage)
 				.loginProcessingUrl("/admin-ui/login")
 				.defaultSuccessUrl("/admin-ui/").permitAll()
-				.and().logout().logoutUrl("/admin-ui/logout").permitAll()
+				.and().logout().logoutUrl("/admin-ui/logout").logoutSuccessHandler(new HttpStatusReturningLogoutSuccessHandler())
+				.permitAll()
 				.and().httpBasic()
 				.and().exceptionHandling()
 				.defaultAuthenticationEntryPointFor(

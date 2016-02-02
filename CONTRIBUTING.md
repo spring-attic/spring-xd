@@ -5,6 +5,11 @@ Have something you'd like to contribute to **Spring XD**? We welcome pull reques
 
 Please refer back to this document as a checklist before issuing any pull request; this will save time for everyone!
 
+== Code of Conduct
+This project adheres to the Contributor Covenant link:CODE_OF_CONDUCT.adoc[code of conduct].
+By participating, you  are expected to uphold this code. Please report unacceptable behavior to
+spring-code-of-conduct@pivotal.io.
+
 ## Understand the basics
 
 Not sure what a *pull request* is, or how to submit one?  Take a look at GitHub's excellent [help documentation][] first.

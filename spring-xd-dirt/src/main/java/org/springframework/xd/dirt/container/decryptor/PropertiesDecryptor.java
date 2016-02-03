@@ -20,7 +20,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
-import org.springframework.core.env.*;
+import org.springframework.core.env.CompositePropertySource;
+import org.springframework.core.env.ConfigurableEnvironment;
+import org.springframework.core.env.EnumerablePropertySource;
+import org.springframework.core.env.MapPropertySource;
+import org.springframework.core.env.MutablePropertySources;
+import org.springframework.core.env.PropertySource;
+import org.springframework.core.env.PropertySources;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
 
@@ -34,9 +40,9 @@ import java.util.Map;
  * override the encrypted values. This class is injected as an ApplicationListener in
  * each application context in the XD hierarchy to be invoked before the context is
  * refreshed. This class is loosely based on spring-cloud-commons
- * org.springframework.cloud.bootstrap.encrypt
- * .EnvironmentDecryptApplicationInitializer, adopting the same conventions used to
- * identify and process encrypted property values in Spring Cloud applications.
+ * org.springframework.cloud.bootstrap.encrypt.EnvironmentDecryptApplicationInitializer,
+ * adopting the same conventions used to identify and process encrypted property values
+ * in Spring Cloud applications.
  *
  * @author David Turanski
  * @since 1.3.1
@@ -141,9 +147,7 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 						value = value.substring("{cipher}".length());
 						try {
 							value = this.decryptor.decrypt(value);
-							if (logger.isDebugEnabled()) {
-								logger.debug("Decrypted: key=" + key);
-							}
+							logger.debug("Decrypted: key=" + key);
 						} catch (Exception e) {
 							String message = "Cannot decrypt: key=" + key;
 							if (this.failOnError) {

@@ -18,7 +18,11 @@ package org.springframework.xd.dirt.server.container;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.xd.dirt.container.initializer.*;
+import org.springframework.xd.dirt.container.initializer.OrderedContextInitializer;
+import org.springframework.xd.dirt.container.initializer.PluginContextComponentScanningExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.PluginContextResourceExtensionsInitializer;
+import org.springframework.xd.dirt.container.initializer.PluginsInitializer;
+
 
 /**
  * Bootstrap Configuration for the {@link ContainerBootstrapContext }

@@ -64,4 +64,5 @@ public class ParentConfiguration {
 	public ApplicationHealthIndicator healthIndicator() {
 		return new ApplicationHealthIndicator();
 	}
+
 }

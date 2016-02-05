@@ -1129,6 +1129,7 @@ $$maxMessages$$:: $$the maximum messages per poll; -1 for unlimited$$ *($$long$$
 $$nio$$:: $$whether or not to use NIO$$ *($$boolean$$, default: `false`)*
 $$port$$:: $$the port on the remote host to connect to$$ *($$int$$, default: `1234`)*
 $$propertiesLocation$$:: $$the path of a properties file containing custom script variable bindings$$ *($$String$$, no default)*
+$$refreshDelay$$:: $$how often to check (in milliseconds) whether the script has changed; -1 for never$$ *($$long$$, default: `60000`)*
 $$reverseLookup$$:: $$perform a reverse DNS lookup on the remote IP Address$$ *($$boolean$$, default: `false`)*
 $$script$$:: $$reference to a script used to process messages$$ *($$String$$, no default)*
 $$socketTimeout$$:: $$the timeout (ms) before closing the socket when no data is received$$ *($$int$$, default: `120000`)*
@@ -1161,6 +1162,9 @@ else
 
 ----
 
+TIP: If the `script` option is set, the script file's modified timestamp is checked for changes every 60 seconds by
+default; this can be changed with the `refreshDelay` deployment property: `--refreshDelay=30000` (every 30 seconds or
+30,000ms), `--refreshDelay=-1` to disable refresh.
 
 [[time]]
 === Time

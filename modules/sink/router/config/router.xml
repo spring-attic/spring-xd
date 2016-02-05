@@ -22,7 +22,8 @@
 	<beans:beans profile="use-script">
 		<beans:import resource="../../../common/script-variable-generator.xml"/>
 		<router input-channel="input" resolution-required="false" default-output-channel="nullChannel">
-			<int-groovy:script location="${script}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+			<int-groovy:script location="${script}" script-variable-generator="variableGenerator"
+						refresh-check-delay="${refreshDelay}"/>
 		</router>
 	</beans:beans>
 

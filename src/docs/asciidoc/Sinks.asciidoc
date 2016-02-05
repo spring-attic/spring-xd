@@ -145,11 +145,14 @@ The **$$router$$** $$sink$$ has the following options:
 
 $$expression$$:: $$a SpEL expression used to transform messages$$ *($$String$$, default: `payload.toString()`)*
 $$propertiesLocation$$:: $$the path of a properties file containing custom script variable bindings$$ *($$String$$, no default)*
+$$refreshDelay$$:: $$how often to check (in milliseconds) whether the script has changed; -1 for never$$ *($$long$$, default: `60000`)*
 $$script$$:: $$reference to a script used to process messages$$ *($$String$$, no default)*
 $$variables$$:: $$variable bindings as a comma delimited string of name-value pairs, e.g., 'foo=bar,baz=car'$$ *($$String$$, no default)*
 //$sink.router
 
-TIP: If the `script` option is set, the script is checked for updates every 60 seconds.
+TIP: If the `script` option is set, the script file's modified timestamp is checked for changes every 60 seconds by
+default; this can be changed with the `refreshDelay` deployment property: `--refreshDelay=30000` (every 30 seconds or
+30,000ms), `--refreshDelay=-1` to disable refresh.
 
 [[file-sink]]
 === File Sink (`file`)
@@ -404,7 +407,7 @@ updated.
 [source,text]
 ----
 # select * from xdsink2;
- col1  | col2 | col3 
+ col1  | col2 | col3
 -------+------+------
  DATA3 | DATA | DATA
  DATA2 | DATA | DATA
@@ -433,7 +436,7 @@ updated.
 [source,text]
 ----
 # select * from xdsink2;
- col1  | col2  | col3  
+ col1  | col2  | col3
 -------+-------+-------
  DATA3 | DATA  | DATA
  DATA2 | DATA  | DATA
@@ -534,7 +537,7 @@ $$updateColumns$$:: $$update columns with update$$ *($$String$$, no default)*
 //$sink.gpfdist
 
 [[cassandra]]
-=== Cassandra 
+=== Cassandra
 
 The Cassandra sink write into a Cassandra table.  Here is a simple example
 

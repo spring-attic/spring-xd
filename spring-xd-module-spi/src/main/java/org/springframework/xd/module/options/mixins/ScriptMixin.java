@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2014-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,6 +32,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * </ul>
  *
  * @author David Turanski
+ * @author Gary Russell
  */
 public class ScriptMixin {
 
@@ -40,6 +41,8 @@ public class ScriptMixin {
 	private String propertiesLocation;
 
 	private String variables;
+
+	private long refreshDelay = 60000;
 
 	public String getVariables() {
 		return variables;
@@ -68,12 +71,22 @@ public class ScriptMixin {
 		this.variables = variables;
 	}
 
+
+	public long getRefreshDelay() {
+		return refreshDelay;
+	}
+
+	@ModuleOption("how often to check (in milliseconds) whether the script has changed; -1 for never")
+	public void setRefreshDelay(long refreshDelay) {
+		this.refreshDelay = refreshDelay;
+	}
+
 	/**
 	 *
 	 * Validates the configuration meets expected conditions. Subclasses may override validation rules.
 	 * @return true if configuration is valid.
 	 */
-	@AssertTrue(message="'script' cannot be null or empty") //Allows subclasses to override 'script' is required.
+	@AssertTrue(message = "'script' cannot be null or empty") //Allows subclasses to override 'script' is required.
 	public boolean isValid() {
 		return StringUtils.hasText(script);
 	}

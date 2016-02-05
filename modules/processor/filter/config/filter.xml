@@ -22,7 +22,8 @@
 	<filter input-channel="to.spel" expression="${expression:true}" output-channel="output"/>
 
 	<filter input-channel="to.script" output-channel="output">
-		<int-groovy:script location="${script:filter.groovy}" script-variable-generator="variableGenerator" refresh-check-delay="60"/>
+		<int-groovy:script location="${script:filter.groovy}" script-variable-generator="variableGenerator"
+						refresh-check-delay="${refreshDelay}"/>
 	</filter>
 
 	<channel id="output"/>

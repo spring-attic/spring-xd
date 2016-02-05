@@ -23,7 +23,7 @@
 		<beans:import resource="../../../common/script-variable-generator.xml" />
 		<transformer input-channel="input" output-channel="output">
 			<int-groovy:script location="${script}"
-				script-variable-generator="variableGenerator" refresh-check-delay="60" />
+				script-variable-generator="variableGenerator" refresh-check-delay="${refreshDelay}" />
 		</transformer>
 	</beans:beans>
 

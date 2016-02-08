@@ -54,12 +54,15 @@ public class DecryptorContext {
 			logger.debug("Registered TextEncryptor {}", textEncryptor.getClass()
 					.getName());
 		}
+
 		catch (NoSuchBeanDefinitionException e) {
 			if (e instanceof NoUniqueBeanDefinitionException) {
 				throw e;
 			}
 		}
-
+		/*
+		 * A null textEncryptor effectively disables properties decryption
+		 */
 		propertiesDecryptor = new PropertiesDecryptor(textEncryptor);
 
 	}

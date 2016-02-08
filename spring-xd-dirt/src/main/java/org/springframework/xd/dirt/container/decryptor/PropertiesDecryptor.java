@@ -17,7 +17,10 @@ package org.springframework.xd.dirt.container.decryptor;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.BeansException;
 import org.springframework.boot.context.event.ApplicationPreparedEvent;
+import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationContextAware;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.Ordered;
 import org.springframework.core.env.CompositePropertySource;
@@ -47,7 +50,8 @@ import java.util.Map;
  * @author David Turanski
  * @since 1.3.1
  */
-public class PropertiesDecryptor implements OrderedContextInitializer {
+public class PropertiesDecryptor implements OrderedContextInitializer,
+		ApplicationContextAware {
 	private static Logger logger = LoggerFactory.getLogger(PropertiesDecryptor.class);
 
 	public static final String DECRYPTED_PROPERTY_SOURCE_NAME = "decrypted";
@@ -60,6 +64,17 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 
 	private boolean failOnError = true;
 
+	private ApplicationContext applicationContext;
+
+	/**
+	 *
+	 * @param decryptor the {@link TextEncryptor} used to decrypt properties.
+	 * A null is ok here but properties will not be decrypted.
+	 */
+	public PropertiesDecryptor(TextEncryptor decryptor) {
+		this.decryptor = decryptor;
+	}
+
 	/**
 	 * Strategy to determine how to handle exceptions during decryption.
 	 *
@@ -67,10 +82,6 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 	 */
 	public void setFailOnError(boolean failOnError) {
 		this.failOnError = failOnError;
-	}
-
-	public PropertiesDecryptor(TextEncryptor decryptor) {
-		this.decryptor = decryptor;
 	}
 
 	@Override
@@ -83,6 +94,12 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 	}
 
 	@Override
+	public void setApplicationContext(ApplicationContext applicationContext)
+			throws BeansException {
+		this.applicationContext = applicationContext;
+	}
+
+	@Override
 	public void onApplicationEvent(ApplicationPreparedEvent event) {
 		if (this.decryptor == null) {
 			return;
@@ -90,6 +107,9 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 
 		ConfigurableApplicationContext applicationContext = event
 				.getApplicationContext();
+		if (!applicationContext.equals(this.applicationContext)){
+			return;
+		}
 
 		/*
 		 * register the decryptor as a bean so it is available to the
@@ -167,7 +187,8 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 				}
 			}
 
-		} else if (source instanceof CompositePropertySource) {
+		}
+		else if (source instanceof CompositePropertySource) {
 
 			for (PropertySource<?> nested : ((CompositePropertySource) source)
 					.getPropertySources()) {
@@ -178,6 +199,5 @@ public class PropertiesDecryptor implements OrderedContextInitializer {
 			logger.debug("ignored property source {} {}", source.getName(), source
 					.getClass().getName());
 		}
-
 	}
 }

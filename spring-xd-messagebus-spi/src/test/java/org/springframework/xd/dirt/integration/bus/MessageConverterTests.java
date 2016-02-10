@@ -1,5 +1,5 @@
 /*
- * Copyright 2002-2015 the original author or authors.
+ * Copyright 2002-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,6 +30,7 @@ import org.springframework.messaging.support.GenericMessage;
 
 /**
  * @author Gary Russell
+ * @author Artem Bilan
  * @since 1.0
  *
  */
@@ -58,17 +59,17 @@ public class MessageConverterTests {
 		EmbeddedHeadersMessageConverter converter = new EmbeddedHeadersMessageConverter();
 		Message<byte[]> message = MessageBuilder.withPayload("Hello".getBytes())
 				.setHeader("foo", "bar")
-				.setHeader("baz", "ØØØØØØØØ")
+				.setHeader("baz", "\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8") // ØØØØØØØØ
 				.build();
 		byte[] embedded = converter.embedHeaders(new MessageValues(message), "foo", "baz");
 		assertEquals(0xff, embedded[0] & 0xff);
-		assertEquals("\u0002\u0003foo\u0000\u0000\u0000\u0005\"bar\"\u0003baz\u0000\u0000\u0000\u0012\"ØØØØØØØØ\"Hello",
+		assertEquals("\u0002\u0003foo\u0000\u0000\u0000\u0005\"bar\"\u0003baz\u0000\u0000\u0000\u0012\"\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\"Hello",
 				new String(embedded, "UTF-8").substring(1));
 
 		MessageValues extracted = converter.extractHeaders(MessageBuilder.withPayload(embedded).build(), false);
 		assertEquals("Hello", new String((byte[])extracted.getPayload()));
 		assertEquals("bar", extracted.get("foo"));
-		assertEquals("ØØØØØØØØ", extracted.get("baz"));
+		assertEquals("\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8\u00d8", extracted.get("baz"));
 	}
 
 	@Test

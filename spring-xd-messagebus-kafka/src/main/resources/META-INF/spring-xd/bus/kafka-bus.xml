@@ -34,6 +34,7 @@
 		<property name="defaultFetchSize" value="${xd.messagebus.kafka.default.fetchSize}"/>
 		<property name="defaultMinPartitionCount" value="${xd.messagebus.kafka.default.minPartitionCount}"/>
 		<property name="defaultQueueSize" value="${xd.messagebus.kafka.default.queueSize}"/>
+		<property name="defaultMaxWait" value="${xd.messagebus.kafka.default.maxWait}"/>
 		<!-- Offset Manager Properties-->
 		<property name="offsetStoreTopic" value="${xd.messagebus.kafka.offsetStoreTopic}"/>
 		<property name="offsetStoreSegmentSize" value="${xd.messagebus.kafka.offsetStoreSegmentSize}"/>

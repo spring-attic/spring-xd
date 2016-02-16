@@ -84,7 +84,7 @@ public final class BannerUtils {
 				.append(StringUtils.isEmpty(containerName) ? ""
 						: "Started : " + containerName)
 				.append(LINE_SEPARATOR)
-				.append("Documentation: http://docs.spring.io/spring-xd/docs/1.1.1.RELEASE/reference/html/")
+				.append("Documentation: http://docs.spring.io/spring-xd/docs/current/reference/html/")
 				.append(LINE_SEPARATOR);
 		return sb.toString();
 	}

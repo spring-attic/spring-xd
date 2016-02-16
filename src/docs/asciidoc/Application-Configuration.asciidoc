@@ -165,7 +165,7 @@ spring:
 ----
 
 [[redisBusProps]]
-In addition, the following default settings for the rabbit message bus can be modified in `servers.yml`...
+In addition, the following default settings for the redis message bus can be modified in `servers.yml`...
 
 [source,yaml]
 ----
@@ -939,5 +939,3 @@ Also this will work with module options included in the stream definition, if yo
 ----
 xd:> stream create --name test --definition "jdbc --username=dbuser --password='{cipher}FKSAJDFGYOS8F7GLHAKERGFHLSAJ'..."
 ----
-
-

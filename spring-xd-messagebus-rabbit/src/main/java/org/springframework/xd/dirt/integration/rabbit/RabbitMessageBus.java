@@ -314,6 +314,14 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 
 	private Resource sslPropertiesLocation;
 
+	private String keyStore;
+
+	private String keyStorePassphrase;
+
+	private String trustStore;
+
+	private String trustStorePassphrase;
+
 	private volatile boolean clustered;
 
 	public RabbitMessageBus(ConnectionFactory connectionFactory, Codec codec) {
@@ -437,6 +445,22 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
+	public void setKeyStore(String keyStore) {
+		this.keyStore = keyStore;
+	}
+
+	public void setKeyStorePassphrase(String keyStorePassphrase) {
+		this.keyStorePassphrase = keyStorePassphrase;
+	}
+
+	public void setTrustStore(String trustStore) {
+		this.trustStore = trustStore;
+	}
+
+	public void setTrustStorePassphrase(String trustStorePassphrase) {
+		this.trustStorePassphrase = this.trustStorePassphrase;
+	}
+
 	/**
 	 * Set the limit for the lengths of LongString headers. Headers greater than
 	 * this length are returned as a {@code DataInputStream} which requires user
@@ -457,7 +481,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 					"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
 			this.connectionFactory = new LocalizedQueueConnectionFactory(this.connectionFactory, this.addresses,
 					this.adminAddresses, this.nodes, this.vhost, this.username, this.password, this.useSSL,
-					this.sslPropertiesLocation);
+					this.sslPropertiesLocation,
+					StringUtils.hasText(this.keyStore) ? this.keyStore : null,
+					StringUtils.hasText(this.keyStorePassphrase) ? this.keyStorePassphrase : null,
+					StringUtils.hasText(this.trustStore) ? this.trustStore : null,
+					StringUtils.hasText(this.trustStorePassphrase) ? this.trustStorePassphrase : null);
+
 		}
 		if (this.longStringLimit != null) {
 			this.inboundMessagePropertiesConverter = new DeliveryModeRemovingMessagePropertiesConverter(

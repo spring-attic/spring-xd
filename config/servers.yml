@@ -285,7 +285,11 @@ endpoints:
 #  port: 9393
 
 ---
-# RabbitMQ properties
+#  Rabbit MQ Properties
+#
+#  NOTE: sslProperties is mutually exclusive with keyStore, keyStorePassphrase, trustStore, trustStorePassphrase.
+#  if you set inline properties, values in the properties file location given by 'sslProperties' will be ignored.
+#
 #spring:
 #  rabbitmq:
 #   addresses: localhost:5672
@@ -296,6 +300,11 @@ endpoints:
 #   virtual_host: /
 #   useSSL: false
 #   sslProperties:
+#   ssl:
+#     keyStore:
+#     keyStorePassphrase:
+#     trustStore:
+#     trustStorePassphrase:
 
 
 ---

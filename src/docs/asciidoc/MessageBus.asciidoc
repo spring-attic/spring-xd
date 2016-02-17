@@ -146,7 +146,7 @@ spring:
     useSSL: true
 ----
 
-In +application.yml+ (and set the port(s) in the +addresses+ property appropriately).
+In +servers.yml+ (and set the port(s) in the +addresses+ property appropriately).
 
 To use SSL with certificate validation, set
 
@@ -155,6 +155,11 @@ spring:
   rabbitmq:
     useSSL: true
     sslProperties: file:path/to/secret/ssl.properties
+    #ssl:
+      #   keyStore:
+      #   keyStorePassphrase:
+      #   trustStore:
+      #   trustStorePassphrase:
 ----
 
 The +sslProperties+ property is a Spring resource (+file:+, +classpath:+ etc) that points to a properties file, Typically, this file would be secured by the operating system (and readable by the XD container) because it contains security information. Specifically:
@@ -168,10 +173,17 @@ trustStore.passPhrase=secret
 
 Where the +pkcs12+ keystore contains the client certificate and the truststore contains the server's certificate as described in the rabbit documentation. The key/trust store properties are Spring resources.
 
-NOTE: By default, the +rabbit+ source and sink modules inherit their default configuration from the container, but it can be overridden, either using +modules.yml+ or with specific module definitions.
+Alternately, you may specify these properties in-line in lieu of using an external properties file.
+In this case,the passphrase properties may be encrypted.
+See xref:Application-Configuration#encrypted-properties[Encrypted Properties] for more details.
+When both +sslProperties+ and in-line +ssl+ properties are configured,the in-line properties take precedence.
+
+NOTE: By default, the +rabbit+ source and sink modules inherit their default configuration from the container, but it
+can be overridden, either using +modules.yml+ or with specific module definitions.
 
 === Rabbit Message Bus Batching and Compression
-See xref:Application-Configuration#rabbitBusProps[RabbitMQ Message Bus Properties] for information about batching and compressing messages passing through the bus.
+See xref:Application-Configuration#rabbitBusProps[RabbitMQ Message Bus Properties] for information about batching and
+compressing messages passing through the bus.
 
 === Removing RabbitMQ MessageBus Resources
 

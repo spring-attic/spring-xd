@@ -1,18 +1,17 @@
 /*
+ * Copyright 2011-2016 the original author or authors.
  *
- *  * Copyright 2011-2015 the original author or authors.
- *  *
- *  * Licensed under the Apache License, Version 2.0 (the "License");
- *  * you may not use this file except in compliance with the License.
- *  * You may obtain a copy of the License at
- *  *
- *  *      http://www.apache.org/licenses/LICENSE-2.0
- *  *
- *  * Unless required by applicable law or agreed to in writing, software
- *  * distributed under the License is distributed on an "AS IS" BASIS,
- *  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  * See the License for the specific language governing permissions and
- *  * limitations under the License.
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  *
  */
 
@@ -28,12 +27,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 
 /**
  * Configures the connection factory used by the rabbit message bus.
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author David Turanski
  */
 @Configuration
 public class ConnectionFactorySettings {
@@ -43,6 +44,18 @@ public class ConnectionFactorySettings {
 
 	@Value("${spring.rabbitmq.sslProperties:}")
 	private Resource sslPropertiesLocation;
+
+	@Value("${spring.rabbitmq.ssl.keyStore:}")
+	private String keyStore;
+
+	@Value("${spring.rabbitmq.ssl.keyStorePassphrase:}")
+	private String keyStorePassphrase;
+
+	@Value("${spring.rabbitmq.ssl.trustStore:}")
+	private String trustStore;
+
+	@Value("${spring.rabbitmq.ssl.trustStorePassphrase:}")
+	private String trustStorePassphrase;
 
 	@Bean
 	// TODO: Move to spring boot
@@ -78,6 +91,14 @@ public class ConnectionFactorySettings {
 		RabbitConnectionFactoryBean rabbitConnectionFactoryBean = new RabbitConnectionFactoryBean();
 		rabbitConnectionFactoryBean.setUseSSL(this.useSSL);
 		rabbitConnectionFactoryBean.setSslPropertiesLocation(this.sslPropertiesLocation);
+		rabbitConnectionFactoryBean.setKeyStore(StringUtils.hasText(this.keyStore) ?
+				this.keyStore : null);
+		rabbitConnectionFactoryBean.setKeyStorePassphrase(StringUtils.hasText(
+				this.keyStorePassphrase) ? this.keyStorePassphrase : null);
+		rabbitConnectionFactoryBean.setTrustStore(StringUtils.hasText(this.trustStore) ?
+				this.trustStore : null);
+		rabbitConnectionFactoryBean.setTrustStorePassphrase(StringUtils.hasText(
+				this.trustStorePassphrase) ? this.trustStorePassphrase : null);
 		return rabbitConnectionFactoryBean;
 	}
 

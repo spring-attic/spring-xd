@@ -17,7 +17,7 @@
 		auto-startup="false"
 		channel="output"
 		listener-container="listenerContainer"
-		message-converter="messageConverter" 
+		message-converter="messageConverter"
 		mapped-request-headers="${mappedRequestHeaders}" />
 
 	<bean id="listenerContainer" class="org.springframework.amqp.rabbit.listener.SimpleMessageListenerContainer">
@@ -47,6 +47,10 @@
 	<bean id="connectionFactory" class="org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
 		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}" />
+		<property name="keyStore" value="#{'${keyStore}' == null || '${keyStore}'.length() == 0 ? null : '${keyStore}' }" />
+		<property name="keyStorePassphrase" value="#{'${keyStorePassphrase}' == null || '${keyStorePassphrase}'.length() == 0 ? null : '${keyStorePassphrase}' }" />
+		<property name="trustStore" value="#{'${trustStore}' == null || '${trustStore}'.length() == 0 ? null : '${trustStore}' }" />
+		<property name="trustStorePassphrase" value="#{'${trustStorePassphrase}' == null || '${trustStorePassphrase}'.length() == 0 ? null : '${trustStorePassphrase}' }" />
 	</bean>
 
 	<beans profile="enable-retry">

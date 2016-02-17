@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2015-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -53,7 +53,8 @@ public class LocalizedQueueConnectionFactoryIntegrationTests {
 		String username = "guest";
 		String password = "guest";
 		this.lqcf = new LocalizedQueueConnectionFactory(defaultConnectionFactory, addresses,
-				adminAddresses, nodes, vhost, username, password, false, null);
+				adminAddresses, nodes, vhost, username, password, false, null, null,
+				null, null, null);
 	}
 
 	@Test

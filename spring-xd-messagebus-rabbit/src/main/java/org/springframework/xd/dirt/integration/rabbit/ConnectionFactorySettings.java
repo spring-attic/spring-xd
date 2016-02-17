@@ -61,10 +61,8 @@ public class ConnectionFactorySettings {
 	@Bean
 	// TODO: Move to spring boot
 	public ConnectionFactory rabbitConnectionFactory(RabbitProperties config,
-			com.rabbitmq.client.ConnectionFactory rabbitConnectionFactory)
-			throws Exception {
-		CachingConnectionFactory factory = new CachingConnectionFactory(
-				rabbitConnectionFactory);
+			com.rabbitmq.client.ConnectionFactory rabbitConnectionFactory) throws Exception {
+		CachingConnectionFactory factory = new CachingConnectionFactory(rabbitConnectionFactory);
 		factory.setAddresses(config.getAddresses());
 		if (config.getHost() != null) {
 			factory.setHost(config.getHost());

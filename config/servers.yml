@@ -285,6 +285,7 @@ endpoints:
 #  port: 9393
 
 ---
+#  Rabbit MQ Properties
 #
 #  NOTE: sslProperties is mutually exclusive with keyStore, keyStorePassphrase, trustStore, trustStorePassphrase.
 #  if you set inline properties, values in the properties file location given by 'sslProperties' will be ignored.

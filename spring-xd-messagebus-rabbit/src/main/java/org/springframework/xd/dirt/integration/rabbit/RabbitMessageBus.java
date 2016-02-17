@@ -481,8 +481,12 @@ public class RabbitMessageBus extends MessageBusSupport implements DisposableBea
 					"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
 			this.connectionFactory = new LocalizedQueueConnectionFactory(this.connectionFactory, this.addresses,
 					this.adminAddresses, this.nodes, this.vhost, this.username, this.password, this.useSSL,
-					this.sslPropertiesLocation, this.keyStore, this.keyStorePassphrase,
-					this.trustStore, this.trustStorePassphrase);
+					this.sslPropertiesLocation,
+					StringUtils.hasText(this.keyStore) ? this.keyStore : null,
+					StringUtils.hasText(this.keyStorePassphrase) ? this.keyStorePassphrase : null,
+					StringUtils.hasText(this.trustStore) ? this.trustStore : null,
+					StringUtils.hasText(this.trustStorePassphrase) ? this.trustStorePassphrase : null);
+
 		}
 		if (this.longStringLimit != null) {
 			this.inboundMessagePropertiesConverter = new DeliveryModeRemovingMessagePropertiesConverter(

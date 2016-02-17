@@ -94,10 +94,14 @@ public class ConnectionFactorySettings {
 		RabbitConnectionFactoryBean rabbitConnectionFactoryBean = new RabbitConnectionFactoryBean();
 		rabbitConnectionFactoryBean.setUseSSL(this.useSSL);
 		rabbitConnectionFactoryBean.setSslPropertiesLocation(this.sslPropertiesLocation);
-		rabbitConnectionFactoryBean.setKeyStore(this.keyStore);
-		rabbitConnectionFactoryBean.setKeyStorePassphrase(this.keyStorePassphrase);
-		rabbitConnectionFactoryBean.setTrustStore(this.trustStore);
-		rabbitConnectionFactoryBean.setTrustStorePassphrase(this.trustStorePassphrase);
+		rabbitConnectionFactoryBean.setKeyStore(StringUtils.hasText(this.keyStore) ?
+				this.keyStore : null);
+		rabbitConnectionFactoryBean.setKeyStorePassphrase(StringUtils.hasText(
+				this.keyStorePassphrase) ? this.keyStorePassphrase : null);
+		rabbitConnectionFactoryBean.setTrustStore(StringUtils.hasText(this.trustStore) ?
+				this.trustStore : null);
+		rabbitConnectionFactoryBean.setTrustStorePassphrase(StringUtils.hasText(
+				this.trustStorePassphrase) ? this.trustStorePassphrase : null);
 		return rabbitConnectionFactoryBean;
 	}
 

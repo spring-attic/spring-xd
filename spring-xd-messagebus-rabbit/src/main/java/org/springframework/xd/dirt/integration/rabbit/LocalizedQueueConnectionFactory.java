@@ -33,6 +33,7 @@ import org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean;
 import org.springframework.amqp.rabbit.connection.RoutingConnectionFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.xd.dirt.integration.bus.RabbitManagementUtils;
@@ -52,6 +53,7 @@ import org.springframework.xd.dirt.integration.bus.RabbitManagementUtils;
  * <p>All {@link ConnectionFactory} methods delegate to the default
  *
  * @author Gary Russell
+ * @author David Turanski
  * @since 1.2
  */
 public class LocalizedQueueConnectionFactory implements ConnectionFactory, RoutingConnectionFactory {
@@ -78,20 +80,38 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 
 	private final Resource sslPropertiesLocation;
 
+	private final String keyStore;
+
+	private final String keyStorePassphrase;
+
+	private final String trustStore;
+
+	private final String trustStorePassphrase;
+
 	/**
 	 *
 	 * @param defaultConnectionFactory the fallback connection factory to use if the queue can't be located.
 	 * @param addresses the rabbitmq server addresses (host:port, ...).
-	 * @param adminAddresses the rabbitmq admin addresses (http://host:port, ...) must be the same length
-	 * as addresses.
+	 * @param adminAddresses the rabbitmq admin addresses (http://host:port, ...) must
+	 * be the same length as addresses.
 	 * @param nodes the rabbitmq nodes corresponding to addresses (rabbit@server1, ...).
 	 * @param vhost the virtual host.
 	 * @param username the user name.
 	 * @param password the password.
+	 * @param useSSL flag to enable SSL.
+	 * @param sslPropertiesLocation location of SSL properties file. If this is set, the
+	 * following parameters are not used.
+	 * @param keyStore the key store location if not using properties file.
+	 * @param keyStorePassphrase the key store passphrase if not using properties file.
+	 * @param trustStore the trust store location if not using properties file.
+	 * @param truststorePassphrase the trust store passphrase if not using properties
+	 * file.
 	 */
 	public LocalizedQueueConnectionFactory(ConnectionFactory defaultConnectionFactory,
 			String[] addresses, String[] adminAddresses, String[] nodes, String vhost,
-			String username, String password, boolean useSSL, Resource sslPropertiesLocation) {
+			String username, String password, boolean useSSL,
+			Resource sslPropertiesLocation, String keyStore, String keyStorePassphrase,
+			String trustStore, String truststorePassphrase) {
 		Assert.isTrue(addresses.length == adminAddresses.length
 				&& addresses.length == nodes.length,
 				"'addresses', 'adminAddresses', and 'nodes' properties must have equal length");
@@ -104,6 +124,10 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 		this.password = password;
 		this.useSSL = useSSL;
 		this.sslPropertiesLocation = sslPropertiesLocation;
+		this.keyStore = keyStore;
+		this.keyStorePassphrase = keyStorePassphrase;
+		this.trustStore = trustStore;
+		this.trustStorePassphrase = truststorePassphrase;
 	}
 
 	@Override
@@ -220,6 +244,10 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 		RabbitConnectionFactoryBean rcfb = new RabbitConnectionFactoryBean();
 		rcfb.setUseSSL(this.useSSL);
 		rcfb.setSslPropertiesLocation(this.sslPropertiesLocation);
+		rcfb.setKeyStore(this.keyStore);
+		rcfb.setKeyStorePassphrase(this.keyStorePassphrase);
+		rcfb.setTrustStore(this.trustStore);
+		rcfb.setKeyStorePassphrase(this.trustStorePassphrase);
 		rcfb.afterPropertiesSet();
 		CachingConnectionFactory ccf = new CachingConnectionFactory(rcfb.getObject());
 		ccf.setAddresses(address);

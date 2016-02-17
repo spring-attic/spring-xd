@@ -27,6 +27,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * @author Gary Russell
  * @author Glenn Renfro
  * @author Gary Russell
+ * @author David Turanski
  */
 public class RabbitConnectionMixin {
 
@@ -41,6 +42,14 @@ public class RabbitConnectionMixin {
 	private String useSSL = "${spring.rabbitmq.useSSL}";
 
 	private String sslPropertiesLocation = "${spring.rabbitmq.sslProperties}";
+
+	private String keyStore = "${spring.rabbitmq.ssl.keyStore}";
+
+	private String keyStorePassphrase = "${spring.rabbitmq.ssl.keyStorePassphrase}";
+
+	private String trustStore = "${spring.rabbitmq.ssl.trustStore}";
+
+	private String trustStorePassphrase = "${spring.rabbitmq.ssl.trustStorePassphrase}";
 
 	@NotBlank
 	public String getUsername() {
@@ -89,6 +98,7 @@ public class RabbitConnectionMixin {
 		this.useSSL = useSSL;
 	}
 
+
 	public String getSslPropertiesLocation() {
 		return sslPropertiesLocation;
 	}
@@ -98,4 +108,33 @@ public class RabbitConnectionMixin {
 		this.sslPropertiesLocation = sslPropertiesLocation;
 	}
 
+	public String getKeyStore() { return keyStore; }
+
+	@ModuleOption(value = "keyStore location (if not using SSL properties)", hidden =
+			true)
+	public void setKeyStore(String keyStore) { this.keyStore = keyStore; }
+
+	public String getKeyStorePassphrase() { return keyStorePassphrase; }
+
+	@ModuleOption(value = "keyStore passphrase (if not using SSL properties)", hidden =
+			true)
+	public void setKeyStorePassphrase(String keyStorePassphrase) {
+		this.keyStorePassphrase = keyStorePassphrase;
+	}
+
+	public String getTrustStore() { return trustStore; }
+
+	@ModuleOption(value = "trustStore location (if not using SSL properties)", hidden =
+			true)
+	public void setTrustStore(String trustStore) {
+		this.trustStore = trustStore;
+	}
+
+	public String getTrustStorePassphrase() { return trustStorePassphrase; }
+
+	@ModuleOption(value = "trustStore passphrase (if not using SSL properties)", hidden
+			= true)
+	public void setTrustStorePassphrase(String trustStorePassphrase) {
+		this.trustStorePassphrase = trustStorePassphrase;
+	}
 }

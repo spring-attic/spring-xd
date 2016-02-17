@@ -12,7 +12,9 @@
 		<beans:constructor-arg value="${https}"/>
 		<beans:property name="autoStartup" value="false"/>
 		<beans:property name="outputChannel" ref="output"/>
-		<beans:property name="sslPropertiesLocation" value="${sslPropertiesLocation}"/>
+		<beans:property name="sslPropertiesLocation" value="${sslPropertiesLocation:}"/>
+		<beans:property name="keyStore" value="${keyStore:}"/>
+		<beans:property name="keyStorePassphrase" value="${keyStorePassphrase:}"/>
 		<beans:property name="maxContentLength" value="${maxContentLength}"/>
 		<beans:property name="messageConverter" ref="converter"/>
 	</beans:bean>

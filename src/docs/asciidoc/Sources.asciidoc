@@ -224,7 +224,7 @@ NOTE: The `useLocator` option is intended for integration with an existing GemFi
 
 The last example creates connections to myhost1:10334, myhost2:10335, myhost3:10336
 
-NOTE: You may also configure default Gemfire connection settings for all gemfire modules in `config\modules.yml`:
+NOTE: You may also configure default Gemfire connection settings for all gemfire modules in `config/modules.yml`:
 
     gemfire:
        useLocator: true
@@ -274,10 +274,12 @@ To send binary data, set the `Content-Type` header to `application/octet-string`
 The **$$http$$** $$source$$ has the following options:
 
 $$https$$:: $$true for https://$$ *($$boolean$$, default: `false`)*
+$$keyStore$$:: $$key store location (if sslPropertiesLocation not used)$$ *($$String$$, no default)*
+$$keyStorePassphrase$$:: $$key store passphrase (if sslPropertiesLocation not used)$$ *($$String$$, no default)*
 $$maxContentLength$$:: $$the maximum allowed content length$$ *($$int$$, default: `1048576`)*
 $$messageConverterClass$$:: $$the name of a custom MessageConverter class, to convert HttpRequest to Message; must have a constructor with a 'MessageBuilderFactory' parameter$$ *($$String$$, default: `org.springframework.integration.x.http.NettyInboundMessageConverter`)*
 $$port$$:: $$the port to listen to$$ *($$int$$, default: `9000`)*
-$$sslPropertiesLocation$$:: $$location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase$$ *($$String$$, default: `classpath:httpSSL.properties`)*
+$$sslPropertiesLocation$$:: $$location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase$$ *($$String$$, no default)*
 //$source.http
 
 Here is an example
@@ -294,7 +296,9 @@ $ cat /tmp/xd/output/httptest9020
 hello world
 ----
 
-NOTE: When using +https+, you need to provide a properties file that references a pkcs12 key store (containing the server certificate(s)) and its passphrase. Setting +--https=true+ enables https:// and the module looks for the SSL properties in resource +classpath:httpSSL.properties+. This location can be overridden with the +--sslPropertiesLocation+ property. For example:
+NOTE: When using +https+, you may either provide a properties file that references a pkcs12 key store (containing the server certificate(s)) and its passphrase, or set +keyStore+ and +keyStorePassphrase+ explicitly.
+Setting +--https=true+ enables https:// and the module uses SSL properties configured in +config/modules/source/http/http.properties+. By default, the resource +classpath:httpSSL.properties+ is used.
+This location can be overridden in +config/modules/source/http/http.properties+ or with the +--sslPropertiesLocation+ property. For example:
 
     xd:> stream create --name https9021 --definition "http --port=9021 --https=true --sslPropertiesLocation=file:/secret/ssl.properties | file" --deploy
 
@@ -306,6 +310,8 @@ keyStore.passPhrase=secret
 ----
 
 Since this properties file contains sensitive information, it will typically be secured by the operating system with the XD container process having read access.
+
+NOTE: If you set +keyStore+ and +keyStorePassphrase+ in +config/modules/source/http/http.properties+ in lieue of using an external properties file, the passPhrase may be encrypted. See xref:Application-Configuration#encrypted-properties[Encrypted Properties] for more details.
 
 [[jdbc-source]]
 === JDBC Source (`jdbc`)
@@ -650,6 +656,8 @@ $$concurrency$$:: $$the minimum number of consumers$$ *($$int$$, default: `1`)*
 $$converterClass$$:: $$the class name of the message converter$$ *($$String$$, default: `org.springframework.amqp.support.converter.SimpleMessageConverter`)*
 $$enableRetry$$:: $$enable retry; when retries are exhausted the message will be rejected; message disposition will depend on dead letter configuration$$ *($$boolean$$, default: `false`)*
 $$initialRetryInterval$$:: $$initial interval between retries$$ *($$int$$, default: `1000`)*
+$$keyStore$$:: $$keyStore location (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.keyStore}`)*
+$$keyStorePassphrase$$:: $$keyStore passphrase (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.keyStorePassphrase}`)*
 $$mappedRequestHeaders$$:: $$request message header names to be propagated to/from the adpater/gateway$$ *($$String$$, default: `STANDARD_REQUEST_HEADERS`)*
 $$maxAttempts$$:: $$maximum delivery attempts$$ *($$int$$, default: `3`)*
 $$maxConcurrency$$:: $$the maximum number of consumers$$ *($$int$$, default: `1`)*
@@ -661,6 +669,8 @@ $$requeue$$:: $$whether rejected messages will be requeued by default$$ *($$bool
 $$retryMultiplier$$:: $$retry interval multiplier$$ *($$double$$, default: `2.0`)*
 $$sslPropertiesLocation$$:: $$resource containing SSL properties$$ *($$String$$, default: `${spring.rabbitmq.sslProperties}`)*
 $$transacted$$:: $$true if the channel is to be transacted$$ *($$boolean$$, default: `false`)*
+$$trustStore$$:: $$trustStore location (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.trustStore}`)*
+$$trustStorePassphrase$$:: $$trustStore passphrase (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.trustStorePassphrase}`)*
 $$txSize$$:: $$the number of messages to process before acking$$ *($$int$$, default: `1`)*
 $$useSSL$$:: $$true if SSL should be used for the connection$$ *($$String$$, default: `${spring.rabbitmq.useSSL}`)*
 $$username$$:: $$the username to use to connect to the broker$$ *($$String$$, default: `${spring.rabbitmq.username}`)*

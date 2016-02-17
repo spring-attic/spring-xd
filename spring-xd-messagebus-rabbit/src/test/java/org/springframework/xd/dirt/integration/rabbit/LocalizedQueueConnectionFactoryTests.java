@@ -90,7 +90,8 @@ public class LocalizedQueueConnectionFactoryTests {
 		String password = "guest";
 		final AtomicBoolean firstServer = new AtomicBoolean(true);
 		LocalizedQueueConnectionFactory lqcf = new LocalizedQueueConnectionFactory(defaultConnectionFactory, addresses,
-				adminAddresses, nodes, vhost, username, password, false, null) {
+				adminAddresses, nodes, vhost, username, password, false, null,null,
+				null, null, null) {
 
 			private final String[] nodes = new String[] { "rabbit@foo", "rabbit@bar" };
 

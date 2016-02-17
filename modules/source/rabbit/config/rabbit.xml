@@ -46,7 +46,11 @@
 
 	<bean id="connectionFactory" class="org.springframework.amqp.rabbit.connection.RabbitConnectionFactoryBean">
 		<property name="useSSL" value="${useSSL}" />
-		<property name="sslPropertiesLocation" value="${sslPropertiesLocation}" />
+		<property name="sslPropertiesLocation" value="${sslPropertiesLocation:}" />
+		<property name="keyStore" value="${keyStore:}" />
+		<property name="keyStorePassphrase" value="${keyStorePassphrase:}" />
+		<property name="trustStore" value="${trustStore:}" />
+		<property name="trustStorePassphrase" value="${trustStorePassphrase:}" />
 	</bean>
 
 	<beans profile="enable-retry">

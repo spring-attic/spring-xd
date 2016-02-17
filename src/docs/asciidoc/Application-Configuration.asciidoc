@@ -903,6 +903,7 @@ password=
 
 A property file with the same keys, but likely different values would be located in `XD_MODULE_CONFIG_LOCATION\sink\jdbc\jdbc.properties`.
 
+[[encrypted-properties]]
 === Encrypted Properties
 
 If you wish encrypt passwords and other secret values stored in application configuration file, you must provide a Spring bean that implements

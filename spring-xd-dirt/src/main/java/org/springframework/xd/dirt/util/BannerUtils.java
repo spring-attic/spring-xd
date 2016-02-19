@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ import org.springframework.util.FileCopyUtils;
  *
  * @author Gunnar Hillert
  * @author David Turanski
+ * @author Gary Russell
  * @since 1.0
  */
 public final class BannerUtils {
@@ -84,7 +85,7 @@ public final class BannerUtils {
 				.append(StringUtils.isEmpty(containerName) ? ""
 						: "Started : " + containerName)
 				.append(LINE_SEPARATOR)
-				.append("Documentation: https://github.com/spring-projects/spring-xd/wiki")
+				.append("Documentation: http://docs.spring.io/spring-xd/docs/current/reference/html/")
 				.append(LINE_SEPARATOR);
 		return sb.toString();
 	}

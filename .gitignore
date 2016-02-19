@@ -35,3 +35,8 @@ lib
 spring-xd-spark-streaming/.cache
 .gradletasknamecache
 spring-xd.ids
+build/
+spring-xd-shell/
+spring-xd-rest-client/
+spring-xd-gemfire-server/
+redis/

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.springframework.batch.integration.x;
 
 import java.util.HashMap;
@@ -55,6 +56,8 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 	private JdbcOperations jdbcTemplate;
 
 	private String table;
+
+	private String sql;
 
 	private String column;
 
@@ -120,6 +123,10 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 		this.overrideValue = overrideValue;
 	}
 
+	public void setSql(String sql) {
+		this.sql = sql;
+	}
+
 	/**
 	 * Partition a database table assuming that the data in the column specified
 	 * are uniformly distributed. The execution context values will have keys
@@ -133,14 +140,14 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 		StringBuilder incrementalClause = new StringBuilder();
 		Map<String, ExecutionContext> result = new HashMap<>();
 
-		if(!StringUtils.hasText(checkColumn) && !StringUtils.hasText(column)) {
+		if (!StringUtils.hasText(checkColumn) && !StringUtils.hasText(column)) {
 			ExecutionContext value = new ExecutionContext();
 			value.put("partClause", "");
 			result.put("partition0", value);
 			value.put("partSuffix", "");
 		}
 		else {
-			if(StringUtils.hasText(checkColumn)) {
+			if (StringUtils.hasText(checkColumn)) {
 				incrementalClause.append(checkColumn).append(" > ").append(this.incrementalMin);
 			}
 
@@ -158,14 +165,15 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 					end = this.partitionMax;
 				}
 
-				if(StringUtils.hasText(checkColumn)) {
-					value.putString("partClause", String.format("WHERE (%s BETWEEN %s AND %s) AND %s", column, start, end, incrementalClause.toString()));
+				if (StringUtils.hasText(checkColumn)) {
+					value.putString("partClause", String.format("WHERE (%s BETWEEN %s AND %s) AND %s", column, start,
+							end, incrementalClause.toString()));
 				}
 				else {
 					value.putString("partClause", String.format("WHERE (%s BETWEEN %s AND %s)", column, start, end));
 				}
 
-				value.putString("partSuffix", "-p"+number);
+				value.putString("partSuffix", "-p" + number);
 				start += targetSize;
 				end += targetSize;
 				number++;
@@ -179,9 +187,9 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 
 	@Override
 	public void beforeStep(StepExecution stepExecution) {
-		if(StringUtils.hasText(checkColumn)) {
+		if (StringUtils.hasText(checkColumn)) {
 
-			if(overrideValue != null && overrideValue >= 0) {
+			if (overrideValue != null && overrideValue >= 0) {
 				this.incrementalMin = overrideValue;
 			}
 			else {
@@ -190,7 +198,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 				// Get the last jobInstance...not the current one
 				List<JobInstance> jobInstances = jobExplorer.getJobInstances(jobName, 1, 1);
 
-				if(jobInstances.size() > 0) {
+				if (jobInstances.size() > 0) {
 					JobInstance lastInstance = jobInstances.get(jobInstances.size() - 1);
 
 					List<JobExecution> executions = jobExplorer.getJobExecutions(lastInstance);
@@ -198,12 +206,12 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 					JobExecution lastExecution = executions.get(0);
 
 					for (JobExecution execution : executions) {
-						if(lastExecution.getEndTime().getTime() < execution.getEndTime().getTime()) {
+						if (lastExecution.getEndTime().getTime() < execution.getEndTime().getTime()) {
 							lastExecution = execution;
 						}
 					}
 
-					if(lastExecution.getExecutionContext().containsKey(BATCH_INCREMENTAL_MAX_ID)) {
+					if (lastExecution.getExecutionContext().containsKey(BATCH_INCREMENTAL_MAX_ID)) {
 						this.incrementalMin = lastExecution.getExecutionContext().getLong(BATCH_INCREMENTAL_MAX_ID);
 					}
 					else {
@@ -215,15 +223,24 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 				}
 			}
 
-			long newMin = jdbcTemplate.queryForObject(String.format("select max(%s) from %s", checkColumn, table), Integer.class);
-
-			stepExecution.getExecutionContext().put(BATCH_INCREMENTAL_MAX_ID, newMin);
+			if (StringUtils.hasText(table)) {
+				long newMin = jdbcTemplate.queryForObject(String.format("select max(%s) from %s", checkColumn, table),
+						Integer.class);
+				stepExecution.getExecutionContext().put(BATCH_INCREMENTAL_MAX_ID, newMin);
+			}
+			else if (StringUtils.hasText(sql)) {
+				String maxSqlStr = "SELECT max(" + checkColumn + ") from (" + sql + ") as boundQry";
+				long newMin = jdbcTemplate.queryForObject(maxSqlStr, Long.class);
+				stepExecution.getExecutionContext().put(BATCH_INCREMENTAL_MAX_ID, newMin);
+			}
 		}
 
-		if(StringUtils.hasText(column) && StringUtils.hasText(table)) {
-			if(StringUtils.hasText(checkColumn)) {
-				Long minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Long.class);
-				Long maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where " + checkColumn + " > " + this.incrementalMin, Long.class);
+		if (StringUtils.hasText(column) && StringUtils.hasText(table)) {
+			if (StringUtils.hasText(checkColumn)) {
+				Long minResult = jdbcTemplate.queryForObject("SELECT MIN(" + column + ") from " + table + " where "
+						+ checkColumn + " > " + this.incrementalMin, Long.class);
+				Long maxResult = jdbcTemplate.queryForObject("SELECT MAX(" + column + ") from " + table + " where "
+						+ checkColumn + " > " + this.incrementalMin, Long.class);
 				this.partitionMin = minResult != null ? minResult : Long.MIN_VALUE;
 				this.partitionMax = maxResult != null ? maxResult : Long.MAX_VALUE;
 			}
@@ -234,6 +251,16 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 				this.partitionMax = maxResult != null ? maxResult : Long.MAX_VALUE;
 			}
 		}
+		else if (StringUtils.hasText(sql)) {
+			String maxSqlStr = "SELECT MIN(" + column + ") from (" + sql + ") as boundQry where " + checkColumn + " > "
+					+ this.incrementalMin;
+			String minSqlStr = "SELECT MAX(" + column + ") from (" + sql + ") as boundQry where " + checkColumn + " > "
+					+ this.incrementalMin;
+			Long minResult = jdbcTemplate.queryForObject(maxSqlStr, Long.class);
+			Long maxResult = jdbcTemplate.queryForObject(minSqlStr, Long.class);
+			this.partitionMin = minResult != null ? minResult : Long.MIN_VALUE;
+			this.partitionMax = maxResult != null ? maxResult : Long.MAX_VALUE;
+		}
 	}
 
 	@Override
@@ -243,7 +270,7 @@ public class IncrementalColumnRangePartitioner implements Partitioner, StepExecu
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
-		if(!StringUtils.hasText(this.column)) {
+		if (!StringUtils.hasText(this.column)) {
 			this.column = this.checkColumn;
 		}
 	}

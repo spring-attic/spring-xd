@@ -39,6 +39,7 @@
 	<bean id="partitioner" class="org.springframework.batch.integration.x.IncrementalColumnRangePartitioner" scope="step">
 		<property name="dataSource" ref="moduleDataSource"/>
 		<property name="table" value="${tableName}"/>
+		<property name="sql" value="${sql}" />
 		<property name="column" value="${partitionColumn}"/>
 		<property name="partitions" value="${partitions}"/>
 		<property name="jobExplorer" ref="jobExplorer"/>

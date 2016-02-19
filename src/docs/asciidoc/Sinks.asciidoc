@@ -1313,10 +1313,14 @@ $$addresses$$:: $$a comma separated list of 'host[:port]' addresses$$ *($$String
 $$converterClass$$:: $$the class name of the message converter$$ *($$String$$, default: `org.springframework.amqp.support.converter.SimpleMessageConverter`)*
 $$deliveryMode$$:: $$the delivery mode (PERSISTENT, NON_PERSISTENT)$$ *($$String$$, default: `PERSISTENT`)*
 $$exchange$$:: $$the Exchange on the RabbitMQ broker to which messages should be sent$$ *($$String$$, default: ``)*
+$$keyStore$$:: $$keyStore location (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.keyStore}`)*
+$$keyStorePassphrase$$:: $$keyStore passphrase (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.keyStorePassphrase}`)*
 $$mappedRequestHeaders$$:: $$request message header names to be propagated to/from the adpater/gateway$$ *($$String$$, default: `STANDARD_REQUEST_HEADERS`)*
 $$password$$:: $$the password to use to connect to the broker$$ *($$String$$, default: `${spring.rabbitmq.password}`)*
 $$routingKey$$:: $$the routing key to be passed with the message, as a SpEL expression$$ *($$String$$, default: `'<stream name>'`)*
 $$sslPropertiesLocation$$:: $$resource containing SSL properties$$ *($$String$$, default: `${spring.rabbitmq.sslProperties}`)*
+$$trustStore$$:: $$trustStore location (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.trustStore}`)*
+$$trustStorePassphrase$$:: $$trustStore passphrase (if not using SSL properties)$$ *($$String$$, default: `${spring.rabbitmq.ssl.trustStorePassphrase}`)*
 $$useSSL$$:: $$true if SSL should be used for the connection$$ *($$String$$, default: `${spring.rabbitmq.useSSL}`)*
 $$username$$:: $$the username to use to connect to the broker$$ *($$String$$, default: `${spring.rabbitmq.username}`)*
 $$vhost$$:: $$the RabbitMQ virtual host to use$$ *($$String$$, default: `${spring.rabbitmq.virtual_host}`)*

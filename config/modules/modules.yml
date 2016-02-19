@@ -33,6 +33,9 @@
 #   - XD_HOME/xd/config/modules/source/rabbit/rabbit.properties
 #   - XD_HOME/xd/config/modules/sink/rabbit/rabbit.properties
 #
+#  NOTE: sslProperties is mutually exclusive with keyStore, keyStorePassphrase, trustStore, trustStorePassphrase.
+#  if you set inline properties, values in the properties file location given by 'sslProperties' will be ignored.
+#
 #rabbit:
 #  addresses: localhost:5672
 #  username: guest
@@ -40,6 +43,11 @@
 #  vhost: /
 #  useSSL: false
 #  sslProperties:
+#  ssl:
+#    keyStore:
+#    keyStorePassphrase:
+#    trustStore:
+#    trustStorePassphrase:
 
 ---
 

@@ -28,12 +28,14 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.Resource;
+import org.springframework.util.StringUtils;
 
 /**
  * Configures the connection factory used by the rabbit message bus.
  *
  * @author Eric Bottard
  * @author Gary Russell
+ * @author David Turanski
  */
 @Configuration
 public class ConnectionFactorySettings {
@@ -43,6 +45,18 @@ public class ConnectionFactorySettings {
 
 	@Value("${spring.rabbitmq.sslProperties:}")
 	private Resource sslPropertiesLocation;
+
+	@Value("${spring.rabbitmq.ssl.keyStore:}")
+	private String keyStore;
+
+	@Value("${spring.rabbitmq.ssl.keyStorePassphrase:}")
+	private String keyStorePassphrase;
+
+	@Value("${spring.rabbitmq.ssl.trustStore:}")
+	private String trustStore;
+
+	@Value("${spring.rabbitmq.ssl.trustStorePassphrase:}")
+	private String trustStorePassphrase;
 
 	@Bean
 	// TODO: Move to spring boot
@@ -78,6 +92,14 @@ public class ConnectionFactorySettings {
 		RabbitConnectionFactoryBean rabbitConnectionFactoryBean = new RabbitConnectionFactoryBean();
 		rabbitConnectionFactoryBean.setUseSSL(this.useSSL);
 		rabbitConnectionFactoryBean.setSslPropertiesLocation(this.sslPropertiesLocation);
+		rabbitConnectionFactoryBean.setKeyStore(StringUtils.hasText(this.keyStore) ?
+				this.keyStore : null);
+		rabbitConnectionFactoryBean.setKeyStorePassphrase(StringUtils.hasText(
+				this.keyStorePassphrase) ? this.keyStorePassphrase : null);
+		rabbitConnectionFactoryBean.setTrustStore(StringUtils.hasText(this.trustStore) ?
+				this.trustStore : null);
+		rabbitConnectionFactoryBean.setTrustStorePassphrase(StringUtils.hasText(
+				this.trustStorePassphrase) ? this.trustStorePassphrase : null);
 		return rabbitConnectionFactoryBean;
 	}
 

@@ -82,6 +82,7 @@ import org.springframework.util.StringUtils;
  * @author Jennifer Hickey
  * @author Gary Russell
  * @author Marius Bogoevici
+ * @author David Turanski
  */
 public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 
@@ -110,6 +111,10 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	private final int port;
 
 	private final boolean ssl;
+
+	private volatile String keyStore;
+
+	private volatile String keyStorePassphrase;
 
 	private volatile ServerBootstrap bootstrap;
 
@@ -172,6 +177,24 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	/**
+	 * Set the keyStore location directly as an alternative to using
+	 * sslPropertiesLocation. If sslPropertiesLocation is set, this value will be ignored.
+	 * @param keyStore
+	 */
+	public void setKeyStore(String keyStore) {
+		this.keyStore = keyStore;
+	}
+
+	/**
+	 * Set the keyStore passphrase directly as an alternative to using
+	 * sslPropertiesLocation. If sslPropertiesLocation is set, this value will be ignored.
+	 * @param keyStorePassphrase
+	 */
+	public void setKeyStorePassphrase(String keyStorePassphrase) {
+		this.keyStorePassphrase = keyStorePassphrase;
+	}
+
+	/**
 	 * Set the max content length; default 1Mb.
 	 * @param maxContentLength the max content length.
 	 */
@@ -213,14 +236,38 @@ public class NettyHttpInboundChannelAdapter extends MessageProducerSupport {
 	}
 
 	private SSLContext initializeSSLContext() throws Exception {
-		Assert.state(this.sslPropertiesLocation != null, "KeyStore and pass phrase properties file required");
-		Properties sslProperties = new Properties();
-		sslProperties.load(this.sslPropertiesLocation.getInputStream());
-		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-		String keyStoreName = sslProperties.getProperty("keyStore");
+		Assert.state(this.sslPropertiesLocation != null || (StringUtils.hasText
+				(keyStore) && StringUtils.hasText(this.keyStorePassphrase))
+				,"either 'sslPropertiesLocation' or 'keyStore' and 'keyStorePassphrase' "
+						+ "must be set.");
+		Assert.state( this.sslPropertiesLocation == null || (StringUtils.isEmpty
+				(keyStore) && StringUtils.isEmpty(keyStorePassphrase)),
+				"either 'sslPropertiesLocation' or 'keyStore' and 'keyStorePassphrase' "
+						+ "must be set.");
+
+		String keyStoreName = this.keyStore;
+		String keyStorePassphrase = this.keyStorePassphrase;
+
+		if (this.sslPropertiesLocation != null) {
+			Properties sslProperties = new Properties();
+			sslProperties.load(this.sslPropertiesLocation.getInputStream());
+			keyStoreName = sslProperties.getProperty("keyStore");
+			//For consistency, respect new inline property name and fall back to original
+			keyStorePassphrase = sslProperties.getProperty("keyStorePassphrase");
+			if (StringUtils.isEmpty(keyStorePassphrase)) {
+				keyStorePassphrase = sslProperties.getProperty("keyStore.passPhrase");
+			}
+		}
+
+		return createSSLContext(keyStoreName, keyStorePassphrase);
+	}
+
+	private SSLContext createSSLContext(String keyStoreName, String keyStorePassPhrase)
+			throws Exception {
 		Assert.state(StringUtils.hasText(keyStoreName), "keyStore property cannot be null");
-		String keyStorePassPhrase = sslProperties.getProperty("keyStore.passPhrase");
-		Assert.state(StringUtils.hasText(keyStorePassPhrase), "keyStore.passPhrase property cannot be null");
+		Assert.state(StringUtils.hasText(keyStorePassPhrase),
+				"keyStorePassPhrase property cannot be null");
+		PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
 		Resource keyStore = resolver.getResource(keyStoreName);
 		SSLContext sslContext = SSLContext.getInstance("TLS");
 		KeyStore ks = KeyStore.getInstance("PKCS12");

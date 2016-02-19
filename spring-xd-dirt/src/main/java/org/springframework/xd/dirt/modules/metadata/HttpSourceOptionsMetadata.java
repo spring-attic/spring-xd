@@ -22,6 +22,7 @@ import org.springframework.xd.module.options.spi.ModuleOption;
  * Describes options to the {@code http} source module.
  *
  * @author Gary Russell
+ * @author David Turanski
  */
 public class HttpSourceOptionsMetadata {
 
@@ -29,7 +30,11 @@ public class HttpSourceOptionsMetadata {
 
 	private boolean https;
 
-	private String sslPropertiesLocation = "classpath:httpSSL.properties";
+	private String sslPropertiesLocation;
+
+	private String keyStore;
+
+	private String keyStorePassphrase;
 
 	private int maxContentLength = 1048576;
 
@@ -60,6 +65,20 @@ public class HttpSourceOptionsMetadata {
 	@ModuleOption("location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase")
 	public void setSslPropertiesLocation(String sslProperties) {
 		this.sslPropertiesLocation = sslProperties;
+	}
+
+	public String getKeyStore() { return keyStore; }
+
+	@ModuleOption(value = "key store location (if sslPropertiesLocation not used)",
+			hidden = true)
+	public void setKeyStore(String keyStore) { this.keyStore = keyStore; }
+
+	public String getKeyStorePassphrase() { return keyStorePassphrase; }
+
+	@ModuleOption(value = "key store passphrase (if sslPropertiesLocation not used)",
+			hidden = true)
+	public void setKeyStorePassphrase(String keyStorePassphrase) {
+		this.keyStorePassphrase = keyStorePassphrase;
 	}
 
 	public int getMaxContentLength() {

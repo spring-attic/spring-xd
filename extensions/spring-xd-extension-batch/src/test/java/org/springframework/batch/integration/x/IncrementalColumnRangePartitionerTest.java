@@ -19,6 +19,8 @@ package org.springframework.batch.integration.x;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import javax.sql.DataSource;
@@ -29,9 +31,16 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import org.springframework.batch.core.JobExecution;
+import org.springframework.batch.core.JobInstance;
 import org.springframework.batch.core.StepExecution;
+import org.springframework.batch.core.explore.JobExplorer;
+import org.springframework.batch.core.explore.support.MapJobExplorerFactoryBean;
+import org.springframework.batch.core.launch.support.SimpleJobLauncher;
+import org.springframework.batch.core.repository.JobRepository;
+import org.springframework.batch.core.repository.support.MapJobRepositoryFactoryBean;
 import org.springframework.batch.item.ExecutionContext;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
@@ -106,4 +115,43 @@ public class IncrementalColumnRangePartitionerTest {
 		assertEquals("-p4", partitions.get("partition4").get("partSuffix"));
 	}
 
+
+	@Test
+	public void testTwoPartitionsForSql() throws Throwable {
+		jdbc.execute("insert into bar (foo) values (1), (2), (3), (4)");
+		partitioner.setCheckColumn("foo");
+		partitioner.setColumn("foo");
+		partitioner.setSql("select * from bar");
+		partitioner.setPartitions(2);
+		SimpleJobLauncher jobLauncher = new SimpleJobLauncher();
+		MapJobRepositoryFactoryBean repositoryFactory = new MapJobRepositoryFactoryBean();
+		repositoryFactory.afterPropertiesSet();
+		JobRepository jobRepository = repositoryFactory.getObject();
+		jobLauncher.setJobRepository(jobRepository);
+		jobLauncher.setTaskExecutor(new SimpleAsyncTaskExecutor());
+		jobLauncher.afterPropertiesSet();
+		JobExplorer jobExplorer = new MapJobExplorerFactoryBean(repositoryFactory).getObject();
+		partitioner.setJobExplorer(jobExplorer);
+		JobExecution jobExec = new JobExecution(5l);
+		JobInstance jobInstance = new JobInstance(5l, "testIncrementalJDBCSqlJob");
+		jobExec.setJobInstance(jobInstance);
+		StepExecution stepExec = new StepExecution("step1", jobExec);
+		List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
+		stepExecutions.add(stepExec);
+		jobExec.addStepExecutions(stepExecutions);
+
+		partitioner.beforeStep(new StepExecution("step1", jobExec));
+		Map<String, ExecutionContext> partitions = partitioner.partition(1);
+		assertEquals(2, partitions.size());
+		assertTrue(partitions.containsKey("partition0"));
+		String part1Expected = "WHERE (foo BETWEEN 1 AND 2) AND foo > " + Long.MIN_VALUE;
+		String part1Actual = (String) partitions.get("partition0").get("partClause");
+		assertEquals(part1Expected, part1Actual);
+		assertEquals("-p0", partitions.get("partition0").get("partSuffix"));
+		assertTrue(partitions.containsKey("partition1"));
+		String part2Expected = "WHERE (foo BETWEEN 3 AND 4) AND foo > " + Long.MIN_VALUE;
+		String part2Actual = (String) partitions.get("partition1").get("partClause");
+		assertEquals(part2Expected, part2Actual);
+		assertEquals("-p1", partitions.get("partition1").get("partSuffix"));
+	}
 }

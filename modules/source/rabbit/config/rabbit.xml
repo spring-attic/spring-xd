@@ -15,7 +15,7 @@
 
 	<int-amqp:inbound-channel-adapter
 		auto-startup="false"
-		channel="output"
+		channel="filter"
 		listener-container="listenerContainer"
 		message-converter="messageConverter"
 		mapped-request-headers="${mappedRequestHeaders}" />
@@ -35,6 +35,8 @@
 	</bean>
 
 	<bean id="messageConverter" class="${converterClass}" />
+
+	<int:header-filter input-channel="filter" output-channel="output" header-names="amqp_deliveryMode" />
 
 	<int:channel id="output" />
 

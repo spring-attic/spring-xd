@@ -16,21 +16,8 @@
 
 package org.springframework.xd.dirt.integration.bus;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Properties;
-
 import org.junit.After;
 import org.junit.Test;
-
 import org.springframework.beans.DirectFieldAccessor;
 import org.springframework.http.MediaType;
 import org.springframework.integration.channel.DirectChannel;
@@ -44,6 +31,13 @@ import org.springframework.messaging.MessageHeaders;
 import org.springframework.xd.dirt.integration.bus.MessageBus.Capability;
 import org.springframework.xd.dirt.integration.bus.local.LocalMessageBus;
 import org.springframework.xd.tuple.serializer.kryo.TupleKryoRegistrar;
+
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+import java.util.Properties;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Gary Russell
@@ -258,20 +252,37 @@ public abstract class AbstractMessageBusTests {
 
 	@Test
 	public void testBadDynamic() throws Exception {
-		Properties properties = new Properties();
-		properties.setProperty(BusProperties.PARTITION_KEY_EXPRESSION, "'foo'");
 		MessageBus messageBus = getMessageBus();
-		try {
-			messageBus.bindDynamicProducer("queue:foo", properties);
-			fail("Exception expected");
-		}
-		catch (MessageBusException mbe) {
-			assertEquals("Failed to bind dynamic channel 'queue:foo' with properties {partitionKeyExpression='foo'}",
-					mbe.getMessage());
-			if (messageBus instanceof AbstractTestMessageBus) {
-				messageBus = ((AbstractTestMessageBus) messageBus).getCoreMessageBus();
+		// Natively partitioned buses can specify a partitioning key on any output
+		if (!getMessageBus().isCapable(Capability.NATIVE_PARTITIONING)) {
+			Properties properties = new Properties();
+			properties.setProperty(BusProperties.PARTITION_KEY_EXPRESSION, "'foo'");
+			try {
+				messageBus.bindDynamicProducer("queue:foo", properties);
+				fail("Exception expected");
+			} catch (MessageBusException mbe) {
+				assertEquals("Failed to bind dynamic channel 'queue:foo' with properties {partitionKeyExpression='foo'}",
+						mbe.getMessage());
+				if (messageBus instanceof AbstractTestMessageBus) {
+					messageBus = ((AbstractTestMessageBus) messageBus).getCoreMessageBus();
+				}
+				assertFalse(((MessageBusSupport) messageBus).getApplicationContext().containsBean("queue:foo"));
 			}
-			assertFalse(((MessageBusSupport) messageBus).getApplicationContext().containsBean("queue:foo"));
+		}
+		else {
+			try {
+				Properties properties = new Properties();
+				properties.setProperty(BusProperties.MAX_ATTEMPTS, "'foo'");
+				messageBus.bindDynamicProducer("queue:foo", properties);
+				fail("Exception expected");
+			} catch (MessageBusException mbe) {
+				assertEquals("Failed to bind dynamic channel 'queue:foo' with properties {maxAttempts='foo'}",
+						mbe.getMessage());
+				if (messageBus instanceof AbstractTestMessageBus) {
+					messageBus = ((AbstractTestMessageBus) messageBus).getCoreMessageBus();
+				}
+				assertFalse(((MessageBusSupport) messageBus).getApplicationContext().containsBean("queue:foo"));
+			}
 		}
 	}
 

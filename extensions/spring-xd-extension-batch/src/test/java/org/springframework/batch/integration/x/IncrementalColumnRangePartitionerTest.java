@@ -18,8 +18,11 @@ package org.springframework.batch.integration.x;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -133,7 +136,7 @@ public class IncrementalColumnRangePartitionerTest {
 		JobExplorer jobExplorer = new MapJobExplorerFactoryBean(repositoryFactory).getObject();
 		partitioner.setJobExplorer(jobExplorer);
 		JobExecution jobExec = new JobExecution(5l);
-		JobInstance jobInstance = new JobInstance(5l, "testIncrementalJDBCSqlJob");
+		JobInstance jobInstance = new JobInstance(1l, "testIncrementalJDBCSqlJob");
 		jobExec.setJobInstance(jobInstance);
 		StepExecution stepExec = new StepExecution("step1", jobExec);
 		List<StepExecution> stepExecutions = new ArrayList<StepExecution>();
@@ -153,5 +156,68 @@ public class IncrementalColumnRangePartitionerTest {
 		String part2Actual = (String) partitions.get("partition1").get("partClause");
 		assertEquals(part2Expected, part2Actual);
 		assertEquals("-p1", partitions.get("partition1").get("partSuffix"));
+	}
+
+
+	@Test
+	public void testIncrementalSqlNextIterationValue() throws Throwable {
+		jdbc.execute("insert into bar (foo) values (1), (2), (3), (4)");
+		partitioner.setCheckColumn("foo");
+		partitioner.setColumn("foo");
+		partitioner.setSql("select * from bar");
+
+		JobExplorer jobExplorer = mock(JobExplorer.class);
+		partitioner.setJobExplorer(jobExplorer);
+		JobExecution jobExec = new JobExecution(1l);
+		JobInstance jobInstance1 = new JobInstance(1l, "testIncrementalJDBCSqlJob");
+		jobExec.setJobInstance(jobInstance1);
+		StepExecution stepExecution = new StepExecution("step1", jobExec);
+
+		when(jobExplorer.getJobInstances("testIncrementalJDBCSqlJob", 1, 1)).thenReturn(new ArrayList<JobInstance>());
+		partitioner.beforeStep(stepExecution);
+		//first time the value is long minimum as there is no previous instance
+		Map<String, ExecutionContext> partitions = partitioner.partition(1);
+		String queryPartClause = (String) partitions.get("partition0").get("partClause");
+		assertTrue(queryPartClause.endsWith(Long.MIN_VALUE + ""));
+		//mark end of job and adjust the max
+		jobExec.setEndTime(new Date(System.currentTimeMillis()));
+		jobExec.getExecutionContext().put("batch.incremental.maxId", 4l);
+
+		jdbc.execute("insert into bar (foo) values (5), (6), (7), (8)");
+
+		List<JobInstance> jobInstances = new ArrayList<JobInstance>();
+		jobInstances.add(jobInstance1);
+		JobInstance jobInstance2 = new JobInstance(2l, "testIncrementalJDBCSqlJob");
+		jobExec.setJobInstance(jobInstance2);
+		jobInstances.add(jobInstance2);
+		when(jobExplorer.getJobInstances("testIncrementalJDBCSqlJob", 1, 1)).thenReturn(jobInstances);
+		List<JobExecution> executions = new ArrayList<JobExecution>();
+		executions.add(jobExec);
+		when(jobExplorer.getJobExecutions(jobInstance2)).thenReturn(executions);
+		partitioner.beforeStep(new StepExecution("step1", jobExec));
+		//this time the value should be 4
+		partitions = partitioner.partition(1);
+		queryPartClause = (String) partitions.get("partition0").get("partClause");
+		assertTrue(queryPartClause.endsWith(4l + ""));
+		//mark end of job and adjust the max
+		jobExec.setEndTime(new Date(System.currentTimeMillis()));
+		jobExec.getExecutionContext().put("batch.incremental.maxId", 8l);
+
+		jdbc.execute("insert into bar (foo) values (9), (10), (7), (8)");
+
+		JobInstance jobInstance3 = new JobInstance(3l, "testIncrementalJDBCSqlJob");
+		jobExec.setJobInstance(jobInstance3);
+		jobInstances.add(jobInstance3);
+		when(jobExplorer.getJobInstances("testIncrementalJDBCSqlJob", 1, 1)).thenReturn(jobInstances);
+		executions.add(jobExec);
+		when(jobExplorer.getJobExecutions(jobInstance3)).thenReturn(executions);
+		partitioner.beforeStep(new StepExecution("step1", jobExec));
+		//this time the value should be 4
+		partitions = partitioner.partition(1);
+		queryPartClause = (String) partitions.get("partition0").get("partClause");
+		assertTrue(queryPartClause.endsWith(8l + ""));
+		//mark end of job and adjust the max
+		jobExec.setEndTime(new Date(System.currentTimeMillis()));
+		jobExec.getExecutionContext().put("batch.incremental.maxId", 8l);
 	}
 }

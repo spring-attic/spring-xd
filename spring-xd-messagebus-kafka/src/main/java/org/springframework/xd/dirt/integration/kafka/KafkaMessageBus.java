@@ -247,6 +247,7 @@ public class KafkaMessageBus extends MessageBusSupport implements DisposableBean
 			.addAll(PRODUCER_BATCHING_BASIC_PROPERTIES)
 			.addAll(PRODUCER_COMPRESSION_PROPERTIES)
 			.addAll(KAFKA_PRODUCER_PROPERTIES)
+			.addAll(PRODUCER_PARTITIONING_PROPERTIES)
 			.build();
 
 

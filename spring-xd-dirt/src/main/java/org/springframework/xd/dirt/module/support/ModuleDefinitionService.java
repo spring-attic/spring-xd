@@ -122,16 +122,29 @@ public class ModuleDefinitionService {
 
 	private byte[] createComposedJobJar(String xml) {
 
-		try (ByteArrayOutputStream outStream = new ByteArrayOutputStream(); JarOutputStream target = new JarOutputStream(outStream)) {
+		JarOutputStream target = null;
+		try (ByteArrayOutputStream outStream = new ByteArrayOutputStream()) {
+			target = new JarOutputStream(outStream);
 			JarEntry entry = new JarEntry("config/");
 			target.putNextEntry(entry);
 			target.closeEntry();
 			writeXML(target, xml);
 			writeParameters(target, ComposedJobUtil.getPropertyDefinition());
+
+			//This needs to be explicitly closed before we get the bytes so that the
+			//compression is complete.  target.flush() does not work for this.
+			target.close();
 			return outStream.toByteArray();
 		}
-		catch (IOException ioe) {
-			throw new IllegalStateException(ioe.getMessage(), ioe);
+		catch (Exception e) {
+			try{
+				if(target != null){
+					target.close();
+				}
+			}catch (IOException ie){
+				throw new IllegalStateException(e.getMessage(), e);
+			}
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 	}
 

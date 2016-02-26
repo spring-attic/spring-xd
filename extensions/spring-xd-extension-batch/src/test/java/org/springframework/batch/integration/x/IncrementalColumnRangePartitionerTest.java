@@ -165,7 +165,7 @@ public class IncrementalColumnRangePartitionerTest {
 		partitioner.setCheckColumn("foo");
 		partitioner.setColumn("foo");
 		partitioner.setSql("select * from bar");
-
+		partitioner.setPartitions(2);
 		JobExplorer jobExplorer = mock(JobExplorer.class);
 		partitioner.setJobExplorer(jobExplorer);
 		JobExecution jobExec = new JobExecution(1l);

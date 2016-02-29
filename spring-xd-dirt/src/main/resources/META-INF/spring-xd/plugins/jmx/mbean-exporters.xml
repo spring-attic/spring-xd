@@ -22,8 +22,11 @@
 
 	<bean id="moduleObjectNamingStrategy"
 		class="org.springframework.xd.dirt.module.jmx.ModuleObjectNamingStrategy">
+		<constructor-arg ref="attributeSource" />
 		<constructor-arg name="domain" value="xd.${xd.stream.name:${xd.job.name:}}" />
 		<constructor-arg name="objectNameProperties" ref="objectNameProperties" />
 	</bean>
+
+	<bean id="attributeSource" class="org.springframework.jmx.export.annotation.AnnotationJmxAttributeSource" />
 
 </beans>

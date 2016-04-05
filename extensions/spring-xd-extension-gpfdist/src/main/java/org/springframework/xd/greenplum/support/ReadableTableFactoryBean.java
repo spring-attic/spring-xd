@@ -16,11 +16,11 @@
 
 package org.springframework.xd.greenplum.support;
 
-import java.util.Arrays;
-import java.util.List;
-
 import org.springframework.beans.factory.FactoryBean;
 import org.springframework.beans.factory.InitializingBean;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @since 1.2
@@ -57,6 +57,8 @@ public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, Ini
 
 	private SegmentRejectType segmentRejectType;
 
+	private boolean header;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		if (controlFile != null) {
@@ -75,6 +77,7 @@ public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, Ini
 		w.setLogErrorsInto(logErrorsInto);
 		w.setSegmentRejectLimit(segmentRejectLimit);
 		w.setSegmentRejectType(segmentRejectType);
+        w.setFormatHeader(header);
 
 		if (format == Format.TEXT) {
 			Character delim = delimiter != null ? delimiter : Character.valueOf('\t');
@@ -205,5 +208,13 @@ public class ReadableTableFactoryBean implements FactoryBean<ReadableTable>, Ini
 	public void setFormat(Format format) {
 		this.format = format;
 	}
+
+    public boolean isHeader() {
+        return header;
+    }
+
+    public void setHeader(boolean header) {
+        this.header = header;
+    }
 
 }

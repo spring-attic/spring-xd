@@ -16,9 +16,9 @@
 
 package org.springframework.xd.greenplum.support;
 
-import java.util.List;
-
 import org.springframework.util.StringUtils;
+
+import java.util.List;
 
 public abstract class SqlUtils {
 
@@ -99,6 +99,10 @@ public abstract class SqlUtils {
 		if (externalTable.getForceQuote() != null) {
 			buf.append(" FORCE QUOTE ");
 			buf.append(StringUtils.arrayToCommaDelimitedString(externalTable.getForceQuote()));
+		}
+
+		if(externalTable.isFormatHeader()){
+			buf.append(" HEADER ");
 		}
 
 		buf.append(" )");

@@ -60,6 +60,7 @@
     <beans:bean id="greenplumReadableTable" class="org.springframework.xd.greenplum.support.ReadableTableFactoryBean">
         <beans:property name="controlFile" ref="greenplumControlFile" />
         <beans:property name="delimiter" value="${columnDelimiter:}" />
+        <beans:property name="header" value="${header:}" />
         <beans:property name="locations" value="#{T(org.springframework.xd.greenplum.support.NetworkUtils).getGPFDistUri(${port})}" />
     </beans:bean>
 

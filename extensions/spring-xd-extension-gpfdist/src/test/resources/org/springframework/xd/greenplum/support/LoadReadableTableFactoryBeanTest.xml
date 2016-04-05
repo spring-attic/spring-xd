@@ -7,7 +7,7 @@
         <property name="controlFile" ref="greenplumControlFile" />
         <property name="delimiter" value="|" />
         <property name="header" value="true" />
-        <property name="locations" value="#{T(io.pivotal.spring.xd.jdbcgpfdist.support.NetworkUtils).getGPFDistUri(5000)}" />
+        <property name="locations" value="#{T(org.springframework.xd.greenplum.support.NetworkUtils).getGPFDistUri(5000)}" />
     </bean>
 
     <bean id="greenplumControlFile" class="org.springframework.xd.greenplum.support.ControlFileFactoryBean">

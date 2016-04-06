@@ -109,7 +109,7 @@ public class KafkaPartitionAllocator implements FactoryBean<Partition[]> {
 			partitionsMapByTopic.put(topic, partitions);
 			maxPartitionCount = (partitions.size() > maxPartitionCount) ? partitions.size() : maxPartitionCount;
 		}
-		Assert.isTrue(maxPartitionCount >= count, "Total module count should not be less than the maximum of " +
+		Assert.isTrue(maxPartitionCount >= count, "Total module count should not be more than the maximum of " +
 				"partitions from the given topics");
 		if (topics.size() > 1) {
 			Assert.isTrue(!StringUtils.hasText(partitionList), "Explicit partitions list isn't supported for " +

@@ -57,6 +57,9 @@ public class ConnectionFactorySettings {
 	@Value("${spring.rabbitmq.ssl.trustStorePassphrase:}")
 	private String trustStorePassphrase;
 
+	@Value("${spring.rabbitmq.channelCacheSize:100}")
+	private Integer channelCacheSize;
+
 	@Bean
 	// TODO: Move to spring boot
 	public ConnectionFactory rabbitConnectionFactory(RabbitProperties config,
@@ -75,6 +78,9 @@ public class ConnectionFactorySettings {
 		}
 		if (config.getVirtualHost() != null) {
 			factory.setVirtualHost(config.getVirtualHost());
+		}
+		if (this.channelCacheSize != null) {
+			factory.setChannelCacheSize(this.channelCacheSize);
 		}
 		return factory;
 	}

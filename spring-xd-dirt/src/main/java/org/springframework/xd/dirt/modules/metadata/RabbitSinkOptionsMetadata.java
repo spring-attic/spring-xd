@@ -1,5 +1,5 @@
 /*
- * Copyright 2013-2014 the original author or authors.
+ * Copyright 2013-2016 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ public class RabbitSinkOptionsMetadata {
 
 	private String converterClass = "org.springframework.amqp.support.converter.SimpleMessageConverter";
 
+	private String channelCacheSize = "${spring.rabbitmq.channelCacheSize}";
 
 	public String getExchange() {
 		return exchange;
@@ -48,7 +49,6 @@ public class RabbitSinkOptionsMetadata {
 	public void setExchange(String exchange) {
 		this.exchange = exchange;
 	}
-
 
 	public String getRoutingKey() {
 		return routingKey;
@@ -75,6 +75,15 @@ public class RabbitSinkOptionsMetadata {
 	@ModuleOption("the class name of the message converter")
 	public void setConverterClass(String converterClass) {
 		this.converterClass = converterClass;
+	}
+
+	public String getChannelCacheSize() {
+		return this.channelCacheSize;
+	}
+
+	@ModuleOption("the channel cache size")
+	public void setChannelCacheSize(String channelCacheSize) {
+		this.channelCacheSize = channelCacheSize;
 	}
 
 }

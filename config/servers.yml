@@ -307,7 +307,7 @@ endpoints:
 #     keyStorePassphrase:
 #     trustStore:
 #     trustStorePassphrase:
-
+#   channelCacheSize: 100
 
 ---
 # Hadoop properties

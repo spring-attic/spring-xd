@@ -207,6 +207,12 @@ spring:
    virtual_host: /         # <6>
    useSSL: false           # <7>
    sslProperties:          # <8>
+   ssl:                    # <9>
+     keyStore:
+     keyStorePassphrase:
+     trustStore:
+     trustStorePassphrase:
+   channelCacheSize: 100   # <10>
 ----
 
 <1> A comma-separated list of RabbitMQ server addresses (a single entry when not clustering).
@@ -220,6 +226,10 @@ Entries in this list must correspond to the corresponding entry in +addresses+.
 <6> The virtual host.
 <7> True to use SSL for the AMQP protocol.
 <8> The location of the SSL properties file, when certificate exchange is used.
+<9> Discrete SSL configuration properties as an alternative to a properties file.
+<10> The channel cache size, this should be set to a large enough value to avoid opening/closing channels at a high
+rate.
+Examine the channel creation via the RabbitMQ Admin UI to determine a suitable value. Defaults to 100.
 
 To override these settings set an OS environment variable such as `spring_rabbitmq_host` to the value you require.
 

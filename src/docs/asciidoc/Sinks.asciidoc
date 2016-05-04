@@ -1310,6 +1310,7 @@ To destroy the stream, enter the following at the shell prompt:
 The **$$rabbit$$** $$sink$$ has the following options:
 
 $$addresses$$:: $$a comma separated list of 'host[:port]' addresses$$ *($$String$$, default: `${spring.rabbitmq.addresses}`)*
+$$channelCacheSize$$:: $$the channel cache size$$ *($$String$$, default: `${spring.rabbitmq.channelCacheSize}`)*
 $$converterClass$$:: $$the class name of the message converter$$ *($$String$$, default: `org.springframework.amqp.support.converter.SimpleMessageConverter`)*
 $$deliveryMode$$:: $$the delivery mode (PERSISTENT, NON_PERSISTENT)$$ *($$String$$, default: `PERSISTENT`)*
 $$exchange$$:: $$the Exchange on the RabbitMQ broker to which messages should be sent$$ *($$String$$, default: ``)*

@@ -15,7 +15,7 @@
 		default-delivery-mode="${deliveryMode}"
 		amqp-template="rabbitTemplate"
 		exchange-name="${exchange}"
-		routing-key-expression="${routingKey}" 
+		routing-key-expression="${routingKey}"
 		mapped-request-headers="${mappedRequestHeaders}"/>
 
 	<rabbit:template id="rabbitTemplate"
@@ -24,6 +24,7 @@
 
 	<rabbit:connection-factory id="rabbitConnectionFactory"
 		connection-factory="connectionFactory"
+		channel-cache-size="${channelCacheSize}"
 		addresses="${addresses}"
 		virtual-host="${vhost}"
 		username="${username}" password="${password}" />

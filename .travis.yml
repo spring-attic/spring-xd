@@ -1,5 +1,8 @@
 language: java
 
+jdk:
+  - oraclejdk8
+
 services:
   - rabbitmq
   - redis-server
@@ -13,7 +16,9 @@ cache:
 env:
   - TERM=dumb
 
+install: true
+
 script:
-  - travis_wait ./gradlew --debug clean build -PtestLoggingStarted=true -PwikiBranch=origin/master
+  - ./gradlew clean build distZip -x test
 
 #test

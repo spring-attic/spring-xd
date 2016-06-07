@@ -1,3 +1,7 @@
+
+[![Build Status](https://travis-ci.org/sapient-support/spring-xd.svg?branch=master)](https://travis-ci.org/sapient-support/spring-xd)
+
+
 Spring XD
 =========
 

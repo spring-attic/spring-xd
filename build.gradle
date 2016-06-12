@@ -185,7 +185,7 @@ configure(javaProjects) { subproject ->
 		versionManagement files(rootProject.file('dependencies.properties'))
 	}
 	startScripts.enabled = false
-	distZip.enabled = false
+	distZip.enabled = true
 
 	bootRepackage {
 		enabled = false

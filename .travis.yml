@@ -15,7 +15,7 @@ env:
 install: true
 
 script:
-  - ./gradlew clean build install -x test
+  - ./gradlew dist -x test
 
 deploy:
   provider: releases

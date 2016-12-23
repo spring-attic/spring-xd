@@ -127,7 +127,7 @@ Start by setting the parent to `spring-xd-module-parent` in your `pom.xml`:
   <groupId>org.springframework.xd</groupId>
   <artifactId>spring-xd-module-parent</artifactId>
   <!-- 1.1.x or later -->
-  <version>1.3.1.RELEASE</version>
+  <version>1.3.2.RELEASE</version>
 </parent>
 <dependencies>
 ...
@@ -245,7 +245,7 @@ $./gradlew clean build
 This configuration allows you to override `springXdVersion` on the command line:
 
 ----
-$./gradlew clean build -PspringXdVersion=1.3.1.RELEASE
+$./gradlew clean build -PspringXdVersion=1.3.2.RELEASE
 ----
 
 [NOTE]

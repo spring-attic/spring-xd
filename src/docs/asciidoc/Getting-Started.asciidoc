@@ -5,9 +5,9 @@
 To get started, make sure your system has as a minimum  http://www.oracle.com/technetwork/java/javase/downloads/[*Java JDK 7*] or newer installed. *Java JDK 7* is recommended.
 
 === Download Spring XD
-To download the current GA release, you can download the distribution http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.3.1.RELEASE/spring-xd-1.3.1.RELEASE-dist.zip[*spring-xd-1.3.1.RELEASE-dist.zip*] and http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.3.1.RELEASE/spring-xd-1.3.1.RELEASE-docs.zip[its accompanying documentation]. 
+To download the current GA release, you can download the distribution http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.3.2.RELEASE/spring-xd-1.3.2.RELEASE-dist.zip[*spring-xd-1.3.2.RELEASE-dist.zip*] and http://repo.spring.io/libs-release/org/springframework/xd/spring-xd/1.3.2.RELEASE/spring-xd-1.3.2.RELEASE-docs.zip[its accompanying documentation]. 
 
-If you want to try out the latest build of Spring XD, You can download the snapshot distribution from http://repo.spring.io/libs-snapshot/org/springframework/xd/spring-xd/1.3.2.BUILD-SNAPSHOT[the spring snapshots repository]. You can also xref:Building-Spring-XD#building-spring-xd[build the project from source] if you wish. The wiki content should also be kept up to date with the current snapshot so if you are reading this on the github website, things may have changed since the last stable release.
+If you want to try out the latest build of Spring XD, You can download the snapshot distribution from http://repo.spring.io/libs-snapshot/org/springframework/xd/spring-xd/1.3.3.BUILD-SNAPSHOT[the spring snapshots repository]. You can also xref:Building-Spring-XD#building-spring-xd[build the project from source] if you wish. The wiki content should also be kept up to date with the current snapshot so if you are reading this on the github website, things may have changed since the last stable release.
 
 Unzip the distribution which will unpack to a single installation directory. All the commands below are executed from this directory, so change into it before proceeding.
 

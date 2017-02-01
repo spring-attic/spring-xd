@@ -137,15 +137,15 @@ public class DepartedContainerModuleRedeployer extends ModuleRedeployer {
 					try {
 						stream = DeploymentLoader.loadStream(client, unitName, streamFactory);
 						streamMap.put(unitName, stream);
-						if (stream != null) {
-							streamModuleDeployments.add(new ModuleDeployment(stream,
-									stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
-									deploymentProperties));
-						}
 					}
 					catch (Exception e) {
 						logger.error(String.format("Exception loading stream %s.", unitName), e);
 					}
+				}
+				if (stream != null) {
+					streamModuleDeployments.add(new ModuleDeployment(stream,
+							stream.getModuleDescriptor(moduleDeploymentsPath.getModuleLabel()),
+							deploymentProperties));
 				}
 			}
 		}

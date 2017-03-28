@@ -547,6 +547,7 @@ $$properties$$:: $$comma separated JavaMail property values$$ *($$String$$, no d
 $$propertiesFile$$:: $$file to load the JavaMail properties$$ *($$String$$, no default)*
 $$protocol$$:: $$the protocol to use to retrieve messages$$ *($$MailProtocol$$, default: `imap`, possible values: `imap,imaps,pop3,pop3s`)*
 $$usePolling$$:: $$whether to use polling or not (no polling works with imap(s) only)$$ *($$boolean$$, default: `false`)*
+$$useRawMime$$:: $$whether to pass MimeMessage as is or body of the message converted to string$$ *($$boolean$$, default: `false`)*
 $$username$$:: $$the username to use to connect to the mail server$$ *($$String$$, no default)*
 //$source.mail
 

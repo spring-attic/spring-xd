@@ -9,10 +9,17 @@
 
 	<channel id="output" />
 
+	<beans:beans profile="body-as-string">
+	  <int-mail:mail-to-string-transformer
+	      charset="${charset}" input-channel="transform" output-channel="output" />
+	</beans:beans>
 
-	<int-mail:mail-to-string-transformer
-		charset="${charset}" input-channel="transform" output-channel="output" />
 
+	<beans:beans profile="raw-mime">
+	  <bridge input-channel="transform" output-channel="output" />
+	</beans:beans>
+	
+	
 	<beans:beans profile="use-polling">
 		<int-mail:inbound-channel-adapter
 			store-uri="${protocol}://${username:}:${password:}@${host}:${port}/${folder}"

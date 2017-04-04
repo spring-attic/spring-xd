@@ -1,8 +1,7 @@
 language: java
 
-services:
-  - rabbitmq
-  - redis-server
+jdk:
+  - oraclejdk8
 
 sudo: false
 
@@ -13,7 +12,15 @@ cache:
 env:
   - TERM=dumb
 
-script:
-  - travis_wait ./gradlew --debug clean build -PtestLoggingStarted=true -PwikiBranch=origin/master
+install: true
 
-#test
+script:
+  - ./gradlew dist -x test
+
+deploy:
+  provider: releases
+  api_key: $GH_TOKEN
+  file: "/home/travis/build/sapient-support/spring-xd/build/distributions/spring-xd-1.3.2.BUILD-SNAPSHOT-dist.zip"
+  skip_cleanup: true
+  on:
+    overwrite: true

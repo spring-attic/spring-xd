@@ -25,7 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Used to annotate the setter methods of a POJO Module Options class to provide the framework with additional option
  * information.
- * 
+ *
  * @author Eric Bottard
  */
 @Retention(RetentionPolicy.RUNTIME)

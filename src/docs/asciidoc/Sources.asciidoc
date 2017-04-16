@@ -278,6 +278,7 @@ $$keyStore$$:: $$key store location (if sslPropertiesLocation not used)$$ *($$St
 $$keyStorePassphrase$$:: $$key store passphrase (if sslPropertiesLocation not used)$$ *($$String$$, no default)*
 $$maxContentLength$$:: $$the maximum allowed content length$$ *($$int$$, default: `1048576`)*
 $$messageConverterClass$$:: $$the name of a custom MessageConverter class, to convert HttpRequest to Message; must have a constructor with a 'MessageBuilderFactory' parameter$$ *($$String$$, default: `org.springframework.integration.x.http.NettyInboundMessageConverter`)*
+$$path$$:: $$the path of this source$$ *($$String$$, default: `/`)*
 $$port$$:: $$the port to listen to$$ *($$int$$, default: `9000`)*
 $$sslPropertiesLocation$$:: $$location (resource) of properties containing the location of the pkcs12 keyStore and pass phrase$$ *($$String$$, no default)*
 //$source.http

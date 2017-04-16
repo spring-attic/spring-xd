@@ -442,6 +442,7 @@ project('spring-xd-dirt') {
 		testCompile project(":spring-xd-messagebus-kafka")
 		testCompile project(":spring-xd-messagebus-redis")
 		testCompile project(":spring-xd-messagebus-rabbit")
+                testCompile project(":spring-xd-messagebus-jms")
 
 		compile "org.springframework.cloud:spring-cloud-spring-service-connector"
 		compile "org.springframework.cloud:spring-cloud-cloudfoundry-connector"
@@ -1023,6 +1024,15 @@ project('spring-xd-messagebus-redis') {
 		compile project(':spring-xd-messagebus-spi')
 		compile "org.springframework.integration:spring-integration-redis"
 	}
+}
+
+project('spring-xd-messagebus-jms') {
+        description = 'Spring XD MessageBus (JMS implementation)'
+        dependencies {
+                compile project(':spring-xd-messagebus-spi')
+                compile "org.apache.activemq:activemq-all:5.4.2"
+                compile "org.springframework.integration:spring-integration-jms"
+        }
 }
 
 project('spring-xd-messagebus-rabbit') {

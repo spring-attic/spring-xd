@@ -1,0 +1,115 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-12 table-filter">
+            <div class="col-md-4 col-md-offset-8">
+                <input type="text" class="form-control" ng-model="filterQuery" id="filterTable"
+                       placeholder="Quick filter">
+            </div>
+        </div>
+    </div>
+</div>
+<table class="cluster-view table">
+    <thead>
+    <tr>
+        <th>Container Id</th>
+        <th>Groups</th>
+        <th>Deployed Modules</th>
+        <th>Action</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr ng-repeat="item in containers | filter:filterQuery | orderBy: item.groups"
+        ng-show="!item.inactive">
+        <td id="container-id">
+            <a xd-popover=".containerDetails{{$index}}" rel="popover" data-original-title="Container Attributes">{{item.containerId}}</a>
+            <div class="containerDetails{{$index}} hide">
+              <table class="table-hover table-condensed container-details-table">
+                <tbody>
+                  <tr><td class="text-left"><strong>Groups</strong></td><td>{{item.attributes.groups}}</td></tr>
+                  <tr><td class="text-left"><strong>Host</strong></td><td>{{item.attributes.host}}</td></tr>
+                  <tr><td class="text-left"><strong>Ip</strong></td><td>{{item.attributes.ip}}</td></tr>
+                  <tr><td class="text-left"><strong>Management Port</strong></td><td>{{item.attributes.managementPort}}</td></tr>
+                  <tr><td class="text-left"><strong>Pid</strong></td><td>{{item.attributes.pid}}</td></tr>
+                </tbody>
+              </table>
+            </div>
+        </td>
+        <td>
+            <table>
+                <tr ng-repeat="group in item.groups.split(',')">
+                    <td class="label label-default">
+                      {{group || 'N/A'}}
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td>
+            <table class="deployed-modules">
+                <tr ng-repeat="deployments in item.deployedModules | orderBy:'unitName'">
+                    <td class="input-group-addon deployment-status-{{deployments.deploymentStatus || 'na'}}">
+                      <span xd-tooltip data-placement="bottom"
+                            title="{{deployments.deploymentStatus || 'N/A'}}">{{deployments.unitName}}</span>
+                    </td>
+                    <td class="input-group-addon">
+                        <a xd-popover=".deploymentDetails{{$index}}" rel="popover" data-original-title="Deployment Details">
+                        {{deployments.name}}</a>
+                        <div class="deploymentDetails{{$index}} hide">
+                          <table class="table-hover table-condensed table-bordered container-details-table">
+                            <thead>
+                              <tr><th colspan="2">Module Options</th></tr>
+                            </thead>
+                            <tbody>
+                              <tr ng-repeat="(key, value) in deployments.moduleOptions">
+                                <td class="text-left"><strong>{{key}}</strong></td><td>{{value}}</td>
+                              </tr>
+                            </tbody>
+                            <thead>
+                              <tr><th colspan="2">Deployment Properties</th></tr>
+                            </thead>
+                            <tbody>
+                              <tr ng-repeat="(key, value) in deployments.deploymentProperties">
+                                <td class="text-left"><strong>{{key}}</strong></td><td>{{value}}</td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                    </td>
+                    <td class="input-group-addon" ng-show="item.attributes.managementPort !== undefined">
+                      <span xd-tooltip title="Incoming msgs/second" data-placement="bottom"
+                            class="glyphicon glyphicon-arrow-down">{{deployments.incomingRate || 'N/A'}}
+                      </span>
+                      <span xd-tooltip title="Outgoing msgs/second" data-placement="bottom"
+                            class="glyphicon glyphicon-arrow-up">{{deployments.outgoingRate  || 'N/A'}}</span>
+                    </td>
+                </tr>
+            </table>
+        </td>
+        <td class="action-column">
+            <div>
+                <button ng-disabled="item.attributes.managementPort === undefined" type="button" ng-click="confirmShutdown(item.containerId)"
+                        class="btn btn-default" data-toggle="modal" data-target="#confirm-shutdown"
+                        ><span class="glyphicon glyphicon-remove"></span> Shutdown
+                </button>
+            </div>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<div class="modal fade" xd-modal id="confirm-shutdown" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Confirm Shutdown Action</h4>
+            </div>
+            <div class="modal-body">
+                <p>This action will shutdown the container <b>{{destroyItem}}</b>. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-click="shutdownContainer(destroyItem)">Confirm Shutdown
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

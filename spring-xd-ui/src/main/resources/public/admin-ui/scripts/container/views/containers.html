@@ -1,0 +1,15 @@
+<h1>Cluster view</h1>
+<p ng-class="{ hide: !$state.includes('home.containers.tabs') }" class="index-page--subtitle"> This section shows
+    the XD cluster view with the list of all running containers. To enable actions on the containers, make sure to
+    <b>enable</b> the management port.
+</p>
+<div class="tab-pane active col-md-12">
+    <ul class="nav nav-tabs">
+        <li ng-class="{ active: $state.includes('home.containers.tabs') }"><a
+                ui-sref="home.containers.tabs">Containers</a>
+        </li>
+    </ul>
+    <div class="tab-content">
+        <div ui-view></div>
+    </div>
+</div>

@@ -1,0 +1,92 @@
+<h1>Scheduling job {{jobScheduleRequest.jobName}}</h1>
+
+    <form class="form-horizontal" name="jobScheduler" role="form" ng-submit="scheduleJob(jobScheduleRequest)" novalidate>
+
+        <div class="form-group" ng-class="jobScheduler.schedulerName.$invalid && jobScheduler.schedulerName.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label">Scheduler (Stream) Name</label>
+            <div class="col-sm-9">
+                <input type="text" id="schedulerName" name="schedulerName" autofocus required
+                       class="form-control" placeholder="Enter a name for the schedule stream" ng-model="jobScheduleRequest.schedulerName">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback" ng-show="jobScheduler.schedulerName.$invalid && jobScheduler.schedulerName.$touched"></span>
+                <p class="help-block" ng-show="jobScheduler.schedulerName.$error.required && jobScheduler.schedulerName.$touched">
+                    You must provide a name for the Scheduler Stream.</p>
+            </div>
+        </div>
+        <div class="row" style="margin-bottom: 1em;">
+            <div class="col-sm-9 col-sm-offset-3">
+                <ul class="nav nav-tabs" role="tablist">
+                  <li role="presentation" ng-class="{ active: isFixedDelay()}"><a href="" ng-click="setFixedDelay()" role="tab">Fixed delay</a></li>
+                  <li role="presentation" ng-class="{ active: isDate() }"><a href="" ng-click="setDate()" role="tab">Date</a></li>
+                  <li role="presentation" ng-class="{ active: isCron() }"><a href="" ng-click="setCron()" role="tab">Cron</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isFixedDelay()"
+             ng-class="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="fixedDelay" class="form-control" type="number" min="1" ng-required="isFixedDelay()"
+                       ng-model="jobScheduleRequest.fixedDelay"
+                       placeholder="in SECONDS">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched"></span>
+                <p class="help-block"
+                   ng-show="jobScheduler.fixedDelay.$invalid && jobScheduler.fixedDelay.$touched">
+                  Please provide a valid integer number.</p>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isDate()"
+             ng-class="jobScheduler.date.$invalid && jobScheduler.date.$touched ? 'has-warning has-feedback' : ''">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="date" class="form-control" type="datetime-local" ng-required="isDate()"
+                       ng-model="jobScheduleRequest.date"
+                       placeholder="MM/dd/yy HH:mm:ss">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched"></span>
+                <p class="help-block" ng-show="isDate()">Date is interpreted using the Server Timezone.</p>
+                <p class="help-block"
+                   ng-show="jobScheduler.date.$invalid && jobScheduler.date.$touched">
+                   Please provide a valid date.
+                </p>
+            </div>
+        </div>
+        <div class="form-group" ng-show="isCron()"
+             ng-class="{
+               'has-warning has-feedback' : jobScheduler.cron.$invalid && jobScheduler.cron.$touched,
+               'has-feedback' : jobScheduler.cron.$pending,
+               'has-success has-feedback' : jobScheduler.cron.$valid,
+             }">
+            <label for="schedulerName" class="col-sm-3 control-label"></label>
+            <div class="col-sm-9">
+                <input name="cron" class="form-control" type="text" ng-model="jobScheduleRequest.cron"
+                       ng-required="isCron()" validate-cron-expression="isCron()"
+                       ng-model-options="{ debounce : { 'default' : 1000, blur : 0 } }"
+                       placeholder="Cron Expression">
+                <span class="glyphicon glyphicon-warning-sign form-control-feedback"
+                      ng-show="jobScheduler.cron.$invalid && jobScheduler.cron.$touched"></span>
+                <span class="glyphicon glyphicon-cog form-control-feedback myspinner"
+                      ng-show="jobScheduler.cron.$pending"></span>
+                <span class="glyphicon glyphicon-ok form-control-feedback"
+                      ng-show="jobScheduler.cron.$valid"></span>
+                <p class="help-block" ng-show="isCron()">Cron Expressions are interpreted using the Server Timezone.</p>
+                <p class="help-block"
+                   ng-show="jobScheduler.cron.$error.required && jobScheduler.cron.$touched">
+                   Please provide a cron expression.
+                </p>
+                <p class="help-block"
+                   ng-show="jobScheduler.cron.$error.cronExpressionValid">
+                   {{cronValidation.errorMessage}}
+                </p>
+                <p class="help-block" ng-show="jobScheduler.cron.$valid">
+                  Next execution time: <span xd-date-time="{{cronValidation.nextExecutionTime}}"></span>
+                </p>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 1em;">
+          <div class="col-md-6 text-right"><button type="button" class="btn btn-default" ng-click="cancelJobSchedule()">Back</button></div>
+          <div class="col-md-6 text-left"><button type="submit" class="btn btn-primary schedule-job"
+          ng-disabled="jobScheduler.$invalid">Schedule Job <span class="glyphicon glyphicon-play"></span></button></div>
+        </div>
+    </form>
+

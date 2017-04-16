@@ -1,0 +1,37 @@
+<button type="button" class="btn btn-default pull-right" ng-click="closeJobDeploymentDetails()">Back</button>
+<h1>Job Deployment Details for Job '{{jobName}}'</h1>
+
+<h4>Job Definition</h4>
+
+<div class="row" ng-show="jobDefinition && !jobDefinitionNotFound">
+  <div class="col-xs-12"><pre>{{jobDefinition.definition}}</pre></div>
+</div>
+<div class="row" ng-show="jobDefinitionNotFound">
+  <div class="col-xs-12"><pre>The job definition for job '{{jobName}}' is not available.</pre></div>
+</div>
+
+<h4>Module Metadata</h4>
+
+<table class="table table-striped table-hover" ng-show="jobModuleMetaData" ng-repeat="jobModuleMetaDataItem in jobModuleMetaData">
+  <tbody>
+    <tr>
+      <td>Module Id</td>
+      <td>{{jobModuleMetaDataItem.moduleId}}</td>
+    </tr>
+    <tr>
+      <td>Container Id</td>
+      <td>{{jobModuleMetaDataItem.containerId}}</td>
+    </tr>
+    <tr>
+      <td>Properties</td>
+      <td>{{jobModuleMetaDataItem.properties}}</td>
+    </tr>
+  </tbody>
+</table>
+<table class="table table-striped table-hover" ng-show="jobModuleMetaData.length == 0">
+  <tbody>
+    <tr>
+      <td>No Job Module Metadata available. Is the job deployed?</td>
+    </tr>
+  </tbody>
+</table>

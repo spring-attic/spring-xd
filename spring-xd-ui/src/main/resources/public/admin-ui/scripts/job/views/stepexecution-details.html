@@ -1,0 +1,120 @@
+<button type="button" class="btn btn-default pull-right" ng-click="closeStepExecutionDetails(stepExecutionDetails)">Back</button>
+
+<h1 ng-show="stepExecutionDetails">Step Execution Details - Step Execution ID: {{stepExecutionDetails.stepExecution.id}}</h1>
+
+<h4 ng-show="stepExecutionDetailsNotFound">The Step Execution Details for Step Execution ID {{stepExecutionId}} could not be found.</h4>
+
+<h4 ng-show="stepExecutionProgress">Step Execution Progress</h4>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionProgress">
+  <tbody>
+    <tr>
+      <th>Percentage Complete</th>
+      <td><div class="progress"
+        ><div class="progress-bar" role="progressbar" aria-valuenow="{{stepExecutionProgress.percentageFormatted}}" aria-valuemin="0" aria-valuemax="100" style="width: {{stepExecutionProgress.percentageFormatted}}%;"
+        >{{stepExecutionProgress.percentageFormatted}} %</div></div></td>
+      <td class="action-column"><button type="button" class="btn btn-default btn-xs"
+          ng-click="refreshStepExecutionProgress(stepExecutionDetails)">
+          <span class="glyphicon glyphicon-refresh"></span></button></td>
+      <td class="action-column"><button type="button" class="btn btn-default btn-xs"
+          ng-click="showStepExecutionProgress(stepExecutionProgress)">
+          <span class="glyphicon glyphicon-stats"></span></button></td>
+    </tr>
+  </tbody>
+</table>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionDetails">
+  <thead>
+    <tr>
+      <th>Property</th><th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>Step Execution Id</td>
+      <td>{{stepExecutionDetails.stepExecution.id}}</td>
+    <tr>
+    <tr>
+      <td>Job Execution Id</td>
+      <td>{{stepExecutionDetails.jobExecutionId}}</td>
+    <tr>
+    <tr>
+      <td>Step Name</td>
+      <td>{{stepExecutionDetails.stepExecution.stepName}}</td>
+    <tr>
+    <tr>
+        <td>Step Type</td>
+        <td>{{stepExecutionDetails.stepType}}</td>
+    <tr>
+    <tr>
+      <td>Status</td>
+      <td ng-class="{'text-success': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'COMPLETED', 'text-danger': stepExecutionDetails.stepExecution.exitStatus.exitCode === 'FAILED'}">{{stepExecutionDetails.stepExecution.exitStatus.exitCode}}</td>
+    <tr>
+    <tr>
+      <td>Commits</td>
+      <td>{{stepExecutionDetails.stepExecution.commitCount}}</td>
+    <tr>
+    <tr>
+      <td>Duration</td>
+      <td xd-duration start='stepExecutionDetails.stepExecution.startTime' end='stepExecutionDetails.stepExecution.endTime'></td>
+    <tr>
+    <tr>
+      <td>Filter Count</td>
+      <td>{{stepExecutionDetails.stepExecution.filterCount}}</td>
+    <tr>
+    <tr>
+      <td>Process Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.processSkipCount}}</td>
+    <tr>
+    <tr>
+      <td>Reads</td>
+      <td>{{stepExecutionDetails.stepExecution.readCount}}</td>
+    <tr>
+    <tr>
+      <td>Read Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.readSkipCount}}</td>
+    <tr>
+    <tr>
+      <td>Rollbacks</td>
+      <td>{{stepExecutionDetails.stepExecution.rollbackCount}}</td>
+    <tr>
+    <tr>
+      <td>Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.skipCount}}</td>
+    <tr>
+    <tr>
+      <td>Writes</td>
+      <td>{{stepExecutionDetails.stepExecution.writeCount}}</td>
+    <tr>
+    <tr>
+      <td>Write Skips</td>
+      <td>{{stepExecutionDetails.stepExecution.writeSkipCount}}</td>
+    <tr>
+  </tbody>
+</table>
+
+<h4 ng-show="stepExecutionDetails">Exit Description</h4>
+
+<div style="overflow-x: auto;" ng-show="stepExecutionDetails">
+	<pre>{{stepExecutionDetails.stepExecution.exitStatus.exitDescription || 'N/A'}}</pre>
+</div>
+
+<h4 ng-show="stepExecutionDetails">Step Execution Context</h4>
+
+<table class="table table-striped table-hover" ng-show="stepExecutionDetails">
+  <thead>
+    <tr>
+      <th>Key</th>
+      <th>Value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr ng-repeat="contextValue in stepExecutionDetails.stepExecution.executionContext.values | orderBy:'key'">
+      <td>{{contextValue.key}}</td>
+      <td xd-parse-urls>{{contextValue.value}}</td>
+    </tr>
+    <tr ng-show="stepExecutionDetails.stepExecution.executionContext.values.length == 0">
+      <td colspan="2">No Execution Context values are available.</td>
+    </tr>
+  </tbody>
+</table>

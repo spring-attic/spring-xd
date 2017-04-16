@@ -1,0 +1,29 @@
+<table class="table table-striped table-hover" ng-hide="$state.includes('home.tabs.job.deployments.launch')">
+    <thead>
+    <tr>
+        <th>Name</th><th class="text-center">Execution Count</th><th>Last Execution Status</th>
+        <th class="text-center" colspan="3">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize | filter:filterQuery" total-items="pageable.total">
+        <td>{{item.name}}</td>
+        <td class="text-center">{{item.executionCount}}</td>
+        <td ng-class="{'text-success': item.exitStatus.exitCode === 'COMPLETED', 'text-danger': item.exitStatus.exitCode === 'FAILED'}">{{item.exitStatus.exitCode}}</td>
+        <td class="action-column"><button type="button" ng-disabled="!item.deployed" ng-click="launchJob(item)"
+          class="btn btn-default"
+          ><span class="glyphicon glyphicon-play"></span><span class="hidden-xs"> Launch</span></button>
+        </td>
+        <td class="action-column"><button type="button" ng-disabled="!item.deployed" ng-click="scheduleJob(item)"
+          class="btn btn-default"
+          ><span class="glyphicon glyphicon-time"></span><span class="hidden-xs"> Schedule</span></button>
+        </td>
+        <td class="action-column"><button type="button" title="Details"
+          class="btn btn-default" ng-click='viewDeploymentDetails(item)'>
+          <span class="glyphicon glyphicon-search"></span></button></td>
+    </tr>
+    </tbody>
+</table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>
+<div ui-view></div>

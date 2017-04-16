@@ -1,0 +1,81 @@
+<div class="row">
+    <div class="col-md-12">
+        <div class="col-md-12 table-filter">
+            <div class="col-md-4 col-md-offset-8">
+                <input type="text" class="form-control" ng-model="filterQuery" id="filterTable"
+                       placeholder="Quick filter">
+            </div>
+        </div>
+    </div>
+</div>
+<table class="table table-striped table-hover">
+    <thead>
+    <tr>
+        <th>Name</th>
+        <th>Definition</th>
+        <th>Status <a class="status-help" xd-popover=".status-help-content" title="Available Deployment Statuses"><span class="glyphicon glyphicon-question-sign"></span></a></th>
+        <th colspan="3" class="text-center">Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+
+    <tr dir-paginate="item in pageable.items | itemsPerPage: pageable.pageSize | filter:filterQuery" total-items="pageable.total" ng-show="!item.inactive">
+        <td>{{item.name}}</td>
+        <td>{{item.definition}}</td>
+        <td>{{item.status}}</td>
+        <td class="action-column">
+            <button type="button" ng-click="undeployStream(item)"
+                    ng-disabled="item.status === 'deploying' || item.status === 'undeployed'"
+                    class="btn btn-default"
+                    ><span class="glyphicon glyphicon-stop"></span> Undeploy
+            </button>
+        </td>
+        <td class="action-column">
+            <button type="button" ng-click="deployStream(item)"
+                    ng-disabled="item.status === 'deploying' || item.status === 'deployed' || item.status === 'incomplete' || item.status === 'failed'"
+                    class="btn btn-default"
+                    ><span class="glyphicon glyphicon-play"></span> Deploy
+            </button>
+        </td>
+        <td class="action-column">
+            <button type="button" ng-click="clickModal(item)"
+                    class="btn btn-default" data-toggle="modal" data-target="#confirm-destroy"
+                    ><span class="glyphicon glyphicon-remove"></span> Destroy
+            </button>
+        </td>
+    </tr>
+    </tbody>
+</table>
+<dir-pagination-controls template-url="scripts/directives/dirPagination.tpl.html"
+                         on-page-change="pageChanged(newPageNumber)"></dir-pagination-controls>
+<div class="modal fade" xd-modal id="confirm-destroy" role="dialog">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title">Confirm Destroy Action</h4>
+            </div>
+            <div class="modal-body">
+                <p>This action will undeploy and delete the stream <b>{{destroyItem.name}}</b>. Are you sure?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" ng-disabled="destroyItem.inactive"
+                        ng-click="destroyStream(destroyItem)">Confirm Destroy
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="status-help-content hide">
+  <table class="table-hover table-condensed status-help-content-table">
+    <tbody>
+      <tr><td><strong>deploying</strong></td><td>Deployment has been initiated</td></tr>
+      <tr><td><strong>deployed</strong></td><td>Fully deployed based on each of the stream's modules' count properties</td></tr>
+      <tr><td><strong>incomplete</strong></td><td>At least 1 of each module, but 1 or more of them not at requested capacity</td></tr>
+      <tr><td><strong>failed</strong></td><td>1 or more of the modules does not have even a single instance deployed</td></tr>
+      <tr><td><strong>undeployed</strong></td><td>Intentionally undeployed, or created but not yet deployed</td></tr>
+    </tbody>
+  </table>
+</div>

@@ -1,32 +1,63 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans:beans xmlns="http://www.springframework.org/schema/integration"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xmlns:beans="http://www.springframework.org/schema/beans"
-	xmlns:file="http://www.springframework.org/schema/integration/file"
-	xmlns:int-mail="http://www.springframework.org/schema/integration/mail"
-	xmlns:context="http://www.springframework.org/schema/context"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
+			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			 xmlns:beans="http://www.springframework.org/schema/beans"
+			 xmlns:int-mail="http://www.springframework.org/schema/integration/mail" xmlns:context="http://www.springframework.org/schema/context"
+			 xsi:schemaLocation="http://www.springframework.org/schema/integration/mail http://www.springframework.org/schema/integration/mail/spring-integration-mail.xsd
 		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
-	<channel id="input" />
+	<channel id="input"/>
+	<channel id="afterAttachmentEnricher"/>
+	<channel id="afterMailEnricher"/>
 
-	<int-mail:header-enricher input-channel="input" output-channel="send">
-		<int-mail:to expression="${to:null}" />
-		<int-mail:from expression="${from:null}" />
-		<int-mail:subject expression="${subject:null}" />
-		<int-mail:cc expression="${cc:null}" />
-		<int-mail:bcc expression="${bcc:null}" />
-		<int-mail:reply-to expression="${replyTo:null}" />
-		<int-mail:content-type expression="${contentType:null}" />
-	</int-mail:header-enricher>
+	<beans:bean id="mailTransformerBean" class="org.springframework.xd.mail.MailTransformer"/>
 
-	<channel id="send" />
+	<beans:bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+		<beans:property name="host" value="${host}"/>
+		<beans:property name="port" value="${port}"/>
+		<beans:property name="username" value="${username}"/>
+		<beans:property name="password" value="${password}"/>
+		<beans:property name="javaMailProperties">
+			<beans:props>
+				<beans:prop key="mail.smtp.auth">${auth}</beans:prop>
+				<beans:prop key="mail.smtp.ssl.enable">${ssl}</beans:prop>
+				<beans:prop key="mail.smtp.starttls.enable">${starttls}</beans:prop>
+			</beans:props>
+		</beans:property>
+	</beans:bean>
 
-	<int-mail:outbound-channel-adapter
-		channel="send" host="${host}" port="${port}" username="${username:}"
-		password="${password:}" />
+	<beans:beans profile="with-attachment">
+		<int-mail:header-enricher input-channel="input" output-channel="afterMailEnricher">
+			<int-mail:to expression="${to}"/>
+			<int-mail:from expression="${from}"/>
+			<int-mail:subject expression="${subject}"/>
+			<int-mail:cc expression="${cc}"/>
+			<int-mail:bcc expression="${bcc}"/>
+			<int-mail:reply-to expression="${replyTo}"/>
+			<int-mail:content-type expression="${contentType}"/>
+			<int-mail:attachment-filename expression="${attachmentFilename}"/>
+		</int-mail:header-enricher>
 
+		<header-enricher input-channel="afterMailEnricher" output-channel="afterAttachmentEnricher">
+			<header name="mail_attachment" expression="${attachmentExpression}"/>
+		</header-enricher>
 
+		<transformer auto-startup="false" ref="mailTransformerBean" method="sendMail" input-channel="afterAttachmentEnricher" output-channel="nullChannel"/>
+
+	</beans:beans>
+
+	<beans:beans profile="without-attachment">
+		<int-mail:header-enricher input-channel="input" output-channel="afterMailEnricher">
+			<int-mail:to expression="${to}"/>
+			<int-mail:from expression="${from}"/>
+			<int-mail:subject expression="${subject}"/>
+			<int-mail:cc expression="${cc}"/>
+			<int-mail:bcc expression="${bcc}"/>
+			<int-mail:reply-to expression="${replyTo}"/>
+			<int-mail:content-type expression="${contentType}"/>
+		</int-mail:header-enricher>
+
+		<transformer auto-startup="false" ref="mailTransformerBean" method="sendMail" input-channel="afterMailEnricher" output-channel="nullChannel"/>
+	</beans:beans>
 </beans:beans>

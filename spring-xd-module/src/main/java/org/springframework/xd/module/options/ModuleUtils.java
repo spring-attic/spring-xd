@@ -18,7 +18,6 @@ package org.springframework.xd.module.options;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.ArrayList;
@@ -40,7 +39,6 @@ import org.springframework.core.io.support.ResourcePatternResolver;
 import org.springframework.util.Assert;
 import org.springframework.util.StringUtils;
 import org.springframework.xd.module.SimpleModuleDefinition;
-import org.springframework.xd.module.options.ModuleOptions;
 import org.springframework.xd.module.support.ArchiveResourceLoader;
 import org.springframework.xd.module.support.NullClassLoader;
 import org.springframework.xd.module.support.ParentLastURLClassLoader;
@@ -50,6 +48,7 @@ import org.springframework.xd.module.support.ParentLastURLClassLoader;
  *
  * @author Eric Bottard
  * @author David Turanski
+ * @author Ilayaperumal Gopinathan
  */
 public class ModuleUtils {
 
@@ -150,6 +149,24 @@ public class ModuleUtils {
 			throw new RuntimeException(String.format("Unable to read module properties for %s:%s",
 					moduleDefinition.getName(), moduleDefinition.getType()), e);
 		}
+		finally {
+			if (resource instanceof ClassPathResource) {
+				closeModuleClassLoader((ClassPathResource)resource);
+			}
+		}
+	}
+
+	private static void closeModuleClassLoader(ClassPathResource resource) {
+		ClassLoader classLoader = resource.getClassLoader();
+		if (classLoader != null && classLoader instanceof URLClassLoader) {
+			try {
+				((URLClassLoader) classLoader).close();
+			}
+			catch (IOException e) {
+				throw new RuntimeException("Exception closing module classloader for " +
+						resource.getFilename() + ":" + e);
+			}
+		}
 	}
 
 	/**
@@ -163,7 +180,6 @@ public class ModuleUtils {
 		Assert.isTrue(moduleLocation.exists(), "module resource " + definition.getLocation() + " does not exist");
 
 		String ext = extension.startsWith(".") ? extension : "." + extension;
-
 		try {
 			URLClassLoader insulatedClassLoader = new ParentLastURLClassLoader(new URL[] {moduleLocation.getURL()}, NullClassLoader.NO_PARENT, true);
 			PathMatchingResourcePatternResolver moduleResolver = new PathMatchingResourcePatternResolver(insulatedClassLoader);

@@ -16,13 +16,27 @@
 
 package org.springframework.xd.shell.command;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FilterInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PipedInputStream;
+import java.io.PipedOutputStream;
 import java.util.List;
+import java.util.jar.JarEntry;
+import java.util.jar.JarOutputStream;
+import java.util.zip.CRC32;
+import java.util.zip.CheckedInputStream;
+import java.util.zip.ZipEntry;
 
 import org.fusesource.jansi.Ansi;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.FileSystemResource;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.core.io.Resource;
 import org.springframework.hateoas.PagedResources;
 import org.springframework.shell.core.CommandMarker;
@@ -30,6 +44,8 @@ import org.springframework.shell.core.annotation.CliAvailabilityIndicator;
 import org.springframework.shell.core.annotation.CliCommand;
 import org.springframework.shell.core.annotation.CliOption;
 import org.springframework.stereotype.Component;
+import org.springframework.util.FileSystemUtils;
+import org.springframework.util.StreamUtils;
 import org.springframework.xd.rest.client.ModuleOperations;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource;
 import org.springframework.xd.rest.domain.DetailedModuleDefinitionResource.Option;
@@ -141,10 +157,31 @@ public class ModuleCommands implements CommandMarker {
 			@CliOption(mandatory = true, key = {"", "file"}, help = "path to the module archive") File file,
 			@CliOption(key = "force", help = "force update if module already exists (only if not in use)", specifiedDefaultValue = "true", unspecifiedDefaultValue = "false") boolean force
 	) throws IOException {
-		Resource resource = new FileSystemResource(file);
-		ModuleDefinitionResource composedModule = moduleOperations().uploadModule(name, type, resource, force);
-		return String.format(("Successfully uploaded module '%s:%s'"), composedModule.getType(),
-				composedModule.getName());
+		Resource resource;
+		if (file.isDirectory()) {
+			PipedOutputStream pos = new PipedOutputStream();
+			resource = new InputStreamResource(new PipedInputStream(pos)) {
+				@Override
+				public String getFilename() {
+					return "some.jar"; // To trick media-type recognition
+				}
+
+				@Override
+				public long contentLength() throws IOException {
+					return -1; // and this is to prevent multiple stream reads, as
+					// this is now effectively a subclass of ISResource
+				}
+			};
+			final JarOutputStream jos = new JarOutputStream(pos);
+			new Thread(new DirectoryJarBuilder(file, jos)).start();
+		}
+		else {
+			resource = new FileSystemResource(file);
+		}
+
+		ModuleDefinitionResource uploadedModule = moduleOperations().uploadModule(name, type, resource, force);
+		return String.format(("Successfully uploaded module '%s:%s'"), uploadedModule.getType(),
+				uploadedModule.getName());
 	}
 
 	@CliCommand(value = DELETE_MODULE, help = "Delete a virtual module")
@@ -175,6 +212,86 @@ public class ModuleCommands implements CommandMarker {
 		public QualifiedModuleName(String name, RESTModuleType type) {
 			this.name = name;
 			this.type = type;
+		}
+	}
+
+	private static class DirectoryJarBuilder implements Runnable {
+
+		private final File root;
+
+		private final JarOutputStream target;
+
+		private DirectoryJarBuilder(File root, JarOutputStream target) {
+			this.root = root;
+			this.target = target;
+		}
+
+		@Override
+		public void run() {
+			try {
+				add(root);
+				target.close();
+			}
+			catch (IOException e) {
+				throw new RuntimeException(e);
+			}
+		}
+
+		private void add(File source) throws IOException {
+			String name = entryName(source);
+			JarEntry entry = null;
+			if (name != null) {
+				entry = new JarEntry(name);
+				entry.setTime(source.lastModified());
+			}
+
+			if (source.isDirectory()) {
+				if (entry != null) {
+					target.putNextEntry(entry);
+					target.closeEntry();
+				}
+				for (File nestedFile : source.listFiles())
+					add(nestedFile);
+				return;
+			}
+			else {
+				try (BufferedInputStream in = new BufferedInputStream(new FileInputStream(source))) {
+					if (name.startsWith("lib/")) {
+						entry.setMethod(JarEntry.STORED);
+						entry.setSize(source.length());
+						entry.setCompressedSize(source.length());
+						entry.setCrc(crcOf(source));
+					}
+					target.putNextEntry(entry);
+					StreamUtils.copy(in, target);
+				}
+				target.closeEntry();
+			}
+		}
+
+		private String entryName(File entry) {
+			if (entry.equals(root)) {
+				return null;
+			}
+			String relative = entry.getAbsolutePath().substring(1 + root.getAbsolutePath().length()).replace('\\', '/');
+			if (entry.isDirectory() && !relative.endsWith("/")) {
+				return relative + "/";
+			}
+			else {
+				return relative;
+			}
+		}
+
+		private long crcOf(File file) throws IOException {
+			CRC32 cksum = new CRC32();
+			byte[] buffer = new byte[4096];
+			try (CheckedInputStream cis = new CheckedInputStream(new FileInputStream(file), cksum)) {
+				while (cis.read(buffer) > 0) {
+
+				}
+			}
+
+			return cksum.getValue();
 		}
 	}
 }

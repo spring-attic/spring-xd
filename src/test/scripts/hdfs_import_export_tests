@@ -1,0 +1,117 @@
+#! /bin/sh
+
+source xdapi
+
+PWD=`pwd`
+# Base path in HDFS
+NOW=`date "+%H-%M-%S"`
+BASE_PATH="/xdtest/$NOW/"
+
+wait_for_server
+
+set -e
+
+echo "\nRunning batch HDFS import tests"
+echo "HDFS base path is $BASE_PATH"
+
+echo "\n\n*** Test 1. Load single CSV file, no rollover\n"
+
+create_job csvjob "filehdfs --names=col1,col2,col3 --basePath=$BASE_PATH --filename=blah --suffix=csv"
+create_stream csvstream "file --ref=true --dir=$PWD/csv --pattern=data.csv > queue:job:csvjob"
+
+sleep 10
+
+blah_size=`hdfs_size "$BASE_PATH/blah-0.csv"`
+destroy_stream csvstream
+destroy_job csvjob
+echo "Checking size of file blah-0.csv"
+assert_equals 6358 $blah_size || exit $?
+
+echo "\n\n*** Test 2. Import duplicate copies of a CSV data file\n"
+
+if [ ! -f /tmp/xdtest/csv/data1.csv ]
+then
+  mkdir -p /tmp/xdtest/csv
+  for i in {1..4}
+  do
+    echo "Copying csv file $i to /tmp/xdtest/csv"
+    cp $PWD/csv/data.csv "/tmp/xdtest/csv/data$i.csv"
+  done
+fi
+
+create_job csvjob2 "filehdfs --names=col1,col2,col3 --rollover=5000 --basePath=$BASE_PATH --suffix=csv"
+create_stream csvstream2 'file --ref=true --dir=/tmp/xdtest/csv --pattern=*.csv > queue:job:csvjob2'
+
+echo "\nWaiting for jobs to finish..."
+sleep 25;
+
+job2_size=`hdfs_size "$BASE_PATH/csvjob2*"`
+
+destroy_stream csvstream2
+destroy_job    csvjob2
+
+echo "Checking size of HDFS results matches imports from /tmp/xdtest/csv"
+assert_equals 25432 $job2_size
+
+echo "\n\n*** Test 3. Import files using hdfs sink\n"
+
+create_stream csvstream3 "file --dir=/tmp/xdtest/csv --pattern=data1.csv | hdfs --directory=$BASE_PATH"
+sleep 10
+undeploy_stream csvstream3
+deploy_stream csvstream3
+sleep 10
+destroy_stream csvstream3
+
+data_size=`hdfs_size "$BASE_PATH/csvstream3*"`
+assert_equals 16966 $data_size || exit $?
+
+if [[ ! -f $XD_HOME/lib/sqlite-jdbc-3.7.2.jar ]]
+then
+  echo 'sqlite jar is missing from XD_HOME/lib. Skipping JDBC tests'
+  exit 0
+fi
+
+echo "\n\n Test 4. Export file from hdfs to JDBC"
+
+if [ -f /tmp/xdtest/hdfsjdbc.db ]
+then
+  rm /tmp/xdtest/hdfsjdbc.db &> /dev/null
+fi
+
+mkdir -p /tmp/xdtest
+
+sqlite3 /tmp/xdtest/hdfsjdbc.db 'create table blah (col1 varchar, col2 varchar, col3 varchar)'
+
+create_job csvjob4 "hdfsjdbc --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --resources=${BASE_PATH}blah-0.csv --columns=col1,col2,col3 --tableName=blah"
+launch_job csvjob4
+sleep 5
+rows=`sqlite3 /tmp/xdtest/hdfsjdbc.db 'select count(*) from blah'`
+destroy_job csvjob4
+echo "Checking row count in database table matches import from hdfs..."
+assert_equals 292 $rows
+
+echo "\n\n Test 5. Import back to hdfs from JDBC"
+
+create_job csvjob5 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblah --suffix=csv --columns=col1,col2,col3 --tableName=blah"
+launch_job csvjob5
+sleep 15
+
+blah_size=`hdfs_size "$BASE_PATH/jdbcblah-0.csv"`
+destroy_job csvjob5
+echo "Checking size of file jdbcblah-0.csv"
+assert_equals 6358 $blah_size
+
+echo "\n\n Test 6. Import back to hdfs from JDBC using SQL"
+
+create_job csvjob6 "jdbchdfs --driverClass=org.sqlite.JDBC --url=jdbc:sqlite:/tmp/xdtest/hdfsjdbc.db --basePath=$BASE_PATH --filename=jdbcblahsql --suffix=csv --sql='select col1,col2,col3 from blah' --columns=col1,col2,col3"
+launch_job csvjob6
+sleep 15
+
+blah_size=`hdfs_size "$BASE_PATH/jdbcblahsql-0.csv"`
+destroy_job csvjob6
+echo "Checking size of file jdbcblahsql-0.csv"
+assert_equals 6358 $blah_size
+
+
+echo "All good :-) !!"
+

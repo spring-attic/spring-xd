@@ -5,7 +5,7 @@ apply plugin: 'idea'
 
 buildscript {
 	repositories {
-		maven { url "http://repo.spring.io/plugins-release" }
+		maven { url "https://repo.spring.io/plugins-release" }
 		jcenter()
 	}
 	dependencies {
@@ -71,7 +71,7 @@ ext {
 	]
 
 	javadocLinks = [
-			"http://docs.spring.io/spring-xd/docs/1.0.x/api/"
+			"https://docs.spring.io/spring-xd/docs/1.0.x/api/"
 	] as String[]
 
 	nonJavaProjects = [
@@ -114,9 +114,9 @@ allprojects {
 
 	repositories {
 		mavenCentral()
-		maven { url 'http://repo.spring.io/milestone' }
-		maven { url 'http://repo.spring.io/libs-milestone' }
-		maven { url 'http://repo.spring.io/plugins-release' }
+		maven { url 'https://repo.spring.io/milestone' }
+		maven { url 'https://repo.spring.io/libs-milestone' }
+		maven { url 'https://repo.spring.io/plugins-release' }
 		maven { url 'https://repo.eclipse.org/content/repositories/paho-releases' }
 	}
 }
@@ -1410,7 +1410,7 @@ apply from: 'gradle/build-dist.gradle'
 
 task wrapper(type: Wrapper) {
 	description = "Generates build_xd[.bat] scripts"
-	//see http://stackoverflow.com/questions/29113972/spring-boot-gradle-plugin-application-plugin-and-gradle-2-3-wrapper
+	//see https://stackoverflow.com/questions/29113972/spring-boot-gradle-plugin-application-plugin-and-gradle-2-3-wrapper
 	//before upgrading to 2.3
 	gradleVersion = "2.2"
 	scriptFile = "gradle/build_xd"

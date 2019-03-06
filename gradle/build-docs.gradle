@@ -3,7 +3,7 @@
 */
 buildscript {
 	repositories {
-		maven { url "http://repo.spring.io/plugins-snapshot" }
+		maven { url "https://repo.spring.io/plugins-snapshot" }
 		jcenter()
 	}
 	dependencies {

@@ -57,7 +57,7 @@ def customizePom = {
 	licenses {
 		license {
 			name 'The Apache Software License, Version 2.0'
-			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+			url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
 			distribution 'repo'
 		}
 	}
@@ -109,24 +109,24 @@ def customizePom = {
 		repository {
 			id 'jcenter'
 			name 'JCenter Repository'
-			url 'http://jcenter.bintray.com/'
+			url 'https://jcenter.bintray.com/'
 		}
 		repository {
 			id 'repository.io.snapshot'
 			name 'Spring Snapshot Repository'
-			url 'http://repo.spring.io/snapshot'
+			url 'https://repo.spring.io/snapshot'
 		}
 		repository {
 			id 'repository.io.milestone'
 			name 'Spring Milestone Repository'
-			url 'http://repo.spring.io/milestone'
+			url 'https://repo.spring.io/milestone'
 		}
 	}
 	pluginRepositories {
 		pluginRepository {
 			id 'repository.io.milestone'
 			name 'Spring Milestone Repository'
-			url 'http://repo.spring.io/milestone'
+			url 'https://repo.spring.io/milestone'
 		}
 	}
 }

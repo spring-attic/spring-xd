@@ -23,7 +23,7 @@ def customizePom = {
 	licenses {
 		license {
 			name 'The Apache Software License, Version 2.0'
-			url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+			url 'https://www.apache.org/licenses/LICENSE-2.0.txt'
 			distribution 'repo'
 		}
 	}
@@ -373,7 +373,7 @@ task dist(dependsOn: assemble) {
 def excludedMavenProjects = hadoopDistros << 'documentation-toolchain' << rootProject.name
 
 artifactory {
-	contextUrl = 'http://repo.spring.io'
+	contextUrl = 'https://repo.spring.io'
 	publish {
 		repository {
 			repoKey = 'libs-snapshot-local' // The Artifactory repository key to publish to

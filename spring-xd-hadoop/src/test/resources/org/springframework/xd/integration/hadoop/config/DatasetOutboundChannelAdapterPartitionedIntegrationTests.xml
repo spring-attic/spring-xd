@@ -3,9 +3,9 @@
 	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	   xmlns:int-hadoop="http://www.springframework.org/schema/integration/hadoop"
 	   xmlns:hdp="http://www.springframework.org/schema/hadoop"
-	   xsi:schemaLocation="http://www.springframework.org/schema/integration/hadoop http://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/hadoop http://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
+	   xsi:schemaLocation="http://www.springframework.org/schema/integration/hadoop https://www.springframework.org/schema/integration/hadoop/spring-integration-hadoop.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/hadoop https://www.springframework.org/schema/hadoop/spring-hadoop.xsd">
 
 	<hdp:configuration register-url-handler="false">
 		fs.defaultFS=file:///

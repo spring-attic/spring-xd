@@ -4,11 +4,11 @@
 	xmlns:beans="http://www.springframework.org/schema/beans"
 	xmlns:int-ftp="http://www.springframework.org/schema/integration/ftp"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
-		http://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/ftp
-		http://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
+		https://www.springframework.org/schema/integration/ftp/spring-integration-ftp.xsd">
 
 	<beans:bean id="ftpSessionFactory" class="org.springframework.integration.ftp.session.DefaultFtpSessionFactory">
 		<beans:property name="host" value="${host}"/>

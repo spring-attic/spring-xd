@@ -5,13 +5,13 @@
 	xmlns:event="http://www.springframework.org/schema/integration/event"
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
-		http://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/event
-		http://www.springframework.org/schema/integration/event/spring-integration-event.xsd
+		https://www.springframework.org/schema/integration/event/spring-integration-event.xsd
 		http://www.springframework.org/schema/integration/file
-		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
+		https://www.springframework.org/schema/integration/file/spring-integration-file.xsd">
 
 	<!-- Using default null values here on purpose. Could also explicitly declare a PPC that allows nulls -->
 	<file:tail-inbound-channel-adapter channel="output"

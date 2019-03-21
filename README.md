@@ -50,5 +50,5 @@ Source Metrics are available via Sonar at:
 
 
 [Spring XD JIRA]: https://jira.springsource.org/browse/XD
-[Apache License]: http://www.apache.org/licenses/LICENSE-2.0
+[Apache License]: https://www.apache.org/licenses/LICENSE-2.0
 [Spring Data Book]: http://bit.ly/sd-book 

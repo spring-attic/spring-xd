@@ -65,7 +65,7 @@ public class RichGaugeTests {
 		assertEquals(0, g.getCount());
 	}
 
-	// Data from http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm
+	// Data from https://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm
 	@Test
 	public void testExponentialMovingAverage() throws Exception {
 		RichGauge g = new RichGauge("blah");

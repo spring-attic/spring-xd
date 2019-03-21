@@ -29,7 +29,7 @@ Type conversion will likely come up when implementing a custom module which prod
 customPojoSource --outputType=application/json |p1 | p2 | ... | customPojoSink --inputType=application/x-java-object;type=com.acme.MyDomainType
 ----
 
-Note that the sink above does require the declared type to be in the module's classpath to perform the JSON to POJO conversion. Generally, POJO to JSON does not require the Java class. Once the payload is converted to JSON, Spring XD provided transformers and filters (p1, p2, etc.) can evaluate the payload contents using http://docs.spring.io/spring-integration/reference/html/spel.html[JsonPath functions in SpEL expressions]. Alternately, you can convert the JSON to a Tuple, as shown in the following example.
+Note that the sink above does require the declared type to be in the module's classpath to perform the JSON to POJO conversion. Generally, POJO to JSON does not require the Java class. Once the payload is converted to JSON, Spring XD provided transformers and filters (p1, p2, etc.) can evaluate the payload contents using https://docs.spring.io/spring-integration/reference/html/spel.html[JsonPath functions in SpEL expressions]. Alternately, you can convert the JSON to a Tuple, as shown in the following example.
 
 ==== JSON to Tuple
 Sometimes it is convenient to convert JSON content to a Tuple in order to evaluate and access individual field values. 
@@ -65,7 +65,7 @@ foo  | --inputType=application/x-java-serialized-object file
 [[mime-types-and-java-types]]
 === MIME types and Java types
 
-Internally, Spring XD implements type conversion using Spring Integration's http://docs.spring.io/spring-integration/docs/latest-ga/reference/htmlsingle/#channel-configuration[data type channels]. The data type channel converts payloads to the configured data type using Spring's http://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/converter/MessageConverter.html[MessageConverter]. 
+Internally, Spring XD implements type conversion using Spring Integration's https://docs.spring.io/spring-integration/docs/latest-ga/reference/htmlsingle/#channel-configuration[data type channels]. The data type channel converts payloads to the configured data type using Spring's https://docs.spring.io/spring/docs/current/javadoc-api/org/springframework/messaging/converter/MessageConverter.html[MessageConverter]. 
 
 NOTE: The use of _MessageCoverter_ for data type channels was introduced in Spring Integration 4 to pass the Message to the converter method to allow it to access the Message's _content-type_ header. This provides greater flexibility. For example, it is now possible to support multiple strategies for converting a String or byte array to a POJO, based on the content-type header.
 

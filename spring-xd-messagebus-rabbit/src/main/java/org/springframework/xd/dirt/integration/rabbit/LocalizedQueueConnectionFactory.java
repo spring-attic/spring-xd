@@ -91,7 +91,7 @@ public class LocalizedQueueConnectionFactory implements ConnectionFactory, Routi
 	 *
 	 * @param defaultConnectionFactory the fallback connection factory to use if the queue can't be located.
 	 * @param addresses the rabbitmq server addresses (host:port, ...).
-	 * @param adminAddresses the rabbitmq admin addresses (http://host:port, ...) must
+	 * @param adminAddresses the rabbitmq admin addresses (https://host:port, ...) must
 	 * be the same length as addresses.
 	 * @param nodes the rabbitmq nodes corresponding to addresses (rabbit@server1, ...).
 	 * @param vhost the virtual host.

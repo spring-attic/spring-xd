@@ -3,7 +3,7 @@
 
 === Introduction
 
-A Tap allows you to "listen" to data while it is processed in an existing stream and process the data in a separate stream. The original stream is unaffected by the tap and isn't aware of its presence, similar to a phone wiretap. (http://www.enterpriseintegrationpatterns.com/WireTap.html[WireTap] is included in the standard catalog of EAI patterns and http://static.springsource.org/spring-integration/reference/htmlsingle/#channel-wiretap[implemented in] the Spring Integration EAI framework used by Spring XD). 
+A Tap allows you to "listen" to data while it is processed in an existing stream and process the data in a separate stream. The original stream is unaffected by the tap and isn't aware of its presence, similar to a phone wiretap. (https://www.enterpriseintegrationpatterns.com/WireTap.html[WireTap] is included in the standard catalog of EAI patterns and https://docs.spring.io/spring-integration/reference/htmlsingle/#channel-wiretap[implemented in] the Spring Integration EAI framework used by Spring XD). 
 
 Simply put, a Tap is a stream that uses a point in another stream as a source.   
 

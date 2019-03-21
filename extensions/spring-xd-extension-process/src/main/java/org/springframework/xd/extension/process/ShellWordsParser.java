@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 
 /**
  * Parses a string into a collection of words based on the
- * <a href="http://pubs.opengroup.org/onlinepubs/009695399/toc.htm">POSIX / SUSv3 standard</a>.  The functionality in
+ * <a href="https://pubs.opengroup.org/onlinepubs/009695399/toc.htm">POSIX / SUSv3 standard</a>.  The functionality in
  * this class is ported from the Ruby
  * <a href="https://github.com/rubysl/rubysl-shellwords/blob/2.0/lib/rubysl/shellwords/shellwords.rb">Shellwords</a>
  * module.

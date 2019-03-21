@@ -73,7 +73,7 @@ In the server log you should see the following output:
 11:54:25,669  WARN ThreadPoolTaskScheduler-1 sink.b:145 - b-bar
 ----
 
-For more information, please also consult the Spring Integration Reference manual: http://static.springsource.org/spring-integration/reference/html/messaging-routing-chapter.html#router-namespace particularly the section "Routers and the Spring Expression Language (SpEL)".
+For more information, please also consult the Spring Integration Reference manual: https://docs.spring.io/spring-integration/reference/html/messaging-routing-chapter.html#router-namespace particularly the section "Routers and the Spring Expression Language (SpEL)".
 
 ==== Groovy-based Routing
 
@@ -134,7 +134,7 @@ You can also use Groovy scripts located on your classpath by specifying:
 If you want to pass variable values to your script, you can statically bind values using the _variables_ option or optionally pass the path to a properties file containing the bindings using the _propertiesLocation_ option. All properties in the file will be made available to the script as variables. You may specify both _variables_ and _propertiesLocation_, in which case any duplicate values provided as _variables_ override values provided in _propertiesLocation_. Note that _payload_ and _headers_ are implicitly bound to give you access to the data contained in a message.
 
 For more information, see the Spring Integration Reference manual: "Groovy support"
-http://static.springsource.org/spring-integration/reference/html/messaging-endpoints-chapter.html#groovy
+https://docs.spring.io/spring-integration/reference/html/messaging-endpoints-chapter.html#groovy
 
 ==== Options
 
@@ -463,7 +463,7 @@ among the Greenplum segments.
 
 The options `flushCount` and `flushTime` are used to determine when to flush
 data that is buffered in an internal
-http://projectreactor.io/docs/reference/streams.html#basics[Reactor stream] to
+https://projectreactor.io/docs/reference/streams.html#basics[Reactor stream] to
 the http connection.  Data is flushed based on if the count value has been reached
 or the time specified has elapsed.  Note that with too high a value, memory consumption
 will go up.  Too small a value combined with a low ingestion rate will result in data
@@ -1420,7 +1420,7 @@ $$workingDir$$:: $$the process working directory$$ *($$String$$, no default)*
 
 [[splunk-server]]
 === Splunk Server (`splunk`)
-A http://www.splunk.com/[Splunk] sink that writes data to a TCP Data Input type for Splunk.
+A https://www.splunk.com/[Splunk] sink that writes data to a TCP Data Input type for Splunk.
 
 ==== Splunk sinks
 The Splunk sink converts an object payload to a string using the object’s toString method and then converts this to a SplunkEvent that is sent via TCP to Splunk.

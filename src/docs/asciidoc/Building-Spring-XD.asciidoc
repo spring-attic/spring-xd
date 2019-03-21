@@ -7,10 +7,10 @@ Here are some useful steps to build and run Spring XD.
 
 [WARNING]
 ====
-Please ensure that you provide as a minimum _6GB of available RAM_ for a full build. The executed integration tests use several embedded services such as http://kafka.apache.org/[Apache Kafka], http://zookeeper.apache.org/[Apache ZooKeeper] and http://hadoop.apache.org/[Apache Hadoop] which contribute to the high resource usage.
+Please ensure that you provide as a minimum _6GB of available RAM_ for a full build. The executed integration tests use several embedded services such as https://kafka.apache.org/[Apache Kafka], https://zookeeper.apache.org/[Apache ZooKeeper] and https://hadoop.apache.org/[Apache Hadoop] which contribute to the high resource usage.
 ====
 
-To build all sub-projects and run tests for Spring XD (please note tests require a running http://redis.io/[Redis] instance):
+To build all sub-projects and run tests for Spring XD (please note tests require a running https://redis.io/[Redis] instance):
 
 ----
 ./gradlew build

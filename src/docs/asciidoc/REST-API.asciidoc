@@ -10,7 +10,7 @@ The HTTP port is configurable and may be set as a command line argument when sta
 > $XD_HOME/bin/xd-admin --httpPort <port>
 ----
 
-The Admin server also exposes runtime management resources enabled by Spring Boot under the `/management` context path, e.g., http://localhost:9393/management/metrics[]. These resources are covered in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Spring Boot] documentation.
+The Admin server also exposes runtime management resources enabled by Spring Boot under the `/management` context path, e.g., http://localhost:9393/management/metrics[]. These resources are covered in the https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Spring Boot] documentation.
 
 NOTE: There is also a `mgmtPort` command line argument which assigns a separate port for management services. Normally the same port is used for everything.
 

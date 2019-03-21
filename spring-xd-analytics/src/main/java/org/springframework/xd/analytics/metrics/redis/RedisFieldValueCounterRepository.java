@@ -122,7 +122,7 @@ public class RedisFieldValueCounterRepository implements FieldValueCounterReposi
 	public List<FieldValueCounter> findAll() {
 		List<FieldValueCounter> counters = new ArrayList<FieldValueCounter>();
 		// TODO asking for keys is not recommended. See
-		// http://redis.io/commands/keys
+		// https://redis.io/commands/keys
 		Set<String> keys = this.redisTemplate.keys(this.metricPrefix + "*");
 		for (String key : keys) {
 			// TODO remove this naming convention for minute aggregates

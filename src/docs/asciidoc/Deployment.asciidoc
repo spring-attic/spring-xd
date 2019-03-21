@@ -238,7 +238,7 @@ Depending on your underlying server or network infrastructure, you may prefer sp
 
 ==== Hostname
 
-The hostname of the container can be optionally set as well via the command argument _--containerHostname_ or by setting the environment variable _XD_CONTAINER_HOSTNAME_. If not specified, the hostname will be automatically set. Please be aware of the http://stackoverflow.com/questions/7348711/recommended-way-to-get-hostname-in-java/7800008#7800008[limitations], though. You may prefer specifying the hostname address explicitly.
+The hostname of the container can be optionally set as well via the command argument _--containerHostname_ or by setting the environment variable _XD_CONTAINER_HOSTNAME_. If not specified, the hostname will be automatically set. Please be aware of the https://stackoverflow.com/questions/7348711/recommended-way-to-get-hostname-in-java/7800008#7800008[limitations], though. You may prefer specifying the hostname address explicitly.
 
 TIP: While there is no command line option to set the container hostname and IP address when running in Single Node mode, you can still specify the values via environment variables or by customizing the respective settings in _application.yml_
 

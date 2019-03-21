@@ -557,7 +557,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 The MIT License
 
-Copyright (c) 2010-2014 Google, Inc. http://angularjs.org
+Copyright (c) 2010-2014 Google, Inc. https://angularjs.org
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -793,7 +793,7 @@ This software is provided "as is", without any warranty.
      "This product includes software developed by the
       JDOM Project (http://www.jdom.org/)."
  Alternatively, the acknowledgment may be graphical using the logos 
- available at http://www.jdom.org/images/logos.
+ available at http://www.jdom.org/images/logos/.
 
  THIS SOFTWARE IS PROVIDED ``AS IS'' AND ANY EXPRESSED OR IMPLIED
  WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
@@ -876,7 +876,7 @@ WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 >>> angular-busy 4.0.4
 
 Copyright 2014 jQuery Foundation and other contributors
-http://jquery.com/
+https://jquery.com/
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
@@ -960,7 +960,7 @@ General Public License Version 2 only ("GPL") or the Common Development
 and Distribution License("CDDL") (collectively, the "License").  You
 may not use this file except in compliance with the License.  You can
 obtain a copy of the License at
-http://glassfish.java.net/public/CDDL+GPL_1_1.html
+https://glassfish.java.net/public/CDDL+GPL_1_1.html
 or packager/legal/LICENSE.txt.  See the License for the specific
 language governing permissions and limitations under the License.
 
@@ -997,7 +997,7 @@ Copyright (c) 1999-2001 Xerox Corporation,
 
 All rights reserved.
 
-This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution and is available at http://www.eclipse.org/legal/epl-v10.html
+This program and the accompanying materials are made available under the terms of the Eclipse Public License v1.0 which accompanies this distribution and is available at https://www.eclipse.org/legal/epl-v10.html
 
 
 >>> aspectjweaver-1.6.12
@@ -1008,7 +1008,7 @@ All rights reserved.
 This program and the accompanying materials are made available
 under the terms of the Eclipse Public License v1.0
 which accompanies this distribution and is available at
-http://www.eclipse.org/legal/epl-v10.html
+https://www.eclipse.org/legal/epl-v10.html
 
 Contributors:
 PARC initial implementation
@@ -1040,4 +1040,4 @@ Lesser General Public License for more details.
 You should have received a copy of the GNU Lesser General Public
 License along with this software; if not, write to the Free
 Software Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA
-02110-1301 USA, or see the FSF site: http://www.fsf.org.
+02110-1301 USA, or see the FSF site: https://www.fsf.org.

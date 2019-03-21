@@ -187,8 +187,8 @@ Using the application-ec2.properties provided you will need to update the follow
 
 For Example:
 ```
-xd_admin_host=http://ec2-23-22-34-139.compute-1.amazonaws.com:9393
-xd_containers=http://ec2-54-82-119-240.compute-1.amazonaws.com:9393
+xd_admin_host=https://ec2-23-22-34-139.compute-1.amazonaws.com:9393
+xd_containers=https://ec2-54-82-119-240.compute-1.amazonaws.com:9393
 ...
 
 #Ec2 Settings

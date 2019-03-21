@@ -6,7 +6,7 @@
 
 In Spring XD, a basic stream defines the ingestion of event driven data from a _source_ to a _sink_ that passes through any number of _processors_.  Stream processing is performed inside the XD Containers and the deployment of stream definitions to containers is done via the XD Admin Server.  The xref:Getting-Started#getting-started[Getting Started] section shows you how to start these servers and how to start and use the Spring XD shell
 
-Sources, sinks and processors are predefined configurations of a _module_.  Module definitions are found in the `xd/modules` directory.  footnote:[Using the filesystem is just one possible way of storing module defintions.  Other backends will be supported in the future, e.g. Redis.].  Modules definitions are standard Spring configuration files that use existing Spring classes, such as http://static.springsource.org/spring-integration/reference/htmlsingle/#spring-integration-adapters[Input/Output adapters] and http://static.springsource.org/spring-integration/reference/htmlsingle/#transformer[Transformers] from Spring Integration that support general http://www.eaipatterns.com/[Enterprise Integration Patterns].
+Sources, sinks and processors are predefined configurations of a _module_.  Module definitions are found in the `xd/modules` directory.  footnote:[Using the filesystem is just one possible way of storing module defintions.  Other backends will be supported in the future, e.g. Redis.].  Modules definitions are standard Spring configuration files that use existing Spring classes, such as https://docs.spring.io/spring-integration/reference/htmlsingle/#spring-integration-adapters[Input/Output adapters] and https://docs.spring.io/spring-integration/reference/htmlsingle/#transformer[Transformers] from Spring Integration that support general https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns].
 
 A high level DSL is used to create stream definitions. The DSL to define a stream that has an http source and a file sink (with no processors) is shown below
 
@@ -43,7 +43,7 @@ If you would like to have multiple instances of a module in the stream, you can 
 
     xd:> stream deploy --name ticktock --properties "module.time.count=3"
 
-You can also include a http://docs.spring.io/spring/docs/4.0.x/spring-framework-reference/htmlsingle/#expressions[SpEL Expression] as a `criteria` property for any module. That will be evaluated against the attributes of each currently available Container. Instances of the module will only be deployed to Containers for which the expression evaluates to true.
+You can also include a https://docs.spring.io/spring/docs/4.0.x/spring-framework-reference/htmlsingle/#expressions[SpEL Expression] as a `criteria` property for any module. That will be evaluated against the attributes of each currently available Container. Instances of the module will only be deployed to Containers for which the expression evaluates to true.
 
     xd:> stream deploy --name ticktock --properties "module.time.count=3,module.log.criteria=groups.contains('x')"
 

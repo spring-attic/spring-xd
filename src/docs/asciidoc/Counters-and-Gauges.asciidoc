@@ -205,7 +205,7 @@ $$name$$:: $$the name of the metric to contribute to (will be created if necessa
 $$nameExpression$$:: $$a SpEL expression to compute the name of the metric to contribute to$$ *($$String$$, no default)*
 //$sink.rich-gauge
 
-NOTE: The smoothing factor behaves as an http://en.wikipedia.org/wiki/Exponential_smoothing[exponential moving average]. The default value does no smoothing.
+NOTE: The smoothing factor behaves as an https://en.wikipedia.org/wiki/Exponential_smoothing[exponential moving average]. The default value does no smoothing.
 
 Here are some examples of creating a tap for a rich gauge:
 

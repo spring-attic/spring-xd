@@ -1058,7 +1058,7 @@ public abstract class MessageBusSupport
 	/**
 	 * Handles representing any java class as a {@link MimeType}.
 	 * @author David Turanski
-	 * @see <a href="http://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
+	 * @see <a href="https://docs.oracle.com/javase/7/docs/api/java/lang/Class.html#getName"/>
 	 */
 	abstract static class JavaClassMimeTypeConversion {
 

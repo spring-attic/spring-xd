@@ -171,7 +171,7 @@ $ cat /tmp/xd/output/cqtest.out
 
 [[gemfire-source]]
 === GemFire Source (`gemfire`)
-This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the http://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context.
+This source configures a client cache and client region, along with the necessary subscriptions enabled, in the XD container process along with a Spring Integration GemFire inbound channel adapter, backed by a CacheListener that outputs messages triggered by an external entry event on the region. By default the payload contains the updated entry value, but may be controlled by passing in a SpEL expression that uses the https://gemfire.docs.pivotal.io/latest/javadocs/japi/com/gemstone/gemfire/cache/EntryEvent.html[EntryEvent] as the evaluation context.
 
 TIP: If native gemfire properties are required to configure the client cache, e.g., for security, place a `gemfire.properties` file in $XD_HOME/config.
 
@@ -686,7 +686,7 @@ NOTE: With the default _ackMode_ (*AUTO*) and _requeue_ (*true*) options, failed
 
 [[reactor-ip]]
 === Reactor IP (`reactor-ip`)
-The `reactor-ip` source acts as a server and allows a remote party to connect to XD and submit data over a raw TCP or UDP socket.  The reactor-ip source differs from the standard tcp source in that it is based on the https://github.com/reactor/reactor[Reactor Project] and can be configured to use the http://martinfowler.com/articles/lmax.html[LMAX Disruptor RingBuffer] library allowing for extremely high ingestion rates, e.g. ~ 1M/sec.
+The `reactor-ip` source acts as a server and allows a remote party to connect to XD and submit data over a raw TCP or UDP socket.  The reactor-ip source differs from the standard tcp source in that it is based on the https://github.com/reactor/reactor[Reactor Project] and can be configured to use the https://martinfowler.com/articles/lmax.html[LMAX Disruptor RingBuffer] library allowing for extremely high ingestion rates, e.g. ~ 1M/sec.
 
 To create a stream definition use the following XD shell command
 

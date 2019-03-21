@@ -1,7 +1,7 @@
 # Cassandra storage config YAML
 
 # NOTE:
-#   See http://wiki.apache.org/cassandra/StorageConfiguration for
+#   See https://wiki.apache.org/cassandra/StorageConfiguration for
 #   full explanations of configuration directives
 # /NOTE
 
@@ -20,14 +20,14 @@ cluster_name: 'Test Cluster'
 # Specifying initial_token will override this setting.
 #
 # If you already have a cluster with 1 token per node, and wish to migrate to
-# multiple tokens per node, see http://wiki.apache.org/cassandra/Operations
+# multiple tokens per node, see https://wiki.apache.org/cassandra/Operations
 # num_tokens: 256
 
 # If you haven't specified num_tokens, or have set it to the default of 1 then
 # you should always specify InitialToken when setting up a production
 # cluster for the first time, and often when adding capacity later.
 # The principle is that each node should be given an equal slice of
-# the token ring; see http://wiki.apache.org/cassandra/Operations
+# the token ring; see https://wiki.apache.org/cassandra/Operations
 # for more details.
 #
 # If blank, Cassandra will request a token bisecting the range of
@@ -36,7 +36,7 @@ cluster_name: 'Test Cluster'
 # a random token, which will lead to hot spots.
 initial_token:
 
-# See http://wiki.apache.org/cassandra/HintedHandoff
+# See https://wiki.apache.org/cassandra/HintedHandoff
 hinted_handoff_enabled: true
 # this defines the maximum amount of time a dead host will have hints
 # generated.  After it has been dead this long, new hints for it will not be
@@ -98,7 +98,7 @@ authorizer: org.apache.cassandra.auth.AllowAllAuthorizer
 # - CollatingOPP collates according to EN,US rules rather than lexical byte
 #   ordering.  Use this as an example if you need custom collation.
 #
-# See http://wiki.apache.org/cassandra/Operations for more on
+# See https://wiki.apache.org/cassandra/Operations for more on
 # partitioners and token selection.
 partitioner: org.apache.cassandra.dht.Murmur3Partitioner
 
@@ -586,7 +586,7 @@ index_interval: 128
 #
 # The passwords used in these options must match the passwords used when generating
 # the keystore and truststore.  For instructions on generating these files, see:
-# http://download.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
+# https://download.oracle.com/javase/6/docs/technotes/guides/security/jsse/JSSERefGuide.html#CreateKeystore
 #
 server_encryption_options:
     internode_encryption: none

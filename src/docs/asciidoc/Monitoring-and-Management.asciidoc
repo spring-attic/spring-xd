@@ -1,7 +1,7 @@
 [[monitoring-management]]
 == Monitoring and Management
 
-Spring XD uses Spring Boot's monitoring and management support over http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[HTTP] and http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jmx[JMX] along with Spring Integration's http://docs.spring.io/spring-integration/docs/4.0.0.M4/reference/htmlsingle/#jmx-mbean-exporter[MBean Exporters]
+Spring XD uses Spring Boot's monitoring and management support over https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[HTTP] and https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jmx[JMX] along with Spring Integration's https://docs.spring.io/spring-integration/docs/4.0.0.M4/reference/htmlsingle/#jmx-mbean-exporter[MBean Exporters]
 
 === Monitoring XD Admin, Container and Single-node servers
 
@@ -23,7 +23,7 @@ endpoints:
 The Spring Boot management endpoints are exposed over `HTTP`.
 
 When starting admin, container or singlenode server, the command-line option `--mgmtPort` can be specified to use an explicit port for management server. With the given valid management port,
-the management endpoints can be accessed from that port. Please refer Spring Boot document http://docs.spring.io/spring-boot/docs/1.2.3.RELEASE/reference/htmlsingle/#production-ready-endpoints[here] for more details on the endpoints.
+the management endpoints can be accessed from that port. Please refer Spring Boot document https://docs.spring.io/spring-boot/docs/1.2.3.RELEASE/reference/htmlsingle/#production-ready-endpoints[here] for more details on the endpoints.
 
 
 For instance, once XD admin is started on localhost and the management port set to use the admin port (9393)
@@ -72,12 +72,12 @@ Source, processor, and sink modules will generally have the following attributes
 [width="50%",frame="topbot",options="header"]
 |======================
 |Module Type | Attributes and Operations
-|Source      |http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageSourceMetrics.html[MessageSourceMetrics]
-|Processor,Sink   |http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageHandlerMetrics.html[MessageHandlerMetrics]
+|Source      |https://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageSourceMetrics.html[MessageSourceMetrics]
+|Processor,Sink   |https://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/LifecycleMessageHandlerMetrics.html[MessageHandlerMetrics]
 |======================
 
 
-In addition, each module has channel attributes and operations defined by http://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/MessageChannelMetrics.html[MessageChannelMetrics].
+In addition, each module has channel attributes and operations defined by https://docs.spring.io/spring-integration/docs/current/api/org/springframework/integration/monitor/MessageChannelMetrics.html[MessageChannelMetrics].
 
 ==== Jobs
 

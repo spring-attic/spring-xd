@@ -250,7 +250,7 @@ The `http-client` processor acts as a client that issues HTTP requests to a remo
 
 For example, the following command will result in an immediate fetching of earthquake data and it being logged in the container:
 ----
-xd:>stream create earthquakes --definition "trigger | http-client --url='''http://earthquake.usgs.gov/earthquakes/feed/geojson/all/day''' --httpMethod=GET | log" --deploy
+xd:>stream create earthquakes --definition "trigger | http-client --url='''https://earthquake.usgs.gov/earthquakes/feed/geojson/all/day''' --httpMethod=GET | log" --deploy
 ----
 
 [NOTE]

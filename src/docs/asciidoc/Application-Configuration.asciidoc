@@ -5,7 +5,7 @@
 
 There are two main parts of Spring XD that can be configured, servers and modules.
 
-The servers (`xd-singlenode`, `xd-admin`, `xd-container`) are http://projects.spring.io/spring-boot/[Spring Boot] applications and are configured as described in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/[Spring Boot Reference documentation].  In the most simple case this means editing values in the YAML based configuration file `servers.yml`.  The values in this configuration file will overwrite the values in the default https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml[application.yml] file that is embedded in the XD jar.
+The servers (`xd-singlenode`, `xd-admin`, `xd-container`) are https://projects.spring.io/spring-boot/[Spring Boot] applications and are configured as described in the https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/[Spring Boot Reference documentation].  In the most simple case this means editing values in the YAML based configuration file `servers.yml`.  The values in this configuration file will overwrite the values in the default https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/application.yml[application.yml] file that is embedded in the XD jar.
 
 NOTE: The use of YAML is an alternative to using property files. YAML is a superset of JSON, and as such is a very convenient format for specifying hierarchical configuration data.
 
@@ -19,7 +19,7 @@ In this section we will walk though how to configure servers and modules.
 
 The startup scripts for `xd-singlenode`, `xd-admin`, and `xd-container` will by default look for the file `$XD_HOME\config\servers.yml` as a source of externalized configuration information.
 
-The location and name of this resourse can be changed by using the environment variables `XD_CONFIG_LOCATION` and `XD_CONFIG_NAME`.  The start up script takes the value of these environment variables to set the Spring Boot properties `spring.config.location` and `spring.config.name`.  Note, that for `XD_CONFIG_LOCATION` you can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
+The location and name of this resourse can be changed by using the environment variables `XD_CONFIG_LOCATION` and `XD_CONFIG_NAME`.  The start up script takes the value of these environment variables to set the Spring Boot properties `spring.config.location` and `spring.config.name`.  Note, that for `XD_CONFIG_LOCATION` you can reference any https://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
 
 It is common to keep your server configuration separate form the installation directory of XD itself.  To do this, here is an example environment variable setting
 
@@ -39,7 +39,7 @@ To activate a profile, set the OS environment variable `SPRING_PROFILES_ACTIVE` 
 . `XD_CONFIG_LOCATION/servers-prod.yml`
 . `XD_CONFIG_LOCATION/servers.yml`
 
-You may also put multiple profile specific configuration in a single `servers.yml` file by using the key `spring.profiles` in different sections of the configuration file.  See http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-external-config-multi-profile-yaml[Multi-profile YAML documents] for more information.
+You may also put multiple profile specific configuration in a single `servers.yml` file by using the key `spring.profiles` in different sections of the configuration file.  See https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-external-config-multi-profile-yaml[Multi-profile YAML documents] for more information.
 
 ==== Database Configuration
 
@@ -285,7 +285,7 @@ In addition, the following default settings for the rabbit message bus can be mo
 If you expect headers longer than this, increase this setting appropriately if you wish them to pass to downstream
 modules.
 
-<3> AUTO (container acks), NONE (broker acks), MANUAL (consumer acks). Upper case only. Note: MANUAL requires specialized code in the consuming module and is unlikely to be used in an XD application. For more information, see http://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
+<3> AUTO (container acks), NONE (broker acks), MANUAL (consumer acks). Upper case only. Note: MANUAL requires specialized code in the consuming module and is unlikely to be used in an XD application. For more information, see https://docs.spring.io/spring-integration/reference/html/amqp.html#amqp-inbound-ack
 
 <4> When true, the bus will automatically declare dead letter queues and binding for each bus queue. The user is responsible for setting a policy on the broker to enable dead-lettering; see xref:MessageBus#error-handling-message-delivery-failures[Message Bus Configuration] for more information. The bus will configure a dead-letter-exchange (`<prefix>DLX`) and bind a queue with the name `<original queue name>.dlq` and route using the original queue name
 
@@ -469,7 +469,7 @@ server:
 
 ==== Management Port
 
-The XD servers provide general http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-endpoints[health] and JMX exported http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jolokia[management] endpoints via Jolokia.
+The XD servers provide general https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-endpoints[health] and JMX exported https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-jolokia[management] endpoints via Jolokia.
 
 By default the management and health endpoints are available on port 9393.  To change the value of the port use the following configuration setting to `servers.yml`.
 
@@ -483,7 +483,7 @@ You can also disable http management endpoints by setting the port value to -1.
 
 By default JMX MBeans are exported.  You can disable JMX by setting `spring.jmx.enabled=false`.
 
-The section on http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Monitoring and management over HTTP] provides details on how to configure these endpoint.
+The section on https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#production-ready-monitoring[Monitoring and management over HTTP] provides details on how to configure these endpoint.
 
 ==== Admin Server Security
 
@@ -589,7 +589,7 @@ security:
 
 <1> The username for authentication (must be used by REST clients and in the Admin UI). Will default to `user` if not explicitly set.
 
-<2> The password for authentication (must be used by REST clients and in the Admin UI). If not explicitly set, it will be auto-generated, as described in the http://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-security[Spring Boot] documentation.
+<2> The password for authentication (must be used by REST clients and in the Admin UI). If not explicitly set, it will be auto-generated, as described in the https://docs.spring.io/spring-boot/docs/1.1.7.RELEASE/reference/htmlsingle/#boot-features-security[Spring Boot] documentation.
 
 [[enabling-ldap-authentication]]
 ====== LDAP authentication
@@ -784,7 +784,7 @@ where
 
 * HTTP_METHOD is one http method, capital case
 * URL_PATTERN is an Ant style URL pattern
-* SECURITY_ATTRIBUTE is a SpEL expression (see http://docs.spring.io/spring-security/site/docs/4.0.0.M2/reference/htmlsingle/#el-access)
+* SECURITY_ATTRIBUTE is a SpEL expression (see https://docs.spring.io/spring-security/site/docs/4.0.0.M2/reference/htmlsingle/#el-access)
 * each of those separated by one or several blank characters (spaces, tabs, _etc._)
 
 Be mindful that the above is indeed a YAML list, not a map (thus the use of '-' dashes at the start of each line) that lives under the `security.authorization.rules` key.
@@ -829,7 +829,7 @@ Under the hood the value will set the CORS `Access-Control-Allow-Origin` header 
 
 ==== Local transport
 
-Local transport uses a http://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/channel/QueueChannel.html[QueueChannel] to pass data between modules.  There are a few properties you can configure on the QueueChannel
+Local transport uses a https://docs.spring.io/spring-integration/docs/latest-ga/api/org/springframework/integration/channel/QueueChannel.html[QueueChannel] to pass data between modules.  There are a few properties you can configure on the QueueChannel
 
 * `xd.local.transport.named.queueSize` - The capacity of the queue, the default value is `Integer.MAX_VALUE`
 * `xd.local.transport.named.polling` - Messages that are buffered in a QueueChannel need to be polled to be consumed.  This property controls the fixed rate at which polling occurs.  The default value is 1000 ms.
@@ -843,7 +843,7 @@ detailed discussion of configuration options.
 
 Modules are configured by placing property files in a nested directory structure based on their type and name.  The root of the nested directory structure is by default `XD_HOME/config/modules`.  This location can be customized by setting the OS environment variable `XD_MODULE_CONFIG_LOCATION`, similar to how the environment variable `XD_CONFIG_LOCATION` is used for configuring the server. If `XD_MODULE_CONFIG_LOCATION` is set explicitly, then it is **necessary** to add the file path separator ("/") at the end of the path.
 
-NOTE: If `XD_MODULE_CONFIG_LOCATION` is set to use explicit location, make sure to copy entire directory structure from the default module config location `xd/config/modules` into the new module config location. The `XD_MODULE_CONFIG_LOCATION` can reference any http://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
+NOTE: If `XD_MODULE_CONFIG_LOCATION` is set to use explicit location, make sure to copy entire directory structure from the default module config location `xd/config/modules` into the new module config location. The `XD_MODULE_CONFIG_LOCATION` can reference any https://docs.spring.io/spring/docs/4.0.3.RELEASE/spring-framework-reference/htmlsingle/#resources[Spring Resource] implementation, most commonly denoted using the prefixes `classpath:`, `file:` and `http:`.
 
 As an example, if you wanted to configure the twittersearch module, you would create a file
 ----
@@ -923,7 +923,7 @@ A property file with the same keys, but likely different values would be located
 === Encrypted Properties
 
 If you wish encrypt passwords and other secret values stored in application configuration file, you must provide a Spring bean that implements
-http://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/crypto/encrypt/TextEncryptor.html[TextEncryptor] and
+https://docs.spring.io/spring-security/site/docs/current/apidocs/org/springframework/security/crypto/encrypt/TextEncryptor.html[TextEncryptor] and
 implement the `decrypt` method. The bean, annotated with @Component, or a @Configuration class providing the bean definition,
 must be present under the base package `spring.xd.ext.encryption`.
 
@@ -934,7 +934,7 @@ https://github.com/dsyer/spring-security-rsa/blob/master/src/main/java/org/sprin
 Package the implementation of your choice in a jar file and install it in `xd/lib` along with any required dependencies (spring-security-core is already in the runtime classpath).
 
 Spring XD will use the TextEncryptor you provide to decrypt any properties that contain the prefix `{cipher}`. This conforms to the convention used by the
-http://cloud.spring.io/spring-cloud-config/spring-cloud-config.html#_encryption_and_decryption[Spring Cloud Config Server].
+https://cloud.spring.io/spring-cloud-config/spring-cloud-config.html#_encryption_and_decryption[Spring Cloud Config Server].
 
 For example:
 

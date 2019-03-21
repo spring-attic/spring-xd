@@ -33,7 +33,7 @@ For example we can take the following pom.xml from a 1.0.x style module project:
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.xd.samples</groupId>
@@ -61,11 +61,11 @@ For example we can take the following pom.xml from a 1.0.x style module project:
   <repositories>
     <repository>
       <id>spring-milestone</id>
-      <url>http://repo.springsource.org/libs-milestone</url>
+      <url>https://repo.springsource.org/libs-milestone</url>
     </repository>
      <repository>
       <id>spring-release</id>
-      <url>http://repo.springsource.org/libs-milestone</url>
+      <url>https://repo.springsource.org/libs-milestone</url>
     </repository>
   </repositories>
 
@@ -97,7 +97,7 @@ and now replace it with a pom.xml that uses  spring-xd-module-parent.
 [source,xml]
 ----
 <?xml version="1.0" encoding="UTF-8"?>
-<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.springframework.xd.samples</groupId>
@@ -114,11 +114,11 @@ and now replace it with a pom.xml that uses  spring-xd-module-parent.
     <repositories>
         <repository>
             <id>spring-io-release</id>
-            <url>http://repo.spring.io/release</url>
+            <url>https://repo.spring.io/release</url>
         </repository>
         <repository>
             <id>jcenter</id>
-            <url>http://jcenter.bintray.com</url>
+            <url>https://jcenter.bintray.com</url>
         </repository>
     </repositories>
 </project>
@@ -151,7 +151,7 @@ apply plugin: 'idea'
 apply plugin: 'io.spring.dependency-management'
 
 repositories{
-	maven { url 'http://repo.spring.io/libs-milestone' }
+	maven { url 'https://repo.spring.io/libs-milestone' }
 }
 
 dependencyManagement {
@@ -184,7 +184,7 @@ task dist(type: Copy) {
 
 buildscript {
     repositories {
-        maven { url 'http://repo.spring.io/plugins-snapshot'}
+        maven { url 'https://repo.spring.io/plugins-snapshot'}
     }
     dependencies {
         classpath 'io.spring.gradle:dependency-management-plugin:0.1.0.RELEASE'
@@ -201,11 +201,11 @@ and replace it with the a build.gradle that uses the spring-xd-module plugin.
 ----
 buildscript {
     repositories {
-        maven { url "http://repo.spring.io/plugins-snapshot" }
-        maven { url "http://repo.spring.io/release" }
+        maven { url "https://repo.spring.io/plugins-snapshot" }
+        maven { url "https://repo.spring.io/release" }
         jcenter()
-        maven { url "http://repo.spring.io/snapshot" }
-        maven { url "http://repo.spring.io/milestone" }
+        maven { url "https://repo.spring.io/snapshot" }
+        maven { url "https://repo.spring.io/milestone" }
     }
     dependencies {
         classpath("org.springframework.xd:spring-xd-module-plugin:1.1.0.RELEASE")
@@ -235,11 +235,11 @@ sourceCompatibility = 1.7
 targetCompatibility = 1.7
 
 repositories {
-    maven { url "http://repo.spring.io/release" }
+    maven { url "https://repo.spring.io/release" }
     mavenCentral()
     jcenter()
-    maven { url "http://repo.spring.io/snapshot" }
-    maven { url "http://repo.spring.io/milestone" }
+    maven { url "https://repo.spring.io/snapshot" }
+    maven { url "https://repo.spring.io/milestone" }
 }
 ----
 If there is a dependency that your project needs and is not included in the XD

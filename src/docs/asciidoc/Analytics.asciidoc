@@ -9,7 +9,7 @@ Spring XD provides support for the real-time evaluation of various machine learn
 
 Spring XD's support for implementing predictive analytics by scoring analytical models that leverage machine learning algorithms begins with an extensible class library foundation upon which implementations can be built, such as the https://github.com/spring-projects/spring-xd-modules/tree/master/analytics-ml-pmml[PMML Module] that we describe here.
 
-That module integrates with the https://github.com/jpmml/jpmml-evaluator[JPMML-Evaluator] library that provides support for a wide range of https://github.com/jpmml/jpmml-evaluator#features[model types] and is interoperable with models exported from http://www.r-project.org/[R], http://rattle.togaware.com/[Rattle], http://www.knime.org/[KNIME], and http://rapid-i.com/content/view/181/190/[RapidMiner].  For counter and gauge analytics, in-memory and http://redis.io/[Redis] implementations are provided.
+That module integrates with the https://github.com/jpmml/jpmml-evaluator[JPMML-Evaluator] library that provides support for a wide range of https://github.com/jpmml/jpmml-evaluator#features[model types] and is interoperable with models exported from https://www.r-project.org/[R], https://rattle.togaware.com/[Rattle], https://www.knime.org/[KNIME], and https://rapid-i.com/content/view/181/190/[RapidMiner].  For counter and gauge analytics, in-memory and https://redis.io/[Redis] implementations are provided.
 
 Incorporating the evaluation of machine learning algorithms into stream processing is as easy as using any other processing module.  Here is a simple example
 
@@ -60,13 +60,13 @@ The main interface for integrating analytical models is *Analytic*. Some analyti
 models need to adjust the domain input and the model output in some way, therefore we provide a special base class *MappedAnalytic*
 which has core abstractions for implementing that mapping via *InputMapper* and *OutputMapper*.
 
-Since *Spring XD 1.0.0.M6* we support the integration of analytical models, also called statistical models or mining models, that are defined via http://en.wikipedia.org/wiki/Predictive_Model_Markup_Language[*PMML*].
+Since *Spring XD 1.0.0.M6* we support the integration of analytical models, also called statistical models or mining models, that are defined via https://en.wikipedia.org/wiki/Predictive_Model_Markup_Language[*PMML*].
 *PMML* is the abbreviation for *Predictive Model Markup Language* and is a standard XML representation that allows specifications of different mining models, their ensembles, and associated preprocessing. 
 
 [NOTE]
 =====================================================================
 *PMML* is maintained by the *Data Mining Group* (*DMG*) and supported by several state-of-the-art statistics and data mining software tools such as InfoSphere Warehouse, R / Rattle, SAS Enterprise Miner, SPSS®, and Weka. 
-The current version of the *PMML* specification is http://www.dmg.org/v4-2/GeneralStructure.html[*4.2*] at the time of this writing.
+The current version of the *PMML* specification is http://dmg.org/v4-2/GeneralStructure.html[*4.2*] at the time of this writing.
 Applications can produce and consume *PMML* models, thus allowing an analytical model created in one application to be implemented and used for scoring or prediction in another.
 =====================================================================
 
@@ -78,10 +78,10 @@ In order to implement those models in a business application they are usually tr
 This model is then loaded into the application which then evaluates it against a given input (event, tuple, example).
 
 ==== Modeling
-Analytical models can be defined in various ways. For the sake of brevity we use *R* from the http://www.r-project.org[*r-project*] to demonstrate
+Analytical models can be defined in various ways. For the sake of brevity we use *R* from the https://www.r-project.org[*r-project*] to demonstrate
 how easy it is to export an analytical model to *PMML* and use it later in stream processing.
 
-For our example we use the http://en.wikipedia.org/wiki/Iris_flower_data_set[*iris*] example dataset in *R* to generate a classifier for iris flower species by applying the http://en.wikipedia.org/wiki/Naive_Bayes_classifier[*Naive Bayes*] algorithm.
+For our example we use the https://en.wikipedia.org/wiki/Iris_flower_data_set[*iris*] example dataset in *R* to generate a classifier for iris flower species by applying the https://en.wikipedia.org/wiki/Naive_Bayes_classifier[*Naive Bayes*] algorithm.
 
 [source,r]
 ----
@@ -127,7 +127,7 @@ The r script above should produce the following *PMML* document that contains th
 from the training dataset of the IRIS dataset.
 [source, xml]
 ----
-<PMML version="4.1" xmlns="http://www.dmg.org/PMML-4_1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.dmg.org/PMML-4_1 http://www.dmg.org/v4-1/pmml-4-1.xsd">
+<PMML version="4.1" xmlns="/PMML-4_1/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="/PMML-4_1/ http://dmg.org/v4-1/pmml-4-1.xsd">
 <Header copyright="Copyright (c) 2014 tom" description="NaiveBayes Model">
  <Extension name="user" value="tom" extender="Rattle/PMML"/>
  <Application name="Rattle/PMML" version="1.4"/>
@@ -286,7 +286,7 @@ xd:>stream create --name iris-flower-classification
   --outputFieldMapping='Predicted_Species:predictedSpecies' | log" --deploy
 ----
 
-* The *location* parameter can be used to specify the exact location of the pmml document. The value must be a valid spring http://www.springindepth.com/2.5.x/0.10/ch05.html[*resource*] location
+* The *location* parameter can be used to specify the exact location of the pmml document. The value must be a valid spring https://www.springindepth.com/2.5.x/0.10/ch05.html[*resource*] location
 * The *inputFieldMapping* parameter defines a mapping of domain input fields to model input fields. It is just a list of fields or optional field:alias mappings to control which fields and how they are going to end up in the model-input. If no inputFieldMapping is defined then all domain input fields are used as model input. +
 * The *outputFieldMapping* parameter defines a mapping of model output fields to domain output fields with semantics analog to the inputFieldMapping. +
 * The optional *modelName* parameter of the analytic-pmml module can be used to refer to a particular named model within the PMML definition. If modelName is not defined the first model is selected by default. +

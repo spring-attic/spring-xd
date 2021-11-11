@@ -110,6 +110,10 @@ class SingleNodeServerProcess {
 }
 
 allprojects {
+    tasks.withType(JavaCompile).configureEach {
+        options.incremental = true
+    }
+
 	group = 'org.springframework.xd'
 
 	repositories {

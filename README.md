@@ -1,3 +1,5 @@
+# spring-xd is no longer actively maintained by VMware, Inc.
+
 Spring XD
 =========
 

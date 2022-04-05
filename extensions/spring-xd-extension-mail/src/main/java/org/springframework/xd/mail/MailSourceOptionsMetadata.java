@@ -63,6 +63,8 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	private String propertiesFile = null;
 
+	private boolean useRawMime = false;
+    
 	private static final String IMAPS_PROPERTIES = "mail.imap.socketFactory.class=javax.net.ssl.SSLSocketFactory," +
 			"mail.imap.socketFactory.fallback=false," +
 			"mail.store.protocol=imaps";
@@ -133,6 +135,10 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		return usePolling;
 	}
 
+        public boolean isUseRawMime() {
+		return useRawMime;
+	}
+
 	@ModuleOption("comma separated JavaMail property values")
 	public void setProperties(String properties) {
 		this.properties = properties;
@@ -157,7 +163,12 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 
 	@Override
 	public String[] profilesToActivate() {
-		return (usePolling) ? new String[] {"use-polling"} : new String[] {"use-idle"};
+	     String [] profilesToActivate =
+		 {
+		     (useRawMime) ? "raw-mime":"body-as-string",
+		     (usePolling) ? "use-polling":"use-idle"
+		 };
+	     return profilesToActivate;
 	}
 
 	@ModuleOption("the polling interval used for looking up messages (s)")
@@ -178,6 +189,11 @@ public class MailSourceOptionsMetadata implements ProfileNamesProvider {
 		this.usePolling = usePolling;
 	}
 
+    	@ModuleOption("whether to pass MimeMessage as is or body of the message converted to string")
+	public void setUseRawMime(boolean useRawMime) {
+		this.useRawMime = useRawMime;
+	}
+    
 	@AssertTrue(message = "usePolling=false is only supported with imap(s)")
 	private boolean isUsePollingValid() {
 		if (!usePolling) {

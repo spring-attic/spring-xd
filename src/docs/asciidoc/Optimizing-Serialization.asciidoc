@@ -48,11 +48,11 @@ along with transport and processing time, will be significantly higher.
 === Serialization in XD
 
 In Spring XD 1.2.x, MessageBus implementations inject a bean of type
-http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/MultiTypeCodec.html[MultiTypeCodec],
+https://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/MultiTypeCodec.html[MultiTypeCodec],
 where the term `Codec` refers to an component providing methods to serialize and
 deserialize objects. `MultiType` means that the component can handle any object. Spring
 XD is internally configured with a
-http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/PojoCodec.html[PojoCodec]
+https://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/PojoCodec.html[PojoCodec]
 that delegates to Kryo and provides hooks to register custom Kryo serializers for
 specific types.
 
@@ -146,7 +146,7 @@ public class CustomKryoRegistrarConfig {
 ----
 
 The above example works by configuring a
-http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoRegistrationRegistrar.html[KryoRegistrationRegistrar].
+https://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoRegistrationRegistrar.html[KryoRegistrationRegistrar].
 This class holds a list of `com.esotericsoftware.kryo.Registration` each of which
 associates a Java class to a Serializer and a unique integer. The integer is the
 `registration ID` for the type which allows Kryo to encode the serialized type
@@ -216,9 +216,9 @@ public class SomeClass {
 If you have write access to the domain object this may be a simpler alternative
 to specify a custom serializer. Note this does not register the class with an
 ID, so your mileage may vary. This may be combined with using a
-http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassMapRegistrar.html[KryoClassMapRegistrar]
+https://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassMapRegistrar.html[KryoClassMapRegistrar]
 or
-http://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassListRegistrar.html[KryoClassListRegistrar]
+https://docs.spring.io/spring-xd/docs/1.2.1.BUILD-SNAPSHOT/api/org/springframework/xd/dirt/integration/bus/serializer/kryo/KryoClassListRegistrar.html[KryoClassListRegistrar]
 to register objects if necessary, but then there is less benefit to using the
 annotation.
 

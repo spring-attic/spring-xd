@@ -6,10 +6,10 @@ This section covers how to create a processor module that uses stream processing
 
 [[reactor-streams]]
 === Reactor Streams
-https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.2.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the http://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
+https://github.com/reactor/reactor[Project Reactor] provides a https://reactor.github.io/docs/api/2.0.2.RELEASE/reactor/rx/Stream.html[Stream API] that is based on the https://www.reactive-streams.org/[Reactive Streams specification]. The specification was jointly developed by twenty people from a dozen companies (Pivotal included) and has the goal of creating a standard for asynchronous stream processing with non-blocking back pressure on the JVM.
 
 [TIP]
-Explore Reactor with http://projectreactor.io/docs/reference/[the reference guide].
+Explore Reactor with https://projectreactor.io/docs/reference/[the reference guide].
 
 To implement a Stream based processor module you need to implement the interface `org.springframework.xd.reactor.Processor`
 
@@ -60,9 +60,9 @@ You can now create unit tests for the Processor module just as you would for any
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/integration 
-         http://www.springframework.org/schema/integration/spring-integration.xsd
+         https://www.springframework.org/schema/integration/spring-integration.xsd
          http://www.springframework.org/schema/beans 
-	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+	 https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
     <bean id="messageProcessor" class="com.acme.MovingAverage"/>
@@ -87,7 +87,7 @@ Examples of unit and integration testing a module are available in the https://g
 
 [[rxjava-streams]]
 === RxJava Streams
-RxJava provides the http://reactivex.io/RxJava/javadoc/rx/Observable.html[Observable API] that is based on the http://msdn.microsoft.com/en-us/data/gg577609.aspx[Reactive Extensions .NET library].
+RxJava provides the http://reactivex.io/RxJava/javadoc/rx/Observable.html[Observable API] that is based on the https://msdn.microsoft.com/en-us/data/gg577609.aspx[Reactive Extensions .NET library].
 
 To implement a Observable based XD processor module you need to implement the interface `org.springframework.xd.rxjava.Processor`
 
@@ -149,9 +149,9 @@ You can now create unit tests for the Processor module as you would for any othe
        xmlns:int="http://www.springframework.org/schema/integration"
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/integration 
-         http://www.springframework.org/schema/integration/spring-integration.xsd
+         https://www.springframework.org/schema/integration/spring-integration.xsd
          http://www.springframework.org/schema/beans 
-	 http://www.springframework.org/schema/beans/spring-beans.xsd">
+	 https://www.springframework.org/schema/beans/spring-beans.xsd">
 
 
     <bean id="messageProcessor" class="com.acme.MovingAverage"/>

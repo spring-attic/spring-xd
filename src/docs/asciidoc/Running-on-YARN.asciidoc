@@ -14,8 +14,8 @@ To begin with, you need to have access to a Hadoop cluster running a
 version based on Apache Hadoop version 2. This includes
 link:http://www.us.apache.org/dist/hadoop/common/hadoop-2.7.1/[Apache
 Hadoop 2.7.1],
-link:http://www.gopivotal.com/big-data/pivotal-hd[Pivotal HD 2.1 or 3.0],
-link:http://hortonworks.com/hdp/[Hortonworks HDP 2.3] and link:http://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html[Cloudera CDH5].
+link:https://pivotal.io/big-data/pivotal-hd[Pivotal HD 2.1 or 3.0],
+link:https://hortonworks.com/hdp/[Hortonworks HDP 2.3] and link:https://www.cloudera.com/content/cloudera/en/products-and-services/cdh.html[Cloudera CDH5].
 
 [IMPORTANT]
 ====
@@ -42,8 +42,8 @@ In addition to the regular `spring-xd-<version>-dist.zip` files we
 also distribute a zip file that includes all you need to deploy on
 YARN. The name of this zip file is `spring-xd-<version>-yarn.zip`. You
 can download the zip file for the current release from
-link:http://repo.spring.io/release/org/springframework/xd/spring-xd/[Spring release repo] or a milestone build from the 
-link:http://repo.spring.io/milestone/org/springframework/xd/spring-xd/[Spring milestone repo]. Unzip the downloaded file and you should see a
+link:https://repo.spring.io/release/org/springframework/xd/spring-xd/[Spring release repo] or a milestone build from the 
+link:https://repo.spring.io/milestone/org/springframework/xd/spring-xd/[Spring milestone repo]. Unzip the downloaded file and you should see a
 `spring-xd-<version>-yarn` directory.
 
 ==== Configure your deployment
@@ -281,7 +281,7 @@ You can use the regular `yarn` command to check the status. Simply run:
 $ bin/xd-yarn submitted
   APPLICATION ID                  USER          NAME    QUEUE    TYPE STARTTIME       FINISHTIME  STATE    FINALSTATUS  ORIGINAL TRACKING URL
   ------------------------------  ------------  ------  ------- ----  --------------  ----------  -------  ----------- ---------------------------
-  application_1420911708637_0001  jvalkealahti  xd-app  default XD    09/01/15 14:25  N/A         RUNNING  UNDEFINED http://172.16.101.106:49792
+  application_1420911708637_0001  jvalkealahti  xd-app  default XD    09/01/15 14:25  N/A         RUNNING  UNDEFINED https://172.16.101.106:49792
 ----
 
 You should see one application running named `xd-app`.
@@ -331,15 +331,15 @@ you can use the `admininfo` command to query this information:
 [source,bash]
 ----
 $ bin/xd-yarn admininfo
-Admins: [http://hadoop.localdomain:43740]
+Admins: [https://hadoop.localdomain:43740]
 ----
 
 Then connect xd-shell to this instance:
 
 [source,bash]
 ----
-server-unknown:>admin config server --uri http://hadoop.localdomain:43740
-Successfully targeted http://hadoop.localdomain:43740
+server-unknown:>admin config server --uri https://hadoop.localdomain:43740
+Successfully targeted https://hadoop.localdomain:43740
 
 xd:>runtime containers
   Container Id                          Host               IP Address      PID    Groups  Custom Attributes

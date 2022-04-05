@@ -40,7 +40,7 @@ This section provides some general details on implementing and packaging custom 
 
 ==== Stream Modules
 
-Sources, processors, and sinks are built using http://spring.io/spring-integration[Spring Integration] and are typically perform a single task that they may be easily reused in streams. Alternately, a custom module may be required to perform a specific function, such as integration with a legacy service. In Spring Integration terms:
+Sources, processors, and sinks are built using https://spring.io/spring-integration[Spring Integration] and are typically perform a single task that they may be easily reused in streams. Alternately, a custom module may be required to perform a specific function, such as integration with a legacy service. In Spring Integration terms:
 
 * A _source_ is a valid message flow that contains a direct channel named _output_ which is fed by an inbound adapter, either configured with a poller, or triggered by an event.
 
@@ -88,12 +88,12 @@ Any root level `.class` files packaged as in a typical jar file. This may includ
 * *Dependent jar files:*
 Any required runtime dependencies that are not provided by the Spring XD runtime (in `$XD_INSTALL_DIR/xd/lib`) are loaded from the module's `/lib` directory.
 
-As mentioned previously, a Spring XD module can be installed as an expanded directory tree or an archive. If the module requires dependent jars, which is the typical case, it may be packaged as an http://stackoverflow.com/questions/11947037/what-is-an-uber-jar[uber jar] compatible with the Spring Boot layout, and conforming to the above structure. The next section describes Spring XD's support for module packaging and development.
+As mentioned previously, a Spring XD module can be installed as an expanded directory tree or an archive. If the module requires dependent jars, which is the typical case, it may be packaged as an https://stackoverflow.com/questions/11947037/what-is-an-uber-jar[uber jar] compatible with the Spring Boot layout, and conforming to the above structure. The next section describes Spring XD's support for module packaging and development.
 
 [[creating-a-module-project]]
 ==== Creating a Module Project
 
-Spring XD (1.1.x or later) provides build tools for creating a module project to test and package the module either with xref:Modules#building-with-maven[Maven] or xref:Modules#building-with-gradle[Gradle]. As described in the above sections, the module jar must export any dependencies that are not provided by the Spring XD container. The build tools address these concerns, packaging your module as an uber jar by wrapping the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the http://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin], respectively. The plugins are configured with The `MODULE` layout for Spring Boot packaging. This does not build an executable jar file, as is normally done, and ensures `provided` dependencies will not be included in the uber jar.
+Spring XD (1.1.x or later) provides build tools for creating a module project to test and package the module either with xref:Modules#building-with-maven[Maven] or xref:Modules#building-with-gradle[Gradle]. As described in the above sections, the module jar must export any dependencies that are not provided by the Spring XD container. The build tools address these concerns, packaging your module as an uber jar by wrapping the https://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-maven-plugin.html[Spring Boot Maven Plugin] or the https://docs.spring.io/spring-boot/docs/current/reference/html/build-tool-plugins-gradle-plugin.html[Spring Boot Gradle Plugin], respectively. The plugins are configured with The `MODULE` layout for Spring Boot packaging. This does not build an executable jar file, as is normally done, and ensures `provided` dependencies will not be included in the uber jar.
 
 In addition, the build tools provide Spring XD dependencies necessary to compile and test the module. Specifically, `spring-xd-dirt` and `spring-xd-test` provide some useful features for module development. As you would expect, the Spring XD versions match the specified parent pom or plugin version. These provide support for:
 
@@ -297,7 +297,7 @@ By default, the `module upload` command will fail if a module with the same name
 
 ==== The Module Registry
 
-A http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/module/ModuleDefinition.html[module definition] requires the following attributes to uniquely define a module:
+A https://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/module/ModuleDefinition.html[module definition] requires the following attributes to uniquely define a module:
 
 * name - the name of the component, normally a single word representing the purpose of the module. Examples are _file_, _http_, _syslog_.
 * type - the module type, current Spring XD module types include _source_, _sink_, _processor_, and _job_
@@ -312,7 +312,7 @@ modules
       ├── source
 ----
 
-Spring XD provides a strategy interface http://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/module/ModuleRegistry.html[ModuleRegistry] used to locate a module of a given name and type. Currently Spring XD implements a ResourceModuleRegistry which is configured to locate modules in the following locations in this order:
+Spring XD provides a strategy interface https://docs.spring.io/spring-xd/docs/current/api/org/springframework/xd/dirt/module/ModuleRegistry.html[ModuleRegistry] used to locate a module of a given name and type. Currently Spring XD implements a ResourceModuleRegistry which is configured to locate modules in the following locations in this order:
 
 * The file path given by `xd.module.home` (`${xd.home}/modules` by default)
 * `classpath:/modules/`  (Spring XD does not provide any module definitions here)
@@ -630,7 +630,7 @@ When creating a module, if you duplicate the name of an existing module for the 
 [source,bash]
 ----
 xd:>module compose tcp --definition "filter --expression=payload.contains('foo') | file"
-14:52:27,781  WARN Spring Shell client.RestTemplate:566 - POST request for "http://ec2-50-16-24-31.compute-1.amazonaws.com:9393/modules" resulted in 409 (Conflict); invoking error handler
+14:52:27,781  WARN Spring Shell client.RestTemplate:566 - POST request for "https://ec2-50-16-24-31.compute-1.amazonaws.com:9393/modules" resulted in 409 (Conflict); invoking error handler
 Command failed org.springframework.xd.rest.client.impl.SpringXDException: There is already a module named 'tcp' with type 'sink'
 ----
 

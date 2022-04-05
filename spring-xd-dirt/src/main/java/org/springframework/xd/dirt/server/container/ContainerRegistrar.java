@@ -269,7 +269,7 @@ public class ContainerRegistrar implements ApplicationListener<ApplicationEvent>
 
 	/**
 	 * Calculate an exponential delay per the algorithm described
-	 * in http://en.wikipedia.org/wiki/Exponential_backoff.
+	 * in https://en.wikipedia.org/wiki/Exponential_backoff.
 	 *
 	 * @param attempts number of failed attempts
 	 * @param max      the maximum amount of time to wait

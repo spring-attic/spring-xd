@@ -38,7 +38,7 @@ image::images/local-mode.png[width=500]
 [[admin-server-arch]]
 ==== Admin Server Architecture
 
-The Admin Server uses an embedded servlet container and exposes REST endpoints for creating, deploying, undeploying, and destroying streams and jobs, querying runtime state, analytics, and the like. The Admin Server is implemented using Spring's MVC framework and the https://github.com/SpringSource/spring-hateoas[Spring HATEOAS] library to create REST representations that follow the http://en.wikipedia.org/wiki/HATEOAS[HATEOAS] principle. The Admin Server and Container Servers monitor and update runtime state using ZooKeeper (see xref:XD-Distributed-Runtime#xd-distributed-runtime[XD Distributed Runtime]).
+The Admin Server uses an embedded servlet container and exposes REST endpoints for creating, deploying, undeploying, and destroying streams and jobs, querying runtime state, analytics, and the like. The Admin Server is implemented using Spring's MVC framework and the https://github.com/SpringSource/spring-hateoas[Spring HATEOAS] library to create REST representations that follow the https://en.wikipedia.org/wiki/HATEOAS[HATEOAS] principle. The Admin Server and Container Servers monitor and update runtime state using ZooKeeper (see xref:XD-Distributed-Runtime#xd-distributed-runtime[XD Distributed Runtime]).
 
 
 [[container-server-arch]]
@@ -64,7 +64,7 @@ image::images/tap-jobs-streams.png[width=500]
 [[architecture_streams]]
 ==== Streams
 
-The programming model for processing event streams in Spring XD is based on the well known http://www.eaipatterns.com/[Enterprise Integration Patterns] as implemented by components in the http://www.springsource.org/spring-integration[Spring Integration] project.  The programming model was designed so that it is easy to test components.
+The programming model for processing event streams in Spring XD is based on the well known https://www.enterpriseintegrationpatterns.com/[Enterprise Integration Patterns] as implemented by components in the https://www.springsource.org/spring-integration[Spring Integration] project.  The programming model was designed so that it is easy to test components.
 
 A Stream consist of the following types of modules:
 * An Input source

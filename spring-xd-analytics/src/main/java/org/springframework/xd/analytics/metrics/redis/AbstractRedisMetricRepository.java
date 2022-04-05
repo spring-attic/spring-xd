@@ -163,7 +163,7 @@ abstract class AbstractRedisMetricRepository<M extends Metric, V> implements Met
 	@Override
 	public List<M> findAll() {
 		List<M> gauges = new ArrayList<M>();
-		// TODO asking for keys is not recommended. See http://redis.io/commands/keys
+		// TODO asking for keys is not recommended. See https://redis.io/commands/keys
 		// Need to keep track of created instances explicitly.
 		Set<String> keys = this.redisOperations.keys(this.metricPrefix + "*");
 		for (String key : keys) {

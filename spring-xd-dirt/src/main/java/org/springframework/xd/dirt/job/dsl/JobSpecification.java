@@ -341,23 +341,23 @@ public class JobSpecification extends AstNode {
 				// <beans xmlns="http://www.springframework.org/schema/beans"
 				//		  xmlns:batch="http://www.springframework.org/schema/batch"
 				//		  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-				//		  xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-				//		    http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd">
+				//		  xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+				//		    http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd">
 				this.doc = domImplementation.createDocument("http://www.springframework.org/schema/beans", "beans",
 						null);
 				doc.createElementNS("http://www.springframework.org/schema/batch", "batch");
-				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:batch",
+				doc.getDocumentElement().setAttributeNS("https://www.w3.org/2000/xmlns/", "xmlns:batch",
 						"http://www.springframework.org/schema/batch");
-				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xsi",
+				doc.getDocumentElement().setAttributeNS("https://www.w3.org/2000/xmlns/", "xmlns:xsi",
 						"http://www.w3.org/2001/XMLSchema-instance");
 				doc.getDocumentElement().setAttributeNS(
 						"http://www.w3.org/2001/XMLSchema-instance",
 						"xsi:schemaLocation",
-						"http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd "
+						"http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd "
 								+
-								"http://www.springframework.org/schema/batch http://www.springframework.org/schema/batch/spring-batch.xsd");
+								"http://www.springframework.org/schema/batch https://www.springframework.org/schema/batch/spring-batch.xsd");
 				// Setting this 'again' to get it on the front and look more like the above.
-				doc.getDocumentElement().setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns",
+				doc.getDocumentElement().setAttributeNS("https://www.w3.org/2000/xmlns/", "xmlns",
 						"http://www.springframework.org/schema/beans");
 
 				// Generate: <bean id="taskExecutor" class="org.springframework.core.task.SimpleAsyncTaskExecutor"/>
@@ -369,7 +369,7 @@ public class JobSpecification extends AstNode {
 				// Generate: <batch:job id="streamName" xmlns="http://www.springframework.org/schema/batch">
 				this.batchJobElement = doc.createElement("batch:job");
 				doc.getDocumentElement().appendChild(batchJobElement);
-				batchJobElement.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns",
+				batchJobElement.setAttributeNS("https://www.w3.org/2000/xmlns/", "xmlns",
 						"http://www.springframework.org/schema/batch");
 				if (batchJobId != null) {
 					batchJobElement.setAttribute("id", batchJobId);
@@ -506,7 +506,7 @@ public class JobSpecification extends AstNode {
 				transformer = transformerFactory.newTransformer();
 				if (prettyPrint) {
 					transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-					transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
+					transformer.setOutputProperty("{https://xml.apache.org/xslt}indent-amount", "2");
 				}
 				DOMSource source = new DOMSource(doc);
 				StringResult sr = new StringResult();

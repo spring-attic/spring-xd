@@ -155,7 +155,7 @@ public class XdConfigLoggingInitializer implements ApplicationListener<ContextRe
 		String httpPort = environment.resolvePlaceholders(ADMIN_PORT);
 		Assert.notNull(httpPort, "Admin server port is not set.");
 		logger.info("Admin web UI: "
-				+ String.format("http://%s:%s/%s", RuntimeUtils.getHost(), httpPort,
+				+ String.format("https://%s:%s/%s", RuntimeUtils.getHost(), httpPort,
 						ConfigLocations.XD_ADMIN_UI_BASE_PATH));
 	}
 

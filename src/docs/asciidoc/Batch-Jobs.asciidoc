@@ -3,7 +3,7 @@
 
 === Introduction
 
-One of the features that XD offers is the ability to launch and monitor batch jobs based on http://www.springsource.org/spring-batch[Spring Batch].  The Spring Batch project was started in 2007 as a collaboration between SpringSource and Accenture to provide a comprehensive framework to support the development of robust batch applications.  Batch jobs have their own set of best practices and domain concepts which have been incorporated into Spring Batch building upon Accenture's consulting business.  Since then Spring Batch has been used in thousands of enterprise applications and is the basis for the recent JSR standardization of batch processing, https://jcp.org/en/jsr/detail?id=352[JSR-352].
+One of the features that XD offers is the ability to launch and monitor batch jobs based on https://www.springsource.org/spring-batch[Spring Batch].  The Spring Batch project was started in 2007 as a collaboration between SpringSource and Accenture to provide a comprehensive framework to support the development of robust batch applications.  Batch jobs have their own set of best practices and domain concepts which have been incorporated into Spring Batch building upon Accenture's consulting business.  Since then Spring Batch has been used in thousands of enterprise applications and is the basis for the recent JSR standardization of batch processing, https://jcp.org/en/jsr/detail?id=352[JSR-352].
 
 Spring XD builds upon Spring Batch to simplify creating batch workflow solutions that span traditional use-cases such as moving data between flat files and relational databases as well as Hadoop use-cases where analysis logic is broken up into several steps that run on a Hadoop cluster.  Steps specific to Hadoop in a workflow can be MapReduce jobs, executing Hive/Pig scripts or HDFS operations. Spring XD ships with a number of useful xref:Jobs#jobs[job modules out of the box]. This section presents an overview for creating, deploying, and running batch jobs.
 
@@ -58,15 +58,15 @@ Create a *Job Definition* from a _Job Module_ by providing a definition name as 
 
 ==== Deploy the Job
 
-Deploy the *Job Definition* to one or more _Spring XD_ containers. This will initialize the _Job Definitions_ on those containers. The jobs are now "live" and a job can be created by sending a message to a job queue that contains optional runtime *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*.
+Deploy the *Job Definition* to one or more _Spring XD_ containers. This will initialize the _Job Definitions_ on those containers. The jobs are now "live" and a job can be created by sending a message to a job queue that contains optional runtime *https://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*.
 
 ==== Launch a Job
 
-Launch a job by sending a message to the job queue with *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*. A *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobInstance[Job Instance]* is created, representing a specific run of the job. A *Job Instance* is the *Job Definition* plus the runtime *Job Parameters*. You can query for the *Job Instances* associated with a given job name.
+Launch a job by sending a message to the job queue with *https://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobParameters[Job Parameters]*. A *https://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobInstance[Job Instance]* is created, representing a specific run of the job. A *Job Instance* is the *Job Definition* plus the runtime *Job Parameters*. You can query for the *Job Instances* associated with a given job name.
 
 ==== Job Execution
 
-The job is executed creating a *http://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobExecution[Job Execution]* object that captures the success or failure of the job. You can query for *Job Executions* associated with a given job name.
+The job is executed creating a *https://docs.spring.io/spring-batch/trunk/reference/html/domain.html#domainJobExecution[Job Execution]* object that captures the success or failure of the job. You can query for *Job Executions* associated with a given job name.
 
 ==== Un-deploy a Job
 
@@ -114,7 +114,7 @@ The above deployment manifest would deploy 3 number of `fooJob` modules into con
 
 When a batch job is launched/scheduled, the job module that picks up the job launching request message executes the batch job.  To support partitioning of the job across multiple containers, the job definition needs to define how the job will be partitioned.  The type of partitioning depends on the type of the job, for example a job reading from JDBC would partition the data in a table by dividing up the number of rows and a job reading files form a directory would partition on the number of files available.
 
-The FTP to HDFS and FILE to JDBC jobs support for partitioning.  To add partitioning support for your own jobs you should import https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/META-INF/spring-xd/batch/singlestep-partition-support.xml[singlestep-partition-support.xml] in your job definition.  This provides the infrastructure so that the job module that processes the launch request can communicate as the master with the other job modules that have been deployed.  You will also need to provide an implementation of the http://docs.spring.io/spring-batch/apidocs/org/springframework/batch/core/partition/support/Partitioner.html[Partitioner] interface.
+The FTP to HDFS and FILE to JDBC jobs support for partitioning.  To add partitioning support for your own jobs you should import https://github.com/spring-projects/spring-xd/blob/master/spring-xd-dirt/src/main/resources/META-INF/spring-xd/batch/singlestep-partition-support.xml[singlestep-partition-support.xml] in your job definition.  This provides the infrastructure so that the job module that processes the launch request can communicate as the master with the other job modules that have been deployed.  You will also need to provide an implementation of the https://docs.spring.io/spring-batch/apidocs/org/springframework/batch/core/partition/support/Partitioner.html[Partitioner] interface.
 
 For more information on the deployment manifest, please refer https://github.com/spring-projects/spring-xd/wiki/XD-Distributed-Runtime#deployment-manifest[here]
 

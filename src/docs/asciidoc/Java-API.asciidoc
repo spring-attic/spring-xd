@@ -2,7 +2,7 @@
 == JAVA API
 
 === Introduction
-The class http://docs.spring.io/spring-xd/docs/1.0.1.RELEASE/api/org/springframework/xd/rest/client/impl/SpringXDTemplate.html[SpringXDTemplate] lets you intereact with Spring XD's REST API in Java.  It saves you the trouble of wrapping your own calls to RestTemplate or other REST client libraries.  Within Spring XD `SpringXDTemplate` is used to implement shell commands and for testing.
+The class https://docs.spring.io/spring-xd/docs/1.0.1.RELEASE/api/org/springframework/xd/rest/client/impl/SpringXDTemplate.html[SpringXDTemplate] lets you intereact with Spring XD's REST API in Java.  It saves you the trouble of wrapping your own calls to RestTemplate or other REST client libraries.  Within Spring XD `SpringXDTemplate` is used to implement shell commands and for testing.
 
 ==== Required Libraries
 The following maven snippet will pull in the required dependencies:
@@ -20,7 +20,7 @@ The following maven snippet will pull in the required dependencies:
     <repository>
         <id>spring-release</id>
         <name>Spring Releases</name>
-        <url>http://repo.spring.io/libs-release</url>
+        <url>https://repo.spring.io/libs-release</url>
     </repository>
 </repositories>
 ----

@@ -58,7 +58,7 @@ class AccessControlInterceptor extends HandlerInterceptorAdapter {
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) {
 		// For PUT requests we need an extra round-trip
-		// See e.g. http://www.html5rocks.com/en/tutorials/cors/
+		// See e.g. https://www.html5rocks.com/en/tutorials/cors/
 
 		String acRequestMethod = request.getHeader(ACCESS_CONTROL_REQUEST_METHOD);
 		String acRequestHeaders = request.getHeader(ACCESS_CONTROL_REQUEST_HEADERS);

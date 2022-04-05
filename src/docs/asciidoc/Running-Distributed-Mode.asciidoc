@@ -111,7 +111,7 @@ If the provided schemas are customized, other values may need to be customized. 
 [[setting-up-zookeeper]]
 ==== Setting up ZooKeeper
 
-Currently XD does not ship with ZooKeeper. At the time of this writing, the compliant  version is 3.4.6 and you can download it from http://zookeeper.apache.org/releases.html[here]. Please refer to the http://zookeeper.apache.org/doc/trunk/zookeeperStarted.html[ZooKeeper Getting Started Guide] for more information. A ZooKeeper ensemble consisting of at least three members is recommended for production installations, but a single server is all that is needed to have XD up and running.
+Currently XD does not ship with ZooKeeper. At the time of this writing, the compliant  version is 3.4.6 and you can download it from https://zookeeper.apache.org/releases.html[here]. Please refer to the https://zookeeper.apache.org/doc/trunk/zookeeperStarted.html[ZooKeeper Getting Started Guide] for more information. A ZooKeeper ensemble consisting of at least three members is recommended for production installations, but a single server is all that is needed to have XD up and running.
 
 You can configure the root path in Zookeeper where an XD cluster's top level nodes will be created.  This allows you to run multiple independent clusters of XD that share a single ZK instance.  Add the following to servers.yml to configure.  You can also set as an environment variable, system property in the standard manner.
 
@@ -164,12 +164,12 @@ You are now ready to start _Redis_ by executing
 $ ./redis-server
 ----
 
-TIP: For further information on installing _Redis_ in general, please checkout the http://redis.io/topics/quickstart[Redis Quick Start] guide. If you are using _Mac OS_, you can also install _Redis_ via http://mxcl.github.io/homebrew/[Homebrew]
+TIP: For further information on installing _Redis_ in general, please checkout the https://redis.io/topics/quickstart[Redis Quick Start] guide. If you are using _Mac OS_, you can also install _Redis_ via https://mxcl.github.io/homebrew/[Homebrew]
 
 ===== Troubleshooting
 ====== Redis on Windows
 
-Presently, _Spring XD_ does not ship _Windows_ binaries for _Redis_ (See https://jira.springsource.org/browse/XD-151[XD-151]). However, _Microsoft_ http://blogs.msdn.com/b/interoperability/archive/2013/04/22/redis-on-windows-stable-and-reliable.aspx[is actively working] on supporting _Redis_ on _Windows_. You can download _Windows_ _Redis_ binaries from:
+Presently, _Spring XD_ does not ship _Windows_ binaries for _Redis_ (See https://jira.springsource.org/browse/XD-151[XD-151]). However, _Microsoft_ https://blogs.msdn.com/b/interoperability/archive/2013/04/22/redis-on-windows-stable-and-reliable.aspx[is actively working] on supporting _Redis_ on _Windows_. You can download _Windows_ _Redis_ binaries from:
 
 https://github.com/MSOpenTech/redis/tree/2.6/bin/release
 
@@ -202,7 +202,7 @@ You should see something like this:
  |    `-._   `._    /     _.-'    |     PID: 11655
   `-._    `-._  `-./  _.-'    _.-'                                   
  |`-._`-._    `-.__.-'    _.-'_.-'|                                  
- |    `-._`-._        _.-'_.-'    |           http://redis.io        
+ |    `-._`-._        _.-'_.-'    |           https://redis.io        
   `-._    `-._`-.__.-'_.-'    _.-'                                   
  |`-._`-._    `-.__.-'    _.-'_.-'|                                  
  |    `-._`-._        _.-'_.-'    |                                  
@@ -221,7 +221,7 @@ You should see something like this:
 
 If you already have a running instance of _RabbitMQ_ it can be used for Spring XD. By default Spring XD will try to use a _Rabbit_ instance running on *localhost* using *port 5672*. The default account credentials of *guest/guest* are assumed. You can change that in the `servers.yml` file residing in the `config/` directory.
 
-If you don't have a _RabbitMQ_ installation already, head over to http://www.rabbitmq.com and follow the instructions. Packages are provided for Windows, Mac and various flavor of unix/linux. 
+If you don't have a _RabbitMQ_ installation already, head over to https://www.rabbitmq.com and follow the instructions. Packages are provided for Windows, Mac and various flavor of unix/linux. 
 
 ===== Launching RabbitMQ
 
@@ -235,7 +235,7 @@ You should see something similar to this:
 ----
 
               RabbitMQ 3.3.0. Copyright (C) 2007-2013 GoPivotal, Inc.
-  ##  ##      Licensed under the MPL.  See http://www.rabbitmq.com/
+  ##  ##      Licensed under the MPL.  See https://www.rabbitmq.com/
   ##  ##
   ##########  Logs: /usr/local/var/log/rabbitmq/rabbit@localhost.log
   ######  ##        /usr/local/var/log/rabbitmq/rabbit@localhost-sasl.log

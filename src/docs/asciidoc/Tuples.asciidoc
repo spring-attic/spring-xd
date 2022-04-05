@@ -9,9 +9,9 @@ The underlying Message class that moves data from one processing step to the nex
 
 There are accessor methods that perform type conversion to the basic primitive types as well as BigDecimal and Date.  This avoids you from having to cast the values to specific types.  Instead you can rely on the Tuple's type conversion infastructure to perform the conversion.   
 
-The Tuple's types conversion is performed by Spring's http://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Type Conversion Infrastructure] which supports commonly encountered type conversions and is extensible.  
+The Tuple's types conversion is performed by Spring's https://docs.spring.io/spring/docs/current/spring-framework-reference/html/validation.html#core-convert[Type Conversion Infrastructure] which supports commonly encountered type conversions and is extensible.  
 
-There are several overloads for getters that let you provide default values for primitive types should the field you are looking for not be found.  Date format patterns and Locale aware NumberFormat conversion are also supported.  A best effort has been made to preserve the functionality available in Spring Batch's http://static.springsource.org/spring-batch/2.1.x/apidocs/org/springframework/batch/item/file/transform/FieldSet.html[`FieldSet`] class that has been extensively used for parsing String based data in files.
+There are several overloads for getters that let you provide default values for primitive types should the field you are looking for not be found.  Date format patterns and Locale aware NumberFormat conversion are also supported.  A best effort has been made to preserve the functionality available in Spring Batch's https://docs.spring.io/spring-batch/2.1.x/apidocs/org/springframework/batch/item/file/transform/FieldSet.html[`FieldSet`] class that has been extensively used for parsing String based data in files.
 
 ==== Creating a Tuple
 
@@ -158,7 +158,7 @@ If you wish to use Spring XD Tuples in you project add the following dependencie
 [subs="attributes"]
 ----
 //Add this repo to your repositories if it does not already exist.
-maven { url "http://repo.spring.io/libs-snapshot"}
+maven { url "https://repo.spring.io/libs-snapshot"}
 
 //Add this dependency
 compile 'org.springframework.xd:spring-xd-tuple:{appversion}'

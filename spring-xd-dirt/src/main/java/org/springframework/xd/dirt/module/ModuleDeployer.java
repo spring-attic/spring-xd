@@ -48,7 +48,7 @@ import org.springframework.xd.module.core.Plugin;
  * <p>
  * In order to initialize modules with the correct application context,
  * this class maintains a reference to the global application context.
- * See <a href="http://docs.spring.io/autorepo/docs/spring-xd/current/reference/html/#XD-Spring-Application-Contexts">
+ * See <a href="https://docs.spring.io/autorepo/docs/spring-xd/current/reference/html/#XD-Spring-Application-Contexts">
  * the reference documentation</a> for more details.
  *
  * @author Mark Fisher

@@ -3,19 +3,19 @@
 
 === Installing Hadoop
 
-If you don't have a local _Hadoop_ cluster available already, you can do a local http://hadoop.apache.org/docs/r2.6.0/hadoop-project-dist/hadoop-common/SingleCluster.html[single node installation (v2.6.0)] and use that to try out _Hadoop_ with _Spring XD_. 
+If you don't have a local _Hadoop_ cluster available already, you can do a local https://hadoop.apache.org/docs/r2.6.0/hadoop-project-dist/hadoop-common/SingleCluster.html[single node installation (v2.6.0)] and use that to try out _Hadoop_ with _Spring XD_. 
 
 TIP: This guide is intended to serve as a quick guide to get you started in the context of _Spring XD_. For more complete documentation please refer back to the documentation provided by your respective _Hadoop_ distribution.
 
 ==== Download
 
-First, http://archive.apache.org/dist/hadoop/common/hadoop-2.6.0/[download an installation archive] (hadoop-2.6.0.tar.gz) and unpack it locally. Linux users can also install _Hadoop_ through the system package manager and on Mac OS X, you can use http://brew.sh/[Homebrew]. However, the manual installation is self-contained and it's easier to see what's going on if you just unpack it to a known location.
+First, https://archive.apache.org/dist/hadoop/common/hadoop-2.6.0/[download an installation archive] (hadoop-2.6.0.tar.gz) and unpack it locally. Linux users can also install _Hadoop_ through the system package manager and on Mac OS X, you can use https://brew.sh/[Homebrew]. However, the manual installation is self-contained and it's easier to see what's going on if you just unpack it to a known location.
 
 If you have `wget` available on your system, you can also execute:
 
 [source,bash]
 ----
-$ wget http://archive.apache.org/dist/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
+$ wget https://archive.apache.org/dist/hadoop/common/hadoop-2.6.0/hadoop-2.6.0.tar.gz
 ----
 
 Unpack the distribution with:
@@ -61,7 +61,7 @@ NOTE: When using _MAC OS X_ (Other systems possible also) you may still encounte
 
 ==== Setup SSH
 
-As described in the installation guide, you also need to set up http://en.wikipedia.org/wiki/Secure_Shell[SSH] login to `localhost` without a passphrase. On Linux, you may need to install the `ssh` package and ensure the `sshd` daemon is running. On Mac OS X, ssh is already installed but the `sshd` daemon isn't usually running. To start it, you need to enable "Remote Login" in the "Sharing" section of the control panel. Then you can carry on and setup SSH keys as described in the installation guide:
+As described in the installation guide, you also need to set up https://en.wikipedia.org/wiki/Secure_Shell[SSH] login to `localhost` without a passphrase. On Linux, you may need to install the `ssh` package and ensure the `sshd` daemon is running. On Mac OS X, ssh is already installed but the `sshd` daemon isn't usually running. To start it, you need to enable "Remote Login" in the "Sharing" section of the control panel. Then you can carry on and setup SSH keys as described in the installation guide:
 
 [source,bash]
 ----

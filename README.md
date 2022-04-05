@@ -11,11 +11,11 @@ You can fork the repository and/or monitor JIRA to see what is going on. As alwa
 
 ## Documentation
 
-Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [API Documentation](http://static.springsource.org/spring-xd/docs/current-SNAPSHOT/api/) (JavaDoc) is available as well. Please also visit the SpringSource.org [project website](http://www.springsource.org/spring-xd) for more information.
+Look for it on the [XD wiki](https://github.com/springsource/spring-xd/wiki). [API Documentation](https://docs.spring.io/spring-xd/docs/current-SNAPSHOT/api/) (JavaDoc) is available as well. Please also visit the SpringSource.org [project website](https://www.springsource.org/spring-xd) for more information.
 
 ## How to build 
 
-Check the documentation on how to build Spring XD [here](http://docs.spring.io/spring-xd/docs/current-SNAPSHOT/reference/html/#building-spring-xd).
+Check the documentation on how to build Spring XD [here](https://docs.spring.io/spring-xd/docs/current-SNAPSHOT/reference/html/#building-spring-xd).
 
 ## Getting Help
 
@@ -31,7 +31,7 @@ Here are some ways for you to get involved
 
 * Create [JIRA](https://jira.springsource.org/browse/XD) tickets for bugs and new features and comment and vote on the ones that you are interested in.
 * Follow the flow of developing on the [work board](https://jira.springsource.org/secure/RapidBoard.jspa?rapidView=6).
-* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](http://help.github.com/forking/).  If you want to contribute code this way, please familiarize yourself with the process outlined for contributing to Spring projects here: [Contributor Guidelines](https://github.com/SpringSource/spring-integration/wiki/Contributor-Guidelines).
+* Github is for social coding: if you want to write code, we encourage contributions through pull requests from [forks of this repository](https://help.github.com/forking/).  If you want to contribute code this way, please familiarize yourself with the process outlined for contributing to Spring projects here: [Contributor Guidelines](https://github.com/SpringSource/spring-integration/wiki/Contributor-Guidelines).
 
 Before we accept a non-trivial patch or pull request we will need you to sign the [contributor's agreement](https://support.springsource.com/spring_committer_signup).  Signing the contributor's agreement does not grant anyone commit rights to the main repository, but it does mean that we can accept your contributions, and you will get an author credit if we do.  Active contributors might be asked to join the core team, and given the ability to merge pull requests.
 
@@ -53,4 +53,4 @@ Source Metrics are available via Sonar at:
 
 [Spring XD JIRA]: https://jira.springsource.org/browse/XD
 [Apache License]: http://www.apache.org/licenses/LICENSE-2.0
-[Spring Data Book]: http://bit.ly/sd-book 
+[Spring Data Book]: https://bit.ly/sd-book 

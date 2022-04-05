@@ -493,7 +493,7 @@ A Sqoop job can be deployed and launched from Spring XD as a batch job. The Sqoo
 
 NOTE: The current release supports Sqoop 1.4.5
 
-The intention is to eventually support all features of the Sqoop tool. See http://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html[Sqoop User Guide] for full documentation of the Sqoop features.
+The intention is to eventually support all features of the Sqoop tool. See https://sqoop.apache.org/docs/1.4.5/SqoopUserGuide.html[Sqoop User Guide] for full documentation of the Sqoop features.
 
 NOTE: If you access any database other than HSQLDB or Postgres in a job module then the JDBC driver jar for that database needs to be present in the `$XD_HOME/lib` directory.
 

@@ -114,7 +114,7 @@ public class HSQLServerBean implements InitializingBean, DisposableBean {
 				// This Stack Overflow thread indicates that it happens on
 				// Tomcat as well:
 				//
-				// http://stackoverflow.com/questions/16191236/
+				// https://stackoverflow.com/questions/16191236/
 				// tomcat-startup-fails-due-to-java-net-socketexception-invalid-argument-on-mac-o
 				//
 				// This will be fixed in Java 7u60:

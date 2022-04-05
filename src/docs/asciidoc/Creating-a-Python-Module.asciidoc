@@ -49,7 +49,7 @@ Created and deployed new stream 'pytest'
 Python must be installed on the host of any container to which the processor module is deployed.
 ====
 
-You should see the time messages echoed in the Spring XD container log. The shell processor works by binding its message channels to the external process' `stdin` and `stdout`. Behind the scenes, the shell modules use http://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html[java.lang.ProcessBuilder] to connect to the shell process. As you can see, most of `echo.py` is boilerplate code. To make things easier, Spring XD provides a https://github.com/spring-projects/spring-xd/blob/master/spring-xd-python/src/springxd/stream.py[python module] to handle all of the low level I/O.
+You should see the time messages echoed in the Spring XD container log. The shell processor works by binding its message channels to the external process' `stdin` and `stdout`. Behind the scenes, the shell modules use https://docs.oracle.com/javase/7/docs/api/java/lang/ProcessBuilder.html[java.lang.ProcessBuilder] to connect to the shell process. As you can see, most of `echo.py` is boilerplate code. To make things easier, Spring XD provides a https://github.com/spring-projects/spring-xd/blob/master/spring-xd-python/src/springxd/stream.py[python module] to handle all of the low level I/O.
 
 [source, python]
 ----

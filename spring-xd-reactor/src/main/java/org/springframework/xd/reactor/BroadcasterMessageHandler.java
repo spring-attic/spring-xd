@@ -45,7 +45,7 @@ import reactor.rx.Streams;
  * result in 2 messages in the log, no matter how many dispatcher threads are used.
  * <p/>
  * You can modify what thread the outputStream subscriber, which does the send to the output channel,
- * will use by explicitly calling <code>dispatchOn</code> or other switch (http://projectreactor.io/docs/reference/#streams-multithreading)
+ * will use by explicitly calling <code>dispatchOn</code> or other switch (https://projectreactor.io/docs/reference/#streams-multithreading)
  * before returning the outputStream from your processor.
  * <p/>
  * Use {@link org.springframework.xd.reactor.MultipleBroadcasterMessageHandler} for concurrent execution on dispatcher

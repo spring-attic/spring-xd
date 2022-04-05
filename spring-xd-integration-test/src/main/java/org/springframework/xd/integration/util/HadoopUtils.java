@@ -104,7 +104,7 @@ public class HadoopUtils {
 		Assert.hasText(path, "path can not be empty nor null");
 		String result = null;
 		RestTemplate template = new RestTemplate();
-		String streamURL = String.format("http://%s:%s/streamFile%s?nnaddr=%s:%s",
+		String streamURL = String.format("https://%s:%s/streamFile%s?nnaddr=%s:%s",
 				getNameNodeHost(), dataNodePort, path, getNameNodeHost(), getNameNodePort());
 		result = template.getForObject(streamURL, String.class);
 		return result;

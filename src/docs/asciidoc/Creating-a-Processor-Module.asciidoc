@@ -52,9 +52,9 @@ Create the following file as _spring-module.xml_ in the `config` resource direct
   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xmlns:beans="http://www.springframework.org/schema/beans"
   xsi:schemaLocation="http://www.springframework.org/schema/beans
-    http://www.springframework.org/schema/beans/spring-beans.xsd
+    https://www.springframework.org/schema/beans/spring-beans.xsd
     http://www.springframework.org/schema/integration
-    http://www.springframework.org/schema/integration/spring-integration.xsd">
+    https://www.springframework.org/schema/integration/spring-integration.xsd">
   <channel id="input"/>
 
   <transformer input-channel="input" output-channel="output">

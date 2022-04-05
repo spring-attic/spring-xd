@@ -4,7 +4,7 @@
 === Introduction
 MQTT(MQ for telemetry transport) is a machine to machine connectivity protocol. It is a lightweight pub/sub protocol for devices where bandwidth and battery power are at a premium.  This purpose of this document is to show you how to: enable the RabbitMQ MQTT plugin, setup a Spring XD MQTT source and Spring MQTT sink. 
 
-NOTE:  This document assumes that you have a RabbitMQ installed and running.  If you don’t have RabbitMQ available already you can download it from http://www.rabbitmq.com/download.html.   
+NOTE:  This document assumes that you have a RabbitMQ installed and running.  If you don’t have RabbitMQ available already you can download it from https://www.rabbitmq.com/download.html.   
 
 ==== Setting up MQTT on RabbitMQ
 If you are using RabbitMQ 3.3.4 or above then the MQTT plugin is already included with your deployment, however it is inactive.  
@@ -43,7 +43,7 @@ Note: if you do see the [E] next to the rabbitmq_mqtt then your plugin is enable
    d. Restart your RabbitMQ.
    
 ==== Rabbit MQTT Plugin settings
-The MQTT plugin can be can be configured via the rabbitmq.config file and this is covered here: http://www.rabbitmq.com/mqtt.html.  
+The MQTT plugin can be can be configured via the rabbitmq.config file and this is covered here: https://www.rabbitmq.com/mqtt.html.  
 The settings for the MQTT plugin that Spring XD are concerned about are as follows:
 
 1. allow_anonymous  Determines if the user must supply a user name or password.  If true then the plugin will use the default_user and default password enumerated below.  If false the Spring XD source or sink must provide the username and password  Default: true

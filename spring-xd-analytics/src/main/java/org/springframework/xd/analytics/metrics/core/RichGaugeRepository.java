@@ -26,7 +26,7 @@ package org.springframework.xd.analytics.metrics.core;
  * to zero.
  *
  * Supports a "smoothing constant", "alpha" for use in calculating an <a
- * href="http://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm">exponential moving average</a> for the
+ * href="https://www.itl.nist.gov/div898/handbook/pmc/section4/pmc431.htm">exponential moving average</a> for the
  * gauge.
  * The parameter can be changed at any time after the gauge has been created. The mean calculated up to that point will
  * be used to initialize the moving average from that point on.

@@ -68,6 +68,9 @@ public class GPFDistSinkOptionsMetadata {
 
 	private String sqlAfter;
 
+	private boolean header = false;
+
+
 	public int getPort() {
 		return port;
 	}
@@ -257,4 +260,12 @@ public class GPFDistSinkOptionsMetadata {
 		this.sqlAfter = sqlAfter;
 	}
 
+    @ModuleOption("header ")
+    public void setHeader(boolean header){
+        this.header = header;
+    }
+
+    public boolean isHeader(){
+        return this.header;
+    }
 }

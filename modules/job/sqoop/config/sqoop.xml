@@ -5,13 +5,13 @@
        xmlns:batch="http://www.springframework.org/schema/batch"
        xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/hadoop
-		http://www.springframework.org/schema/hadoop/spring-hadoop.xsd
+		https://www.springframework.org/schema/hadoop/spring-hadoop.xsd
 		http://www.springframework.org/schema/batch
-		http://www.springframework.org/schema/batch/spring-batch.xsd
+		https://www.springframework.org/schema/batch/spring-batch.xsd
 		http://www.springframework.org/schema/util
-		http://www.springframework.org/schema/util/spring-util.xsd">
+		https://www.springframework.org/schema/util/spring-util.xsd">
 
 	<batch:job id="sqoopJob">
 		<batch:step id="tasklet">

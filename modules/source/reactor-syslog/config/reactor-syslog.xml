@@ -4,9 +4,9 @@
 			 xmlns:int-reactor="http://www.springframework.org/schema/integration/reactor"
 			 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			 xmlns:beans="http://www.springframework.org/schema/beans"
-			 xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-			 http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-			 http://www.springframework.org/schema/integration/reactor http://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
+			 xsi:schemaLocation="http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+			 http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+			 http://www.springframework.org/schema/integration/reactor https://www.springframework.org/schema/integration/reactor/spring-integration-reactor.xsd">
 
 	<int-reactor:syslog-inbound-channel-adapter id="syslog" port="${port}" channel="output"/>
 

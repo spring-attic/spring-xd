@@ -4,11 +4,11 @@
 	xmlns:task="http://www.springframework.org/schema/task"
 	xmlns:int-redis="http://www.springframework.org/schema/integration/redis"
 	xmlns:int-jdbc="http://www.springframework.org/schema/integration/jdbc"
-	xsi:schemaLocation="http://www.springframework.org/schema/integration/jdbc http://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
-		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd
-		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-		http://www.springframework.org/schema/integration http://www.springframework.org/schema/integration/spring-integration.xsd
-		http://www.springframework.org/schema/integration/redis http://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
+	xsi:schemaLocation="http://www.springframework.org/schema/integration/jdbc https://www.springframework.org/schema/integration/jdbc/spring-integration-jdbc.xsd
+		http://www.springframework.org/schema/task https://www.springframework.org/schema/task/spring-task.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/integration https://www.springframework.org/schema/integration/spring-integration.xsd
+		http://www.springframework.org/schema/integration/redis https://www.springframework.org/schema/integration/redis/spring-integration-redis.xsd">
 
 	<channel id="input" />
 

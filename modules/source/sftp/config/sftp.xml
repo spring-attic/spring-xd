@@ -4,13 +4,13 @@
 	xmlns:int-sftp="http://www.springframework.org/schema/integration/sftp"
 	xmlns:file="http://www.springframework.org/schema/integration/file"
 	xsi:schemaLocation="http://www.springframework.org/schema/beans
-		http://www.springframework.org/schema/beans/spring-beans.xsd
+		https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/integration
-		http://www.springframework.org/schema/integration/spring-integration.xsd
+		https://www.springframework.org/schema/integration/spring-integration.xsd
 		http://www.springframework.org/schema/integration/sftp
-		http://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd
+		https://www.springframework.org/schema/integration/sftp/spring-integration-sftp.xsd
 		http://www.springframework.org/schema/integration/file
-		http://www.springframework.org/schema/integration/file/spring-integration-file.xsd
+		https://www.springframework.org/schema/integration/file/spring-integration-file.xsd
 	">
 
 	<beans:bean id="sftpSessionFactory"

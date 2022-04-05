@@ -3,7 +3,7 @@
 
 === Overview
 
-Spring XD is a unified, distributed, and extensible service for data ingestion, real time analytics, batch processing, and data export. The Spring XD project is an open source http://www.apache.org/licenses/LICENSE-2.0[Apache 2 License] licenced project whose goal is to tackle big data complexity.  Much of the complexity in building real-world big data applications is related to integrating many disparate systems into one cohesive solution across a range of use-cases.
+Spring XD is a unified, distributed, and extensible service for data ingestion, real time analytics, batch processing, and data export. The Spring XD project is an open source https://www.apache.org/licenses/LICENSE-2.0[Apache 2 License] licenced project whose goal is to tackle big data complexity.  Much of the complexity in building real-world big data applications is related to integrating many disparate systems into one cohesive solution across a range of use-cases.
  Common use-cases encountered in creating a comprehensive big data solution are
 
 * High throughput distributed data ingestion from a variety of input sources into big data store such as HDFS or Splunk

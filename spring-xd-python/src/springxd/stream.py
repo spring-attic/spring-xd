@@ -43,9 +43,9 @@ class Processor:
     '''
     def decode(self,data):
         if self.encoder == Encoders.CRLF:
-            data.rstrip("\r\n")
+            data = data.rstrip("\r\n")
         elif self.encoder == Encoders.LF:
-            data.rstrip("\n")
+            data = data.rstrip("\n")
         return data
 
     '''
